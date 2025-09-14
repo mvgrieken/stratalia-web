@@ -55,7 +55,7 @@ async function calculateAdaptiveLearning(request: LearningRequest): Promise<Lear
   let masteryScore = 0.5; // Base score
 
   // Adjust based on correctness
-  if (correct) {
+  if (_correct) {
     masteryScore += 0.3;
   } else {
     masteryScore -= 0.2;
@@ -63,37 +63,37 @@ async function calculateAdaptiveLearning(request: LearningRequest): Promise<Lear
 
   // Adjust based on response time (faster = better)
   const optimalTime = 3000; // 3 seconds
-  const timeScore = Math.max(0, 1 - (response_time - optimalTime) / optimalTime);
+  const timeScore = Math.max(0, 1 - (_response_time - optimalTime) / optimalTime);
   masteryScore += timeScore * 0.2;
 
   // Adjust based on attempts (fewer attempts = better)
-  const attemptScore = Math.max(0, 1 - (attempts - 1) * 0.1);
+  const attemptScore = Math.max(0, 1 - (_attempts - 1) * 0.1);
   masteryScore += attemptScore * 0.1;
 
   // Clamp between 0 and 1
   masteryScore = Math.max(0, Math.min(1, masteryScore));
 
   // Determine next difficulty
-  let nextDifficulty: 'easy' | 'medium' | 'hard' = difficulty;
+  let nextDifficulty: 'easy' | 'medium' | 'hard' = _difficulty;
   
   if (masteryScore >= 0.8) {
     // High mastery - increase difficulty
-    if (difficulty === 'easy') nextDifficulty = 'medium';
-    else if (difficulty === 'medium') nextDifficulty = 'hard';
+    if (_difficulty === 'easy') nextDifficulty = 'medium';
+    else if (_difficulty === 'medium') nextDifficulty = 'hard';
   } else if (masteryScore <= 0.4) {
     // Low mastery - decrease difficulty
-    if (difficulty === 'hard') nextDifficulty = 'medium';
-    else if (difficulty === 'medium') nextDifficulty = 'easy';
+    if (_difficulty === 'hard') nextDifficulty = 'medium';
+    else if (_difficulty === 'medium') nextDifficulty = 'easy';
   }
 
   // Generate recommended words based on learning patterns
-  const recommendedWords = await generateRecommendedWords(masteryScore, difficulty, supabase);
+  const recommendedWords = await generateRecommendedWords(masteryScore, _difficulty, supabase);
 
   // Create learning path
-  const learningPath = generateLearningPath(masteryScore, difficulty);
+  const learningPath = generateLearningPath(masteryScore, _difficulty);
 
   // Calculate next review time (spaced repetition)
-  const nextReviewTime = calculateNextReviewTime(masteryScore, attempts);
+  const nextReviewTime = calculateNextReviewTime(masteryScore, _attempts);
 
   return {
     next_difficulty: nextDifficulty,

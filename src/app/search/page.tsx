@@ -23,27 +23,31 @@ export default function SearchPage() {
   useEffect(() => {
     // Check for speech recognition support
     if (typeof window !== 'undefined') {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       if (SpeechRecognition) {
         setIsSupported(true);
         recognitionRef.current = new SpeechRecognition();
-        recognitionRef.current.continuous = false;
-        recognitionRef.current.interimResults = false;
-        recognitionRef.current.lang = 'nl-NL';
+        if (recognitionRef.current) {
+          recognitionRef.current.continuous = false;
+          recognitionRef.current.interimResults = false;
+          recognitionRef.current.lang = 'nl-NL';
+        }
 
-        recognitionRef.current.onresult = (event) => {
-          const transcript = event.results[0][0].transcript;
-          setSearchQuery(transcript);
-          setIsListening(false);
-        };
+        if (recognitionRef.current) {
+          recognitionRef.current.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            setSearchQuery(transcript);
+            setIsListening(false);
+          };
 
-        recognitionRef.current.onerror = () => {
-          setIsListening(false);
-        };
+          recognitionRef.current.onerror = () => {
+            setIsListening(false);
+          };
 
-        recognitionRef.current.onend = () => {
-          setIsListening(false);
-        };
+          recognitionRef.current.onend = () => {
+            setIsListening(false);
+          };
+        }
       }
 
       // Check for speech synthesis support

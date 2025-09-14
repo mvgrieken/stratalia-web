@@ -41,7 +41,9 @@ interface SpeechRecognitionConstructor {
   new (): SpeechRecognition;
 }
 
-interface _Window {
-  SpeechRecognition: SpeechRecognitionConstructor;
-  webkitSpeechRecognition: SpeechRecognitionConstructor;
+declare global {
+  interface Window {
+    SpeechRecognition: SpeechRecognitionConstructor;
+    webkitSpeechRecognition: SpeechRecognitionConstructor;
+  }
 }
