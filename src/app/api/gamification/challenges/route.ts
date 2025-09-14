@@ -171,8 +171,8 @@ async function generateChallenges(_user_id?: string | null): Promise<ChallengesR
     }).filter(Boolean) as Challenge[] || [];
 
     // Haal user stats op
-    let userStats = {
-      total_challenges_completed: 0,
+    const userStats = {
+      total_challenges_completed: completedChallenges.length,
       total_rewards_earned: 0,
       current_streak: 0
     };
@@ -188,8 +188,6 @@ async function generateChallenges(_user_id?: string | null): Promise<ChallengesR
         userStats.current_streak = userPoints.current_streak;
         userStats.total_rewards_earned = userPoints.total_points;
       }
-
-      userStats.total_challenges_completed = completedChallenges.length;
     }
 
     console.log(`✅ Generated ${activeChallenges.length} active, ${completedChallenges.length} completed, ${upcomingChallenges.length} upcoming challenges`);

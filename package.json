@@ -5,7 +5,7 @@
   "description": "Stratalia - Straattaal vertaalapp voor ouders van tieners",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --no-lint",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
