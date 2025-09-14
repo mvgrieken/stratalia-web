@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
+
+// Create Supabase client directly in API route
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,35 +18,23 @@ export async function GET(request: NextRequest) {
     }
 
     console.log(`🔍 Searching for: "${query}" with limit: ${limit}`);
+    console.log('🔗 Supabase URL:', supabaseUrl);
+    console.log('🔑 Supabase Key (first 20 chars):', supabaseAnonKey.substring(0, 20) + '...');
 
-    // Use direct SQL query for search
-    const { data: words, error } = await supabase
-      .from('words')
-      .select('*')
-      .or(`word.ilike.%${query}%,definition.ilike.%${query}%`)
-      .eq('is_active', true)
-      .limit(limit);
+    // Return mock data for now to test the frontend
+    const mockResults = [
+      {
+        id: '1',
+        word: 'skeer',
+        meaning: 'arm, blut',
+        example: 'Ik ben skeer deze maand',
+        match_type: 'exact',
+        similarity_score: 1.0
+      }
+    ];
 
-    if (error) {
-      console.error('❌ Supabase search error:', error);
-      return NextResponse.json({ 
-        error: 'Database unavailable', 
-        details: error.message 
-      }, { status: 500 });
-    }
-
-    // Transform data to match frontend expectations
-    const results = words?.map((word: any) => ({
-      id: word.id,
-      word: word.word,
-      meaning: word.definition,
-      example: word.example,
-      match_type: 'fuzzy',
-      similarity_score: 0.8
-    })) || [];
-
-    console.log(`✅ Found ${results.length} results for "${query}"`);
-    return NextResponse.json(results);
+    console.log(`✅ Returning ${mockResults.length} mock results for "${query}"`);
+    return NextResponse.json(mockResults);
 
   } catch (error) {
     console.error('💥 Error in search API:', error);
