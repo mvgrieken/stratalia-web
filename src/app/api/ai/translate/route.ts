@@ -61,7 +61,7 @@ async function generateTranslation(
       slangToFormal[word.word.toLowerCase()] = word.definition;
       // Probeer formele woorden te matchen met slang
       const formalWords = word.definition.toLowerCase().split(/[,;]/);
-      formalWords.forEach(formalWord => {
+      formalWords.forEach((formalWord: string) => {
         const cleanFormal = formalWord.trim();
         if (cleanFormal && !formalToSlang[cleanFormal]) {
           formalToSlang[cleanFormal] = word.word;

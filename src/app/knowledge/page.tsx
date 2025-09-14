@@ -29,6 +29,27 @@ export default function KnowledgePage() {
     fetchKnowledgeItems();
   }, []);
 
+  const filterItems = useCallback(() => {
+    let filtered = items;
+
+    if (selectedType !== 'all') {
+      filtered = filtered.filter(item => item.type === selectedType);
+    }
+
+    if (selectedDifficulty !== 'all') {
+      filtered = filtered.filter(item => item.difficulty === selectedDifficulty);
+    }
+
+    if (searchQuery) {
+      filtered = filtered.filter(item => 
+        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.description.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    setFilteredItems(filtered);
+  }, [items, selectedType, selectedDifficulty, searchQuery]);
+
   useEffect(() => {
     filterItems();
   }, [filterItems]);
@@ -127,27 +148,6 @@ export default function KnowledgePage() {
     }
   };
 
-  const filterItems = useCallback(() => {
-    let filtered = items;
-
-    if (selectedType !== 'all') {
-      filtered = filtered.filter(item => item.type === selectedType);
-    }
-
-    if (selectedDifficulty !== 'all') {
-      filtered = filtered.filter(item => item.difficulty === selectedDifficulty);
-    }
-
-    if (searchQuery) {
-      filtered = filtered.filter(item =>
-        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-      );
-    }
-
-    setFilteredItems(filtered);
-  }, [items, selectedType, selectedDifficulty, searchQuery]);
 
   const getTypeIcon = (type: string) => {
     switch (type) {

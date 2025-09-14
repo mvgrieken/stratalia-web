@@ -30,10 +30,6 @@ export default function LeaderboardPage() {
   const [selectedPeriod, setSelectedPeriod] = useState<'daily' | 'weekly' | 'monthly' | 'all_time'>('all_time');
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchLeaderboard();
-  }, [fetchLeaderboard]);
-
   const fetchLeaderboard = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -52,6 +48,10 @@ export default function LeaderboardPage() {
       setLoading(false);
     }
   }, [selectedPeriod]);
+
+  useEffect(() => {
+    fetchLeaderboard();
+  }, [fetchLeaderboard]);
 
   const getRankIcon = (rank: number) => {
     if (rank === 1) return '🥇';
