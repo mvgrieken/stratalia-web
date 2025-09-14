@@ -596,3 +596,31 @@
 2025-09-14T10:10:23.701967Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
 2025-09-14T10:10:23.801993Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("src/lib/browser-fixes.ts"), AnchoredSystemPathBuf("src/app/quiz/page.tsx"), AnchoredSystemPathBuf("src/middleware.ts"), AnchoredSystemPathBuf("test-fixes.js"), AnchoredSystemPathBuf("src/app/layout.tsx")}
 2025-09-14T10:10:23.802030Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-09-14T10:39:06.625521Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("env.example")}
+2025-09-14T10:39:06.625537Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-09-14T10:39:07.025138Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("env.example")}
+2025-09-14T10:39:07.025153Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-09-14T10:39:07.125170Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("env.example")}
+2025-09-14T10:39:07.125185Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-09-14T10:39:17.325061Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("vercel.json")}
+2025-09-14T10:39:17.325083Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-09-14T10:39:45.726184Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("DEPLOYMENT.md")}
+2025-09-14T10:39:45.726199Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-09-14T10:39:46.126423Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("DEPLOYMENT.md")}
+2025-09-14T10:39:46.126437Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-09-14T10:40:19.927366Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("POST_DEPLOYMENT_TESTS.md")}
+2025-09-14T10:40:19.927380Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-09-14T10:40:20.327186Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("POST_DEPLOYMENT_TESTS.md")}
+2025-09-14T10:40:20.327202Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-09-14T10:40:20.441946Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("POST_DEPLOYMENT_TESTS.md")}
+2025-09-14T10:40:20.441971Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-09-14T10:40:52.728613Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("MONITORING.md")}
+2025-09-14T10:40:52.728629Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-09-14T10:40:53.427171Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("MONITORING.md")}
+2025-09-14T10:40:53.427201Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-09-14T10:40:53.527576Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("MONITORING.md")}
+2025-09-14T10:40:53.527594Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-09-14T10:40:53.627590Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("MONITORING.md")}
+2025-09-14T10:40:53.627614Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-09-14T10:41:12.028274Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("DEPLOYMENT.md"), AnchoredSystemPathBuf("vercel.json"), AnchoredSystemPathBuf("MONITORING.md"), AnchoredSystemPathBuf("POST_DEPLOYMENT_TESTS.md"), AnchoredSystemPathBuf("env.example")}
+2025-09-14T10:41:12.028290Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
