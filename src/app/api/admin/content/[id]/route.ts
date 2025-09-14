@@ -4,10 +4,10 @@ import { supabase } from '@/lib/supabase';
 // PUT /api/admin/content/[id] - Update content status (approve/reject)
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     const { status, reviewed_by, notes: _notes } = body;
 
@@ -73,10 +73,10 @@ export async function PUT(
 // DELETE /api/admin/content/[id] - Verwijder content
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     console.log(`🗑️ Deleting content ${id}`);
 
