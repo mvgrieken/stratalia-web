@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-export async function GET(_request: NextRequest) {
+export async function GET() {
   try {
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
     console.log(`📅 Fetching daily word for: ${today}`);

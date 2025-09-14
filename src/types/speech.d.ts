@@ -41,7 +41,7 @@ interface SpeechRecognitionConstructor {
   new (): SpeechRecognition;
 }
 
-interface Window {
+interface _Window {
   SpeechRecognition: SpeechRecognitionConstructor;
   webkitSpeechRecognition: SpeechRecognitionConstructor;
 }

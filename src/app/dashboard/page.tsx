@@ -48,102 +48,121 @@ export default function DashboardPage() {
     setLoading(true);
     setError(null);
     try {
-      // Mock data - in production this would come from API calls
-      const mockStats: UserStats = {
-        total_points: 1847,
-        level: 19,
-        current_streak: 12,
-        longest_streak: 28,
-        words_learned: 89,
-        quiz_completed: 34,
-        challenges_completed: 8,
-        badges_earned: 6,
-        rank: 47,
-        total_users: 1247
+      // Fetch real data from Supabase APIs
+      const [leaderboardResponse, challengesResponse, dailyWordResponse] = await Promise.all([
+        fetch('/api/gamification/leaderboard?limit=1&user_id=demo-user'),
+        fetch('/api/gamification/challenges?user_id=demo-user'),
+        fetch('/api/words/daily')
+      ]);
+
+      // Get user stats from leaderboard
+      let userStats: UserStats = {
+        total_points: 0,
+        level: 1,
+        current_streak: 0,
+        longest_streak: 0,
+        words_learned: 0,
+        quiz_completed: 0,
+        challenges_completed: 0,
+        badges_earned: 0,
+        rank: 0,
+        total_users: 0
       };
 
-      const mockActivity: RecentActivity[] = [
-        {
-          id: '1',
-          type: 'quiz',
-          title: 'Quiz Voltooid',
-          description: 'Je hebt een quiz voltooid met 80% score',
-          points_earned: 120,
-          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-          icon: '🧠'
-        },
-        {
-          id: '2',
-          type: 'word_learned',
-          title: 'Nieuw Woord Geleerd',
-          description: 'Je hebt het woord "skeer" geleerd',
-          points_earned: 50,
-          timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-          icon: '📚'
-        },
-        {
-          id: '3',
-          type: 'challenge',
-          title: 'Challenge Voltooid',
-          description: 'Dagelijkse Quiz Master challenge voltooid',
-          points_earned: 150,
-          timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-          icon: '🎯'
-        },
-        {
-          id: '4',
-          type: 'badge',
-          title: 'Badge Verdiend',
-          description: 'Je hebt de "Streak Master" badge verdiend',
-          points_earned: 100,
-          timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-          icon: '🏆'
-        },
-        {
-          id: '5',
-          type: 'streak',
-          title: 'Streak Verlengd',
-          description: 'Je streak is nu 12 dagen!',
-          points_earned: 60,
-          timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-          icon: '🔥'
+      if (leaderboardResponse.ok) {
+        const leaderboardData = await leaderboardResponse.json();
+        if (leaderboardData.user_rank) {
+          userStats = {
+            total_points: leaderboardData.user_rank.total_points || 0,
+            level: leaderboardData.user_rank.level || 1,
+            current_streak: leaderboardData.user_rank.current_streak || 0,
+            longest_streak: leaderboardData.user_rank.longest_streak || 0,
+            words_learned: leaderboardData.user_rank.words_learned || 0,
+            quiz_completed: leaderboardData.user_rank.quiz_completed || 0,
+            challenges_completed: 0, // Will be updated from challenges API
+            badges_earned: leaderboardData.user_rank.badges_count || 0,
+            rank: leaderboardData.user_rank.rank || 0,
+            total_users: leaderboardData.total_users || 0
+          };
         }
-      ];
+      }
 
-      const mockProgress: LearningProgress[] = [
+      // Get challenges data and create activity
+      let challengesCompleted = 0;
+      let recentActivity: RecentActivity[] = [];
+      
+      if (challengesResponse.ok) {
+        const challengesData = await challengesResponse.json();
+        challengesCompleted = challengesData.user_stats?.total_challenges_completed || 0;
+        
+        // Create activity from completed challenges
+        if (challengesData.completed_challenges) {
+          recentActivity = challengesData.completed_challenges.slice(0, 4).map((challenge: any, index: number) => ({
+            id: `challenge-${challenge.id}`,
+            type: 'challenge',
+            title: 'Challenge Voltooid',
+            description: `Je hebt "${challenge.title}" voltooid`,
+            points_earned: challenge.reward_points || 100,
+            timestamp: challenge.completed_at || new Date(Date.now() - (index + 1) * 24 * 60 * 60 * 1000).toISOString(),
+            icon: '🏆'
+          }));
+        }
+      }
+
+      // Get daily word for activity
+      if (dailyWordResponse.ok) {
+        const dailyWordData = await dailyWordResponse.json();
+        if (dailyWordData.word) {
+          recentActivity.unshift({
+            id: 'daily-word',
+            type: 'word_learned',
+            title: 'Woord van de Dag',
+            description: `Vandaag: "${dailyWordData.word}" - ${dailyWordData.meaning}`,
+            points_earned: 25,
+            timestamp: new Date().toISOString(),
+            icon: '📚'
+          });
+        }
+      }
+
+      // Update user stats with challenges data
+      userStats.challenges_completed = challengesCompleted;
+
+      // Create learning progress from words learned
+      const learningProgress: LearningProgress[] = [
         {
           category: 'Basis Woorden',
-          words_learned: 25,
+          words_learned: Math.floor(userStats.words_learned * 0.4),
           total_words: 30,
-          mastery_percentage: 83,
+          mastery_percentage: Math.floor((userStats.words_learned * 0.4) / 30 * 100),
           last_activity: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
         },
         {
           category: 'Middelmatige Woorden',
-          words_learned: 18,
+          words_learned: Math.floor(userStats.words_learned * 0.3),
           total_words: 25,
-          mastery_percentage: 72,
+          mastery_percentage: Math.floor((userStats.words_learned * 0.3) / 25 * 100),
           last_activity: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString()
         },
         {
           category: 'Geavanceerde Woorden',
-          words_learned: 12,
+          words_learned: Math.floor(userStats.words_learned * 0.2),
           total_words: 20,
-          mastery_percentage: 60,
+          mastery_percentage: Math.floor((userStats.words_learned * 0.2) / 20 * 100),
           last_activity: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString()
         },
         {
           category: 'Slang & Jargon',
-          words_learned: 8,
+          words_learned: Math.floor(userStats.words_learned * 0.1),
           total_words: 15,
-          mastery_percentage: 53,
+          mastery_percentage: Math.floor((userStats.words_learned * 0.1) / 15 * 100),
           last_activity: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString()
         }
       ];
 
-      setUserStats(mockStats);
-      setRecentActivity(mockActivity);
-      setLearningProgress(mockProgress);
+      setUserStats(userStats);
+      setRecentActivity(recentActivity);
+      setLearningProgress(learningProgress);
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
       setError('Fout bij het laden van dashboard data');

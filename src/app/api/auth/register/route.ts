@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 
 interface RegisterRequest {
   email: string;
@@ -44,8 +45,22 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Mock registration - in production this would integrate with Supabase Auth
-    const registrationResult = await mockUserRegistration(body);
+    // Initialize Supabase client
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error('❌ Supabase environment variables are missing!');
+      return NextResponse.json({
+        success: false,
+        message: 'Database configuration missing'
+      }, { status: 500 });
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+    // Real registration with Supabase
+    const registrationResult = await registerUser(body, supabase);
 
     return NextResponse.json(registrationResult);
   } catch (error) {
@@ -57,20 +72,83 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function mockUserRegistration(_userData: RegisterRequest): Promise<RegisterResponse> {
-  // Mock user ID generation
-  const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  
-  // Mock email verification requirement
-  const requiresVerification = true;
-  
-  // Mock successful registration
-  return {
-    success: true,
-    user_id: userId,
-    message: 'Registratie succesvol! Check je email voor verificatie.',
-    requires_verification: requiresVerification
-  };
+async function registerUser(userData: RegisterRequest, supabase: any): Promise<RegisterResponse> {
+  try {
+    // Check if user already exists
+    const { data: existingUser, error: checkError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('email', userData.email)
+      .single();
+
+    if (checkError && checkError.code !== 'PGRST116') {
+      console.error('❌ Error checking existing user:', checkError);
+      return {
+        success: false,
+        message: 'Er is een fout opgetreden bij het controleren van je account.'
+      };
+    }
+
+    if (existingUser) {
+      return {
+        success: false,
+        message: 'Er bestaat al een account met dit email adres.'
+      };
+    }
+
+    // Create new user
+    const { data: newUser, error: insertError } = await supabase
+      .from('users')
+      .insert({
+        name: userData.display_name,
+        email: userData.email,
+        age: userData.age,
+        location: userData.location,
+        interests: userData.interests,
+        learning_goals: userData.learning_goals,
+        created_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error('❌ Error creating user:', insertError);
+      return {
+        success: false,
+        message: 'Er is een fout opgetreden bij het aanmaken van je account.'
+      };
+    }
+
+    // Initialize user points
+    const { error: pointsError } = await supabase
+      .from('user_points')
+      .insert({
+        user_id: newUser.id,
+        total_points: 0,
+        level: 1,
+        current_streak: 0,
+        longest_streak: 0
+      });
+
+    if (pointsError) {
+      console.error('❌ Error creating user points:', pointsError);
+      // Don't fail registration for this, just log it
+    }
+
+    return {
+      success: true,
+      message: 'Registratie succesvol! Welkom bij Stratalia!',
+      user_id: newUser.id,
+      requires_verification: false
+    };
+
+  } catch (error) {
+    console.error('❌ Error in registerUser:', error);
+    return {
+      success: false,
+      message: 'Er is een onverwachte fout opgetreden.'
+    };
+  }
 }
 
 function isValidEmail(email: string): boolean {

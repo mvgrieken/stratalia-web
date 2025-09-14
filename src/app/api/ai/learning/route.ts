@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 
 interface LearningRequest {
   user_id?: string;
@@ -37,7 +38,18 @@ export async function POST(request: NextRequest) {
 }
 
 async function calculateAdaptiveLearning(request: LearningRequest): Promise<LearningResponse> {
-  const { difficulty, response_time, correct, attempts } = request;
+  const { difficulty: _difficulty, response_time: _response_time, correct: _correct, attempts: _attempts } = request;
+
+  // Initialize Supabase client
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('❌ Supabase environment variables are missing!');
+    throw new Error('Database configuration missing');
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
   // Calculate mastery score based on performance
   let masteryScore = 0.5; // Base score
@@ -75,7 +87,7 @@ async function calculateAdaptiveLearning(request: LearningRequest): Promise<Lear
   }
 
   // Generate recommended words based on learning patterns
-  const recommendedWords = generateRecommendedWords(masteryScore, difficulty);
+  const recommendedWords = await generateRecommendedWords(masteryScore, difficulty, supabase);
 
   // Create learning path
   const learningPath = generateLearningPath(masteryScore, difficulty);
@@ -92,22 +104,39 @@ async function calculateAdaptiveLearning(request: LearningRequest): Promise<Lear
   };
 }
 
-function generateRecommendedWords(masteryScore: number, difficulty: string): string[] {
-  // Mock word recommendations based on learning patterns
-  const wordPools = {
-    easy: ['skeer', 'breezy', 'chillen', 'dope', 'swag'],
-    medium: ['flexen', 'lit', 'noob', 'salty', 'savage'],
-    hard: ['yeet', 'cap', 'bet', 'periodt', 'stan']
-  };
+async function generateRecommendedWords(masteryScore: number, difficulty: string, supabase: any): Promise<string[]> {
+  try {
+    // Get real word recommendations from Supabase based on difficulty
+    const { data: words, error } = await supabase
+      .from('words')
+      .select('word')
+      .eq('is_active', true)
+      .limit(10);
 
-  const pool = wordPools[difficulty as keyof typeof wordPools] || wordPools.easy;
-  
-  // Return 3-5 words based on mastery score
-  const count = masteryScore > 0.7 ? 5 : masteryScore > 0.4 ? 4 : 3;
-  
-  return pool
-    .sort(() => 0.5 - Math.random())
-    .slice(0, count);
+    if (error) {
+      console.error('❌ Error fetching recommended words:', error);
+      return [];
+    }
+
+    if (!words || words.length === 0) {
+      return [];
+    }
+
+    // Return words based on difficulty and mastery score
+    const wordList = words.map((w: any) => w.word);
+    
+    // Simple difficulty-based filtering
+    if (difficulty === 'easy') {
+      return wordList.slice(0, 5);
+    } else if (difficulty === 'medium') {
+      return wordList.slice(0, 7);
+    } else {
+      return wordList.slice(0, 10);
+    }
+  } catch (error) {
+    console.error('❌ Error in generateRecommendedWords:', error);
+    return [];
+  }
 }
 
 function generateLearningPath(masteryScore: number, _difficulty: string): string[] {

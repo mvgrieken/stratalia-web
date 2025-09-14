@@ -13,7 +13,7 @@ interface DailyWord {
 
 export default function HomePage() {
   const [dailyWord, setDailyWord] = useState<DailyWord | null>(null);
-  const [_loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchDailyWord();

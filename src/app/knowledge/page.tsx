@@ -56,91 +56,50 @@ export default function KnowledgePage() {
 
   const fetchKnowledgeItems = async () => {
     try {
-      // Mock knowledge base data
-      const mockItems: KnowledgeItem[] = [
+      // Fetch real knowledge base data from Supabase
+      const response = await fetch('/api/content/approved');
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch knowledge items');
+      }
+
+      const contentData = await response.json();
+      
+      // Transform content data to knowledge items
+      const knowledgeItems: KnowledgeItem[] = contentData.map((item: any) => ({
+        id: item.id,
+        type: (item.content_type as 'video' | 'article' | 'podcast' | 'book' | 'music') || 'article',
+        title: item.title,
+        author: item.author || 'Stratalia Community',
+        description: item.description || item.content,
+        url: item.url || '#',
+        year: new Date(item.created_at).getFullYear(),
+        tags: item.tags || ['straattaal', 'leren'],
+        difficulty: item.difficulty || 'intermediate',
+        rating: 4.0, // Default rating
+        views: Math.floor(Math.random() * 1000) + 100 // Simulated views
+      }));
+
+      // Use real data if available, otherwise use default items
+      const defaultItems: KnowledgeItem[] = [
         {
           id: '1',
           type: 'article',
-          title: 'Straattaal in de Nederlandse Media',
-          author: 'Dr. Jan van der Berg',
-          description: 'Een uitgebreide analyse van hoe straattaal wordt gebruikt in Nederlandse films, series en muziek.',
-          url: 'https://example.com/straattaal-media',
-          year: 2023,
-          tags: ['media', 'cultuur', 'taalontwikkeling'],
-          difficulty: 'intermediate',
+          title: 'Welkom bij Stratalia',
+          author: 'Stratalia Team',
+          description: 'Leer meer over Nederlandse straattaal en hoe je het kunt gebruiken.',
+          url: '#',
+          year: 2024,
+          tags: ['introductie', 'straattaal', 'leren'],
+          difficulty: 'beginner',
           rating: 4.5,
-          views: 1250
-        },
-        {
-          id: '2',
-          type: 'video',
-          title: 'Straattaal voor Ouders - Documentaire',
-          author: 'NPO 3',
-          description: 'Een documentaire die ouders helpt om straattaal te begrijpen en de culturele achtergrond ervan.',
-          url: 'https://youtube.com/watch?v=example',
-          duration: '45 min',
-          year: 2023,
-          tags: ['ouders', 'documentaire', 'cultuur'],
-          difficulty: 'beginner',
-          rating: 4.8,
-          views: 8900
-        },
-        {
-          id: '3',
-          type: 'podcast',
-          title: 'Straatpraat Podcast - Aflevering 1',
-          author: 'Straatpraat Team',
-          description: 'De eerste aflevering van onze podcast over straattaal, met interviews en voorbeelden.',
-          url: 'https://spotify.com/straatpraat',
-          duration: '30 min',
-          year: 2024,
-          tags: ['podcast', 'interviews', 'voorbeelden'],
-          difficulty: 'beginner',
-          rating: 4.7,
-          views: 2100
-        },
-        {
-          id: '4',
-          type: 'book',
-          title: 'Straattaal Woordenboek 2024',
-          author: 'Marieke van der Laan',
-          description: 'Het meest complete woordenboek van Nederlandse straattaal, met uitleg en voorbeelden.',
-          url: 'https://bol.com/straattaal-woordenboek',
-          year: 2024,
-          tags: ['woordenboek', 'referentie', 'compleet'],
-          difficulty: 'intermediate',
-          rating: 4.6,
-          views: 3400
-        },
-        {
-          id: '5',
-          type: 'music',
-          title: 'Top 10 Straattaal Hits',
-          author: 'Spotify Playlist',
-          description: 'Een playlist met de populairste Nederlandse nummers die straattaal bevatten.',
-          url: 'https://spotify.com/playlist/straattaal-hits',
-          duration: '45 min',
-          year: 2024,
-          tags: ['muziek', 'playlist', 'populair'],
-          difficulty: 'beginner',
-          rating: 4.4,
-          views: 15600
-        },
-        {
-          id: '6',
-          type: 'article',
-          title: 'De Psychologie achter Straattaal',
-          author: 'Prof. Lisa de Vries',
-          description: 'Wetenschappelijk onderzoek naar waarom jongeren straattaal gebruiken en wat het betekent.',
-          url: 'https://example.com/psychologie-straattaal',
-          year: 2023,
-          tags: ['psychologie', 'onderzoek', 'jongeren'],
-          difficulty: 'advanced',
-          rating: 4.9,
-          views: 2100
+          views: 100
         }
       ];
-      setItems(mockItems);
+
+      const finalItems = knowledgeItems.length > 0 ? knowledgeItems : defaultItems;
+
+      setItems(finalItems);
     } catch (error) {
       console.error('Error fetching knowledge items:', error);
     } finally {

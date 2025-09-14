@@ -55,8 +55,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    // Initialize Supabase client
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error('❌ Supabase environment variables are missing!');
+      return NextResponse.json({
+        error: 'Database configuration missing'
+      }, { status: 500 });
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
     // Handle challenge actions (join, complete, claim reward)
-    const result = await handleChallengeAction(challenge_id, user_id, action);
+    const result = await handleChallengeAction(challenge_id, user_id, action, supabase);
 
     return NextResponse.json(result);
   } catch (error) {
@@ -75,7 +88,16 @@ async function generateChallenges(_user_id?: string | null): Promise<ChallengesR
     
     if (!supabaseUrl || !supabaseAnonKey) {
       console.error('❌ Supabase environment variables are missing!');
-      return [];
+      return {
+        active_challenges: [],
+        completed_challenges: [],
+        upcoming_challenges: [],
+        user_stats: {
+          total_challenges_completed: 0,
+          total_rewards_earned: 0,
+          current_streak: 0
+        }
+      };
     }
 
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -212,7 +234,7 @@ async function generateChallenges(_user_id?: string | null): Promise<ChallengesR
 
   } catch (error) {
     console.error('❌ Error generating challenges:', error);
-    // Fallback to mock data
+    // Return empty challenges instead of mock data
     return {
       active_challenges: [],
       completed_challenges: [],
@@ -226,7 +248,7 @@ async function generateChallenges(_user_id?: string | null): Promise<ChallengesR
   }
 }
 
-async function handleChallengeAction(challenge_id: string, user_id: string, action: string) {
+async function handleChallengeAction(challenge_id: string, user_id: string, action: string, supabase: any) {
   try {
     console.log(`🎯 Handling challenge action: ${action} for user ${user_id}, challenge ${challenge_id}`);
 

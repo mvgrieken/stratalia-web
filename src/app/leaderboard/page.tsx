@@ -185,7 +185,7 @@ export default function LeaderboardPage() {
               <h2 className="text-xl font-semibold text-gray-900">Top {leaderboardData.leaderboard.length}</h2>
             </div>
             <div className="divide-y divide-gray-200">
-              {leaderboardData.leaderboard.map((entry, _index) => (
+              {leaderboardData.leaderboard.map((entry) => (
                 <div
                   key={entry.user_id}
                   className={`p-6 hover:bg-gray-50 transition-colors ${getRankColor(entry.rank)}`}

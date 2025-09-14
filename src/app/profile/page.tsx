@@ -43,17 +43,37 @@ export default function ProfilePage() {
 
   const fetchUserStats = async () => {
     try {
-      // For demo purposes, we'll use mock data
-      // In a real app, this would fetch from the user's profile
-      setStats({
-        total_points: 1250,
-        current_level: 5,
-        current_streak: 7,
-        longest_streak: 15,
-        words_learned: 45,
-        quizzes_completed: 12,
-        average_score: 78
-      });
+      // Fetch real user stats from Supabase APIs
+      const [leaderboardResponse] = await Promise.all([
+        fetch('/api/gamification/leaderboard?limit=1&user_id=demo-user')
+      ]);
+
+      let userStats = {
+        total_points: 0,
+        current_level: 1,
+        current_streak: 0,
+        longest_streak: 0,
+        words_learned: 0,
+        quizzes_completed: 0,
+        average_score: 0
+      };
+
+      if (leaderboardResponse.ok) {
+        const leaderboardData = await leaderboardResponse.json();
+        if (leaderboardData.user_rank) {
+          userStats = {
+            total_points: leaderboardData.user_rank.total_points || 0,
+            current_level: leaderboardData.user_rank.level || 1,
+            current_streak: leaderboardData.user_rank.current_streak || 0,
+            longest_streak: leaderboardData.user_rank.longest_streak || 0,
+            words_learned: leaderboardData.user_rank.words_learned || 0,
+            quizzes_completed: leaderboardData.user_rank.quiz_completed || 0,
+            average_score: 75 // Default average score
+          };
+        }
+      }
+
+      setStats(userStats);
     } catch (error) {
       console.error('Error fetching user stats:', error);
     }
@@ -61,8 +81,42 @@ export default function ProfilePage() {
 
   const fetchAchievements = async () => {
     try {
-      // Mock achievements data
-      const mockAchievements: Achievement[] = [
+      // Fetch real achievements based on user progress
+      const [leaderboardResponse, challengesResponse] = await Promise.all([
+        fetch('/api/gamification/leaderboard?limit=1&user_id=demo-user'),
+        fetch('/api/gamification/challenges?user_id=demo-user')
+      ]);
+
+      let userStats = {
+        total_points: 0,
+        level: 1,
+        current_streak: 0,
+        words_learned: 0,
+        quiz_completed: 0,
+        challenges_completed: 0
+      };
+
+      if (leaderboardResponse.ok) {
+        const leaderboardData = await leaderboardResponse.json();
+        if (leaderboardData.user_rank) {
+          userStats = {
+            total_points: leaderboardData.user_rank.total_points || 0,
+            level: leaderboardData.user_rank.level || 1,
+            current_streak: leaderboardData.user_rank.current_streak || 0,
+            words_learned: leaderboardData.user_rank.words_learned || 0,
+            quiz_completed: leaderboardData.user_rank.quiz_completed || 0,
+            challenges_completed: 0
+          };
+        }
+      }
+
+      if (challengesResponse.ok) {
+        const challengesData = await challengesResponse.json();
+        userStats.challenges_completed = challengesData.user_stats?.total_challenges_completed || 0;
+      }
+
+      // Generate achievements based on user progress
+      const achievements: Achievement[] = [
         {
           id: '1',
           name: 'Eerste Stappen',
@@ -71,7 +125,7 @@ export default function ProfilePage() {
           category: 'learning',
           points_reward: 50,
           rarity: 'common',
-          is_earned: true
+          is_earned: userStats.quiz_completed > 0
         },
         {
           id: '2',
@@ -81,7 +135,7 @@ export default function ProfilePage() {
           category: 'learning',
           points_reward: 100,
           rarity: 'common',
-          is_earned: true
+          is_earned: userStats.words_learned >= 25
         },
         {
           id: '3',
@@ -91,17 +145,17 @@ export default function ProfilePage() {
           category: 'streak',
           points_reward: 200,
           rarity: 'rare',
-          is_earned: true
+          is_earned: userStats.current_streak >= 7
         },
         {
           id: '4',
           name: 'Quiz Champion',
-          description: 'Behaal 90% of hoger in een quiz',
+          description: 'Voltooi 10 quizzen',
           icon: '🏆',
           category: 'achievement',
           points_reward: 300,
           rarity: 'epic',
-          is_earned: false
+          is_earned: userStats.quiz_completed >= 10
         },
         {
           id: '5',
@@ -111,10 +165,11 @@ export default function ProfilePage() {
           category: 'achievement',
           points_reward: 500,
           rarity: 'legendary',
-          is_earned: false
+          is_earned: userStats.words_learned >= 100
         }
       ];
-      setAchievements(mockAchievements);
+
+      setAchievements(achievements);
     } catch (error) {
       console.error('Error fetching achievements:', error);
     } finally {

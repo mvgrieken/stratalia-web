@@ -47,6 +47,21 @@ async function generateLeaderboard(
   try {
     console.log(`🏆 Generating leaderboard for period: ${period}, limit: ${limit}`);
 
+    // Initialize Supabase client
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error('❌ Supabase environment variables are missing!');
+      return {
+        leaderboard: [],
+        total_users: 0,
+        period: period as any
+      };
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
     // Haal user data op uit Supabase
     const { data: users, error: usersError } = await supabase
       .from('users')
@@ -105,7 +120,7 @@ async function generateLeaderboard(
         current_streak: points?.current_streak || 0,
         longest_streak: points?.longest_streak || 0,
         rank: index + 1,
-        badges_count: Math.floor(Math.random() * 5), // Mock badges for now
+        badges_count: 0, // TODO: Implement real badge system
         quiz_completed: quizCount,
         words_learned: wordsLearned
       };
@@ -121,20 +136,39 @@ async function generateLeaderboard(
     if (user_id) {
       userRank = leaderboard.find(user => user.user_id === user_id);
       if (!userRank) {
-        // User not in top results, create a mock entry
-        userRank = {
-          user_id: user_id,
-          display_name: 'Jij',
-          avatar_url: 'https://api.dicebear.com/7.x/initials/svg?seed=You',
-          total_points: Math.floor(Math.random() * 1000) + 50,
-          level: Math.floor(Math.random() * 15) + 1,
-          current_streak: Math.floor(Math.random() * 20),
-          longest_streak: Math.floor(Math.random() * 30) + 5,
-          rank: Math.floor(Math.random() * 200) + 51,
-          badges_count: Math.floor(Math.random() * 5),
-          quiz_completed: Math.floor(Math.random() * 30),
-          words_learned: Math.floor(Math.random() * 50)
-        };
+        // User not in top results, fetch their actual data
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select(`
+            id,
+            name,
+            email,
+            user_points (
+              total_points,
+              level,
+              current_streak,
+              longest_streak
+            )
+          `)
+          .eq('id', user_id)
+          .single();
+
+        if (!userError && userData) {
+          const userPoints = userData.user_points?.[0];
+          userRank = {
+            user_id: user_id,
+            display_name: userData.name || 'Gebruiker',
+            avatar_url: `https://api.dicebear.com/7.x/initials/svg?seed=${userData.name || 'User'}`,
+            total_points: userPoints?.total_points || 0,
+            level: userPoints?.level || 1,
+            current_streak: userPoints?.current_streak || 0,
+            longest_streak: userPoints?.longest_streak || 0,
+            rank: 0, // Will be calculated
+            badges_count: 0,
+            quiz_completed: 0,
+            words_learned: 0
+          };
+        }
       }
     }
 
@@ -154,7 +188,7 @@ async function generateLeaderboard(
 
   } catch (error) {
     console.error('❌ Error generating leaderboard:', error);
-    // Fallback to mock data
+    // Return empty leaderboard instead of mock data
     return {
       leaderboard: [],
       user_rank: undefined,

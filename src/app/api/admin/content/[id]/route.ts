@@ -9,7 +9,7 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { status, reviewed_by, notes: _notes } = body;
+    const { status, reviewed_by, notes } = body;
 
     if (!status || !['approved', 'rejected'].includes(status)) {
       return NextResponse.json({

@@ -72,41 +72,13 @@ export async function GET(request: NextRequest) {
       difficulty: q.difficulty
     })) || [];
 
-    // Als er geen vragen zijn, maak mock vragen
+    // Als er geen vragen zijn, return error
     if (quizQuestions.length === 0) {
-      console.log('⚠️ No quiz questions found, creating mock questions');
-      const mockQuestions: QuizQuestion[] = [
-        {
-          id: 'mock-1',
-          word: 'skeer',
-          question_text: 'Wat betekent "skeer"?',
-          correct_answer: 'arm, weinig geld hebben',
-          wrong_answers: ['rijk', 'cool', 'moe'],
-          difficulty: 'medium'
-        },
-        {
-          id: 'mock-2',
-          word: 'fissa',
-          question_text: 'Wat betekent "fissa"?',
-          correct_answer: 'feest, party',
-          wrong_answers: ['eten', 'slapen', 'werken'],
-          difficulty: 'medium'
-        },
-        {
-          id: 'mock-3',
-          word: 'waggie',
-          question_text: 'Wat betekent "waggie"?',
-          correct_answer: 'auto',
-          wrong_answers: ['fiets', 'bus', 'trein'],
-          difficulty: 'easy'
-        }
-      ];
-      
+      console.log('⚠️ No quiz questions found in database');
       return NextResponse.json({
-        questions: mockQuestions.slice(0, limit),
-        total_questions: mockQuestions.length,
-        difficulty
-      });
+        error: 'No quiz questions available',
+        details: 'No questions found in database for the requested difficulty'
+      }, { status: 404 });
     }
 
     console.log(`✅ Found ${quizQuestions.length} quiz questions`);

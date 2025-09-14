@@ -44,50 +44,73 @@ export default function NotificationsPage() {
 
   const fetchNotifications = async () => {
     try {
-      // Mock notifications data
-      const mockNotifications: Notification[] = [
-        {
-          id: '1',
-          title: 'Woord van de Dag',
-          message: 'Het woord van vandaag is "skeer" - arm, weinig geld hebben',
-          type: 'daily_word',
+      // Fetch real notifications from Supabase APIs
+      const [dailyWordResponse, leaderboardResponse, communityResponse] = await Promise.all([
+        fetch('/api/words/daily'),
+        fetch('/api/gamification/leaderboard?limit=1&user_id=demo-user'),
+        fetch('/api/community/submit')
+      ]);
+
+      const notifications: Notification[] = [];
+
+      // Daily word notification
+      if (dailyWordResponse.ok) {
+        const dailyWordData = await dailyWordResponse.json();
+        if (dailyWordData.word) {
+          notifications.push({
+            id: 'daily-word',
+            title: 'Woord van de Dag',
+            message: `Het woord van vandaag is "${dailyWordData.word}" - ${dailyWordData.meaning}`,
+            type: 'daily_word',
+            read: false,
+            created_at: new Date().toISOString()
+          });
+        }
+      }
+
+      // Streak notification based on user stats
+      if (leaderboardResponse.ok) {
+        const leaderboardData = await leaderboardResponse.json();
+        if (leaderboardData.user_rank) {
+          const streak = leaderboardData.user_rank.current_streak || 0;
+          if (streak > 0) {
+            notifications.push({
+              id: 'streak-alert',
+              title: 'Streak Alert!',
+              message: `Je streak van ${streak} dagen is actief. Houd het vol!`,
+              type: 'streak',
+              read: false,
+              created_at: new Date(Date.now() - 3600000).toISOString()
+            });
+          }
+        }
+      }
+
+      // Community updates notification
+      if (communityResponse.ok) {
+        notifications.push({
+          id: 'community-update',
+          title: 'Community Update',
+          message: 'Er zijn nieuwe woorden toegevoegd aan de community database.',
+          type: 'community',
+          read: false,
+          created_at: new Date(Date.now() - 172800000).toISOString()
+        });
+      }
+
+      // Add some default notifications if none available
+      if (notifications.length === 0) {
+        notifications.push({
+          id: 'welcome',
+          title: 'Welkom bij Stratalia!',
+          message: 'Begin met het leren van Nederlandse straattaal door een quiz te spelen.',
+          type: 'community',
           read: false,
           created_at: new Date().toISOString()
-        },
-        {
-          id: '2',
-          title: 'Streak Alert!',
-          message: 'Je streak van 7 dagen is bijna voorbij. Speel een quiz om je streak te behouden!',
-          type: 'streak',
-          read: false,
-          created_at: new Date(Date.now() - 3600000).toISOString()
-        },
-        {
-          id: '3',
-          title: 'Nieuwe Achievement!',
-          message: 'Gefeliciteerd! Je hebt de "Woordkenner" badge verdiend.',
-          type: 'achievement',
-          read: true,
-          created_at: new Date(Date.now() - 86400000).toISOString()
-        },
-        {
-          id: '4',
-          title: 'Quiz Resultaat',
-          message: 'Geweldig! Je hebt 4/5 vragen correct beantwoord in je laatste quiz.',
-          type: 'quiz',
-          read: true,
-          created_at: new Date(Date.now() - 172800000).toISOString()
-        },
-        {
-          id: '5',
-          title: 'Community Update',
-          message: 'Je ingediende woord "flexen" is goedgekeurd! Je ontvangt 50 punten.',
-          type: 'community',
-          read: true,
-          created_at: new Date(Date.now() - 259200000).toISOString()
-        }
-      ];
-      setNotifications(mockNotifications);
+        });
+      }
+
+      setNotifications(notifications);
     } catch (error) {
       console.error('Error fetching notifications:', error);
     } finally {

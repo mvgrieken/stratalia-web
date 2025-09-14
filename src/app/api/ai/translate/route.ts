@@ -56,34 +56,62 @@ async function generateTranslation(
   try {
     console.log(`🔄 Translating: "${text}" (${direction})`);
 
-    // Mock translation data for common words
-    const mockTranslations: Record<string, { formal: string, slang: string, explanation: string }> = {
-      'skeer': { 
-        formal: 'arm, blut', 
-        slang: 'skeer', 
-        explanation: 'Skeer betekent arm of blut zijn, vaak gebruikt door jongeren.' 
-      },
-      'chillen': { 
-        formal: 'ontspannen, relaxen', 
-        slang: 'chillen', 
-        explanation: 'Chillen betekent ontspannen of relaxen, overgenomen uit het Engels.' 
-      },
-      'breezy': { 
-        formal: 'koel, relaxed', 
-        slang: 'breezy', 
-        explanation: 'Breezy betekent koel of relaxed, vaak gebruikt in de context van muziek.' 
-      },
-      'dope': { 
-        formal: 'cool, geweldig', 
-        slang: 'dope', 
-        explanation: 'Dope betekent cool of geweldig, overgenomen uit het Engels.' 
-      },
-      'swag': { 
-        formal: 'stijl, uitstraling', 
-        slang: 'swag', 
-        explanation: 'Swag verwijst naar iemands stijl of uitstraling.' 
-      }
-    };
+    if (!supabase) {
+      throw new Error('Supabase client not provided');
+    }
+
+    // Get words from Supabase database
+    const { data: words, error: wordsError } = await supabase
+      .from('words')
+      .select(`
+        id,
+        word,
+        meaning,
+        example,
+        word_variants (
+          id,
+          variant,
+          meaning,
+          example
+        )
+      `);
+
+    if (wordsError) {
+      console.error('❌ Error fetching words:', wordsError);
+      throw new Error('Failed to fetch words from database');
+    }
+
+    // Create translation lookup from database
+    const translationLookup: Record<string, { formal: string, slang: string, explanation: string }> = {};
+    
+    if (words) {
+      words.forEach((word: any) => {
+        const slangWord = word.word.toLowerCase();
+        const formalMeaning = word.meaning;
+        const explanation = `"${word.word}" betekent ${formalMeaning}${word.example ? `. Voorbeeld: ${word.example}` : ''}`;
+        
+        translationLookup[slangWord] = {
+          formal: formalMeaning,
+          slang: slangWord,
+          explanation: explanation
+        };
+
+        // Add variants
+        if (word.word_variants) {
+          word.word_variants.forEach((variant: any) => {
+            const variantSlang = variant.variant.toLowerCase();
+            const variantFormal = variant.meaning;
+            const variantExplanation = `"${variant.variant}" betekent ${variantFormal}${variant.example ? `. Voorbeeld: ${variant.example}` : ''}`;
+            
+            translationLookup[variantSlang] = {
+              formal: variantFormal,
+              slang: variantSlang,
+              explanation: variantExplanation
+            };
+          });
+        }
+      });
+    }
 
     const wordsToTranslate = text.toLowerCase().split(' ');
     let translation = text;
@@ -96,7 +124,7 @@ async function generateTranslation(
       // Translate formal Dutch to slang
       const translatedWords = wordsToTranslate.map(word => {
         const cleanWord = word.replace(/[.,!?]/g, '');
-        const found = Object.entries(mockTranslations).find(([_, data]) => 
+        const found = Object.entries(translationLookup).find(([, data]) => 
           data.formal.toLowerCase().includes(cleanWord)
         );
         return found ? found[0] : word;
@@ -108,7 +136,7 @@ async function generateTranslation(
       // Translate slang to formal Dutch
       const translatedWords = wordsToTranslate.map(word => {
         const cleanWord = word.replace(/[.,!?]/g, '');
-        const found = mockTranslations[cleanWord];
+        const found = translationLookup[cleanWord];
         return found ? found.formal : word;
       });
       translation = translatedWords.join(' ');
@@ -120,8 +148,8 @@ async function generateTranslation(
     const recognizedWords = wordsToTranslate.filter(word => {
       const cleanWord = word.replace(/[.,!?]/g, '');
       return direction === 'to_slang' 
-        ? Object.values(mockTranslations).some(data => data.formal.toLowerCase().includes(cleanWord))
-        : mockTranslations[cleanWord];
+        ? Object.values(translationLookup).some(data => data.formal.toLowerCase().includes(cleanWord))
+        : translationLookup[cleanWord];
     });
 
     if (recognizedWords.length > 0) {
@@ -136,8 +164,8 @@ async function generateTranslation(
 
     // Add specific explanation for recognized words
     const firstWord = wordsToTranslate[0]?.replace(/[.,!?]/g, '');
-    if (firstWord && mockTranslations[firstWord]) {
-      explanation = mockTranslations[firstWord].explanation;
+    if (firstWord && translationLookup[firstWord]) {
+      explanation = translationLookup[firstWord].explanation;
     }
 
     console.log(`✅ Translation completed with confidence: ${confidence}`);

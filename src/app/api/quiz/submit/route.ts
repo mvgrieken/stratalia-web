@@ -6,6 +6,19 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { score, total_questions, time_taken, difficulty = 'medium' } = body;
 
+    // Initialize Supabase client
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error('❌ Supabase environment variables are missing!');
+      return NextResponse.json({
+        error: 'Database configuration missing'
+      }, { status: 500 });
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
     // For now, we'll save without user authentication
     // In a real app, you'd get the user ID from the session
     const { data, error } = await supabase
