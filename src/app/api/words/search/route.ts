@@ -1,48 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-// Mock data for demonstration
-const mockWords = [
-  {
-    id: '1',
-    word: 'skeer',
-    meaning: 'arm, weinig geld hebben',
-    example: 'Ik ben echt skeer deze maand.',
-    match_type: 'exact',
-    similarity_score: 1.0
-  },
-  {
-    id: '2',
-    word: 'breezy',
-    meaning: 'cool, relaxed',
-    example: 'Die nieuwe sneakers zijn echt breezy.',
-    match_type: 'exact',
-    similarity_score: 1.0
-  },
-  {
-    id: '3',
-    word: 'chillen',
-    meaning: 'ontspannen, relaxen',
-    example: 'Laten we gewoon chillen vandaag.',
-    match_type: 'exact',
-    similarity_score: 1.0
-  },
-  {
-    id: '4',
-    word: 'flexen',
-    meaning: 'opscheppen, pronken',
-    example: 'Hij flexte met zijn nieuwe auto.',
-    match_type: 'exact',
-    similarity_score: 1.0
-  },
-  {
-    id: '5',
-    word: 'dope',
-    meaning: 'geweldig, cool',
-    example: 'Die beat is echt dope!',
-    match_type: 'exact',
-    similarity_score: 1.0
-  }
-];
+import { supabase } from '@/lib/supabase';
 
 export async function GET(request: NextRequest) {
   try {
@@ -54,17 +11,42 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Query parameter is required' }, { status: 400 });
     }
 
-    // Simple mock search - filter words that contain the query
-    const results = mockWords
-      .filter(word => 
-        word.word.toLowerCase().includes(query.toLowerCase()) ||
-        word.meaning.toLowerCase().includes(query.toLowerCase())
-      )
-      .slice(0, limit);
+    console.log(`🔍 Searching for: "${query}" with limit: ${limit}`);
 
+    // Use direct SQL query for search
+    const { data: words, error } = await supabase
+      .from('words')
+      .select('*')
+      .or(`word.ilike.%${query}%,definition.ilike.%${query}%`)
+      .eq('is_active', true)
+      .limit(limit);
+
+    if (error) {
+      console.error('❌ Supabase search error:', error);
+      return NextResponse.json({ 
+        error: 'Database unavailable', 
+        details: error.message 
+      }, { status: 500 });
+    }
+
+    // Transform data to match frontend expectations
+    const results = words?.map((word: any) => ({
+      id: word.id,
+      word: word.word,
+      meaning: word.definition,
+      example: word.example,
+      match_type: 'fuzzy',
+      similarity_score: 0.8
+    })) || [];
+
+    console.log(`✅ Found ${results.length} results for "${query}"`);
     return NextResponse.json(results);
+
   } catch (error) {
-    console.error('Error in search API:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('💥 Error in search API:', error);
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 interface WordSearchResult {
   id: string;
@@ -15,6 +15,59 @@ export default function SearchPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<WordSearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [isSupported, setIsSupported] = useState(false);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const synthRef = useRef<SpeechSynthesis | null>(null);
+
+  useEffect(() => {
+    // Check for speech recognition support
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        setIsSupported(true);
+        recognitionRef.current = new SpeechRecognition();
+        recognitionRef.current.continuous = false;
+        recognitionRef.current.interimResults = false;
+        recognitionRef.current.lang = 'nl-NL';
+
+        recognitionRef.current.onresult = (event) => {
+          const transcript = event.results[0][0].transcript;
+          setSearchQuery(transcript);
+          setIsListening(false);
+        };
+
+        recognitionRef.current.onerror = () => {
+          setIsListening(false);
+        };
+
+        recognitionRef.current.onend = () => {
+          setIsListening(false);
+        };
+      }
+
+      // Check for speech synthesis support
+      if ('speechSynthesis' in window) {
+        synthRef.current = window.speechSynthesis;
+      }
+    }
+  }, []);
+
+  const startListening = () => {
+    if (recognitionRef.current && !isListening) {
+      setIsListening(true);
+      recognitionRef.current.start();
+    }
+  };
+
+  const speakWord = (word: string) => {
+    if (synthRef.current) {
+      const utterance = new SpeechSynthesisUtterance(word);
+      utterance.lang = 'nl-NL';
+      utterance.rate = 0.8;
+      synthRef.current.speak(utterance);
+    }
+  };
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
@@ -41,14 +94,30 @@ export default function SearchPage() {
         
         <div className="mb-8">
           <div className="flex gap-4 mb-4">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              placeholder="Zoek een woord..."
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <div className="flex-1 relative">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                placeholder="Zoek een woord..."
+                className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              {isSupported && (
+                <button
+                  onClick={startListening}
+                  disabled={isListening}
+                  className={`absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded-full ${
+                    isListening 
+                      ? 'bg-red-500 text-white animate-pulse' 
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                  title="Spraak invoer"
+                >
+                  {isListening ? '🎤' : '🎤'}
+                </button>
+              )}
+            </div>
             <button
               onClick={handleSearch}
               disabled={isLoading}
@@ -57,6 +126,11 @@ export default function SearchPage() {
               {isLoading ? "Zoeken..." : "Zoeken"}
             </button>
           </div>
+          {isListening && (
+            <div className="text-center text-blue-600 mb-4">
+              <div className="animate-pulse">🎤 Luisteren... Spreek nu je zoekterm uit</div>
+            </div>
+          )}
         </div>
 
         {searchResults.length > 0 ? (
@@ -85,6 +159,24 @@ export default function SearchPage() {
                   <div className="bg-gray-50 rounded-md p-3">
                     <p className="text-sm text-gray-600 mb-1">Voorbeeld:</p>
                     <p className="text-gray-800 italic">"{result.example}"</p>
+                  </div>
+                  
+                  {/* Audio Playback */}
+                  <div className="mt-3 flex items-center gap-2">
+                    <button
+                      onClick={() => speakWord(result.word)}
+                      className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm"
+                      title="Uitspraak afspelen"
+                    >
+                      🔊 {result.word}
+                    </button>
+                    <button
+                      onClick={() => speakWord(result.meaning)}
+                      className="flex items-center gap-2 text-gray-600 hover:text-gray-700 text-sm"
+                      title="Betekenis uitspreken"
+                    >
+                      🔊 Betekenis
+                    </button>
                   </div>
                   
                   {result.similarity_score && (

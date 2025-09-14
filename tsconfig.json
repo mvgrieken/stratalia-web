@@ -24,6 +24,6 @@
     },
     "types": []
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/__tests__/**/*"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/__tests__/**/*", "src/types/**/*"],
   "exclude": ["node_modules"]
 }
