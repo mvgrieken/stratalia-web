@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
 async function generateTranslation(
   text: string, 
   direction: 'to_slang' | 'to_formal', 
-  context?: string
+  _context?: string
 ): Promise<TranslationResponse> {
   try {
     console.log(`🔄 Translating: "${text}" (${direction})`);

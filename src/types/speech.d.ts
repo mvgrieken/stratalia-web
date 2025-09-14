@@ -16,14 +16,14 @@ interface SpeechRecognitionEvent extends Event {
 
 interface SpeechRecognitionResultList {
   readonly length: number;
-  item(index: number): SpeechRecognitionResult;
-  [index: number]: SpeechRecognitionResult;
+  item(_index: number): SpeechRecognitionResult;
+  [_index: number]: SpeechRecognitionResult;
 }
 
 interface SpeechRecognitionResult {
   readonly length: number;
-  item(index: number): SpeechRecognitionAlternative;
-  [index: number]: SpeechRecognitionAlternative;
+  item(_index: number): SpeechRecognitionAlternative;
+  [_index: number]: SpeechRecognitionAlternative;
   isFinal: boolean;
 }
 

@@ -65,15 +65,15 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function generateChallenges(user_id?: string | null): Promise<ChallengesResponse> {
+async function generateChallenges(_user_id?: string | null): Promise<ChallengesResponse> {
   try {
-    console.log(`🎯 Generating challenges for user: ${user_id}`);
+    console.log(`🎯 Generating challenges for user: ${_user_id}`);
 
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
-    const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
-    const nextMonth = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+    const _tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
+    const _nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const _nextMonth = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
 
     // Haal challenges op uit Supabase
     const { data: challenges, error: challengesError } = await supabase
@@ -89,11 +89,11 @@ async function generateChallenges(user_id?: string | null): Promise<ChallengesRe
 
     // Haal user progress op als user_id is opgegeven
     let userProgress = null;
-    if (user_id) {
+    if (_user_id) {
       const { data: progress, error: progressError } = await supabase
         .from('user_challenges')
         .select('*')
-        .eq('user_id', user_id);
+        .eq('user_id', _user_id);
 
       if (progressError) {
         console.error('❌ Error fetching user progress:', progressError);
@@ -177,11 +177,11 @@ async function generateChallenges(user_id?: string | null): Promise<ChallengesRe
       current_streak: 0
     };
 
-    if (user_id) {
+    if (_user_id) {
       const { data: userPoints, error: pointsError } = await supabase
         .from('user_points')
         .select('total_points, current_streak')
-        .eq('user_id', user_id)
+        .eq('user_id', _user_id)
         .single();
 
       if (!pointsError && userPoints) {
@@ -222,9 +222,9 @@ async function handleChallengeAction(challenge_id: string, user_id: string, acti
     console.log(`🎯 Handling challenge action: ${action} for user ${user_id}, challenge ${challenge_id}`);
 
     switch (action) {
-      case 'join':
+      case 'join': {
         // Voeg user toe aan challenge
-        const { data: joinResult, error: joinError } = await supabase
+        const { error: joinError } = await supabase
           .from('user_challenges')
           .insert({
             user_id,
@@ -240,10 +240,11 @@ async function handleChallengeAction(challenge_id: string, user_id: string, acti
         }
 
         return { message: 'Challenge joined successfully', challenge_id, user_id };
+      }
 
-      case 'complete':
+      case 'complete': {
         // Markeer challenge als voltooid
-        const { data: completeResult, error: completeError } = await supabase
+        const { error: completeError } = await supabase
           .from('user_challenges')
           .update({
             is_completed: true,
@@ -292,6 +293,7 @@ async function handleChallengeAction(challenge_id: string, user_id: string, acti
           challenge_id, 
           user_id 
         };
+      }
 
       case 'claim_reward':
         // Reward is al toegekend bij completion

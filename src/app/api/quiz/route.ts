@@ -10,7 +10,7 @@ interface QuizQuestion {
   difficulty: string;
 }
 
-interface QuizResponse {
+interface _QuizResponse {
   questions: QuizQuestion[];
   total_questions: number;
   difficulty: string;

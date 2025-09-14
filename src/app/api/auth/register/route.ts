@@ -20,7 +20,7 @@ interface RegisterResponse {
 export async function POST(request: NextRequest) {
   try {
     const body: RegisterRequest = await request.json();
-    const { email, password, display_name, age, location, interests, learning_goals } = body;
+    const { email, password, display_name, age: _age, location: _location, interests: _interests, learning_goals: _learning_goals } = body;
 
     // Validation
     if (!email || !password || !display_name) {
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function mockUserRegistration(userData: RegisterRequest): Promise<RegisterResponse> {
+async function mockUserRegistration(_userData: RegisterRequest): Promise<RegisterResponse> {
   // Mock user ID generation
   const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 
 interface LeaderboardEntry {
   user_id: string;
@@ -31,9 +32,9 @@ export default function LeaderboardPage() {
 
   useEffect(() => {
     fetchLeaderboard();
-  }, [selectedPeriod]);
+  }, [fetchLeaderboard]);
 
-  const fetchLeaderboard = async () => {
+  const fetchLeaderboard = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -50,7 +51,7 @@ export default function LeaderboardPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedPeriod]);
 
   const getRankIcon = (rank: number) => {
     if (rank === 1) return '🥇';
@@ -142,9 +143,11 @@ export default function LeaderboardPage() {
               <h2 className="text-xl font-semibold mb-4">Jouw Positie</h2>
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <img
-                    src={leaderboardData.user_rank.avatar_url}
+                  <Image
+                    src={leaderboardData.user_rank.avatar_url || '/default-avatar.png'}
                     alt="Avatar"
+                    width={48}
+                    height={48}
                     className="w-12 h-12 rounded-full border-2 border-white"
                   />
                   <div>
@@ -182,7 +185,7 @@ export default function LeaderboardPage() {
               <h2 className="text-xl font-semibold text-gray-900">Top {leaderboardData.leaderboard.length}</h2>
             </div>
             <div className="divide-y divide-gray-200">
-              {leaderboardData.leaderboard.map((entry, index) => (
+              {leaderboardData.leaderboard.map((entry, _index) => (
                 <div
                   key={entry.user_id}
                   className={`p-6 hover:bg-gray-50 transition-colors ${getRankColor(entry.rank)}`}
@@ -194,9 +197,11 @@ export default function LeaderboardPage() {
                           {getRankIcon(entry.rank)}
                         </span>
                       </div>
-                      <img
-                        src={entry.avatar_url}
+                      <Image
+                        src={entry.avatar_url || '/default-avatar.png'}
                         alt={entry.display_name}
+                        width={48}
+                        height={48}
                         className="w-12 h-12 rounded-full border-2 border-gray-200"
                       />
                       <div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 interface KnowledgeItem {
   id: string;
@@ -31,7 +31,7 @@ export default function KnowledgePage() {
 
   useEffect(() => {
     filterItems();
-  }, [items, selectedType, selectedDifficulty, searchQuery]);
+  }, [filterItems]);
 
   const fetchKnowledgeItems = async () => {
     try {
@@ -127,7 +127,7 @@ export default function KnowledgePage() {
     }
   };
 
-  const filterItems = () => {
+  const filterItems = useCallback(() => {
     let filtered = items;
 
     if (selectedType !== 'all') {
@@ -147,7 +147,7 @@ export default function KnowledgePage() {
     }
 
     setFilteredItems(filtered);
-  };
+  }, [items, selectedType, selectedDifficulty, searchQuery]);
 
   const getTypeIcon = (type: string) => {
     switch (type) {
