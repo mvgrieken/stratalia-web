@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 
 interface Challenge {
   id: string;
@@ -68,6 +68,17 @@ export async function POST(request: NextRequest) {
 async function generateChallenges(_user_id?: string | null): Promise<ChallengesResponse> {
   try {
     console.log(`🎯 Generating challenges for user: ${_user_id}`);
+
+    // Initialize Supabase client
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error('❌ Supabase environment variables are missing!');
+      return [];
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
