@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-// Create Supabase client directly in API route
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
 interface TranslationRequest {
   text: string;
   direction: 'to_slang' | 'to_formal';
@@ -30,8 +24,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Text and direction are required' }, { status: 400 });
     }
 
+    // Initialize Supabase client
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error('❌ Supabase environment variables are missing!');
+      return NextResponse.json({
+        error: 'Database configuration missing'
+      }, { status: 500 });
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
     // Use Supabase data for translation
-    const translation = await generateTranslation(text, direction, context);
+    const translation = await generateTranslation(text, direction, context, supabase);
 
     return NextResponse.json(translation);
   } catch (error) {
@@ -43,7 +50,8 @@ export async function POST(request: NextRequest) {
 async function generateTranslation(
   text: string, 
   direction: 'to_slang' | 'to_formal', 
-  _context?: string
+  _context?: string,
+  supabase?: any
 ): Promise<TranslationResponse> {
   try {
     console.log(`🔄 Translating: "${text}" (${direction})`);
