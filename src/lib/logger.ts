@@ -1,118 +1,80 @@
 /**
- * Production-safe logging utility
- * Automatically disables console.log in production builds
+ * Centralized logging service
+ * Replaces console.log statements with structured logging
  */
 
-const isProduction = process.env.NODE_ENV === 'production';
-
-interface LogLevel {
-  ERROR: 'error';
-  WARN: 'warn';
-  INFO: 'info';
-  DEBUG: 'debug';
+export enum LogLevel {
+  DEBUG = 0,
+  INFO = 1,
+  WARN = 2,
+  ERROR = 3,
 }
 
-const LOG_LEVELS: LogLevel = {
-  ERROR: 'error',
-  WARN: 'warn',
-  INFO: 'info',
-  DEBUG: 'debug',
-} as const;
-
-type LogLevelType = LogLevel[keyof LogLevel];
+interface LogEntry {
+  level: LogLevel;
+  message: string;
+  timestamp: string;
+  context?: Record<string, any>;
+  error?: Error;
+}
 
 class Logger {
-  private shouldLog(level: LogLevelType): boolean {
-    if (isProduction) {
-      // In production, only log errors and warnings
-      return level === 'error' || level === 'warn';
-    }
-    // In development, log everything
-    return true;
+  private level: LogLevel;
+  private isDevelopment: boolean;
+
+  constructor() {
+    this.level = process.env.NODE_ENV === 'development' ? LogLevel.DEBUG : LogLevel.INFO;
+    this.isDevelopment = process.env.NODE_ENV === 'development';
   }
 
-  private formatMessage(level: LogLevelType, message: string, data?: any): string {
-    const timestamp = new Date().toISOString();
-    const prefix = `[${timestamp}] [${level.toUpperCase()}] [STRATALIA]`;
-    
-    if (data) {
-      return `${prefix} ${message} ${JSON.stringify(data)}`;
-    }
-    return `${prefix} ${message}`;
-  }
+  private log(level: LogLevel, message: string, context?: Record<string, any>, error?: Error) {
+    if (level < this.level) return;
 
-  error(message: string, data?: any): void {
-    if (this.shouldLog('error')) {
-      console.error(this.formatMessage('error', message, data));
-    }
-  }
+    const entry: LogEntry = {
+      level,
+      message,
+      timestamp: new Date().toISOString(),
+      context,
+      error,
+    };
 
-  warn(message: string, data?: any): void {
-    if (this.shouldLog('warn')) {
-      console.warn(this.formatMessage('warn', message, data));
-    }
-  }
-
-  info(message: string, data?: any): void {
-    if (this.shouldLog('info')) {
-      console.log(this.formatMessage('info', message, data));
-    }
-  }
-
-  debug(message: string, data?: any): void {
-    if (this.shouldLog('debug')) {
-      console.log(this.formatMessage('debug', message, data));
-    }
-  }
-
-  // API-specific logging methods
-  apiRequest(method: string, endpoint: string, data?: any): void {
-    this.info(`API ${method} ${endpoint}`, data);
-  }
-
-  apiResponse(endpoint: string, status: number, duration?: number): void {
-    const message = `API Response ${endpoint} - ${status}`;
-    const data = duration ? { duration: `${duration}ms` } : undefined;
-    
-    if (status >= 400) {
-      this.error(message, data);
-    } else if (status >= 300) {
-      this.warn(message, data);
+    // In development, use console with colors
+    if (this.isDevelopment) {
+      const colors = {
+        [LogLevel.DEBUG]: '\x1b[36m', // Cyan
+        [LogLevel.INFO]: '\x1b[32m',  // Green
+        [LogLevel.WARN]: '\x1b[33m',  // Yellow
+        [LogLevel.ERROR]: '\x1b[31m', // Red
+      };
+      const reset = '\x1b[0m';
+      const levelNames = ['DEBUG', 'INFO', 'WARN', 'ERROR'];
+      
+      console.log(
+        `${colors[level]}${levelNames[level]}${reset} [${entry.timestamp}] ${message}`,
+        context ? context : '',
+        error ? error : ''
+      );
     } else {
-      this.info(message, data);
+      // In production, use structured logging
+      console.log(JSON.stringify(entry));
     }
   }
 
-  // Database-specific logging methods
-  dbQuery(table: string, operation: string, duration?: number): void {
-    const message = `DB ${operation} on ${table}`;
-    const data = duration ? { duration: `${duration}ms` } : undefined;
-    this.debug(message, data);
+  debug(message: string, context?: Record<string, any>) {
+    this.log(LogLevel.DEBUG, message, context);
   }
 
-  dbError(table: string, operation: string, error: any): void {
-    this.error(`DB ${operation} failed on ${table}`, { error: error.message || error });
+  info(message: string, context?: Record<string, any>) {
+    this.log(LogLevel.INFO, message, context);
   }
 
-  // Security logging
-  security(event: string, data?: any): void {
-    this.warn(`SECURITY: ${event}`, data);
+  warn(message: string, context?: Record<string, any>) {
+    this.log(LogLevel.WARN, message, context);
   }
 
-  // Performance logging
-  performance(operation: string, duration: number, data?: any): void {
-    const message = `PERF: ${operation} took ${duration}ms`;
-    if (duration > 1000) {
-      this.warn(message, data);
-    } else {
-      this.debug(message, data);
-    }
+  error(message: string, error?: Error, context?: Record<string, any>) {
+    this.log(LogLevel.ERROR, message, context, error);
   }
 }
 
-// Export singleton instance
 export const logger = new Logger();
-
-// Export types for TypeScript
-export type { LogLevelType };
-export { LOG_LEVELS };
