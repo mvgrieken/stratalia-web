@@ -4,6 +4,10 @@
  * 
  * This module provides comprehensive fixes for browser API issues
  * that can cause runtime errors in production.
+ * 
+ * ROOT CAUSE: Third-party libraries (like Supabase Auth credentials-library.js)
+ * call MutationObserver.observe with null targets when document.querySelector
+ * returns null for missing DOM elements.
  */
 
 // Fix MutationObserver error - STRUCTURAL FIX
@@ -20,7 +24,7 @@ if (typeof window !== 'undefined') {
     MutationObserver.prototype.observe = function(target: Node, options?: MutationObserverInit) {
       // Comprehensive target validation
       if (!target) {
-        console.warn('MutationObserver.observe called with null/undefined target');
+        console.warn('MutationObserver.observe called with null/undefined target - skipping');
         return;
       }
       
@@ -66,6 +70,17 @@ if (typeof window !== 'undefined') {
     } catch (error) {
       console.error('document.querySelector failed:', error, 'Selector:', selectors);
       return null;
+    }
+  };
+  
+  // Additional safety: Override document.querySelectorAll to prevent errors
+  const originalQuerySelectorAll = document.querySelectorAll;
+  document.querySelectorAll = function(selectors: string) {
+    try {
+      return originalQuerySelectorAll.call(this, selectors);
+    } catch (error) {
+      console.error('document.querySelectorAll failed:', error, 'Selector:', selectors);
+      return document.createDocumentFragment().querySelectorAll(selectors); // Empty NodeList
     }
   };
 }

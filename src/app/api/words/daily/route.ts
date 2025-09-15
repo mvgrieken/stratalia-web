@@ -57,6 +57,15 @@ export async function GET() {
           details: randomError.message 
         }, { status: 500 });
       }
+      
+      // Defensive check for random word data
+      if (!randomWord) {
+        logger.error('No random word found in database');
+        return NextResponse.json({
+          error: 'No words available',
+          details: 'Database contains no active words'
+        }, { status: 404 });
+      }
 
       // Note: We don't insert new daily words as anon user doesn't have INSERT permissions
       // The daily word selection is handled by the system/admin
@@ -81,6 +90,16 @@ export async function GET() {
 
     // Return the existing daily word
     const word = dailyWord.words;
+    
+    // Defensive check for word data
+    if (!word) {
+      logger.error('Daily word found but words relation is null');
+      return NextResponse.json({
+        error: 'Daily word data incomplete',
+        details: 'Word relation is missing'
+      }, { status: 500 });
+    }
+    
     const duration = Date.now() - startTime;
     logger.performance('daily-word-existing', duration);
     logger.info(`Found existing daily word: ${word.word}`);

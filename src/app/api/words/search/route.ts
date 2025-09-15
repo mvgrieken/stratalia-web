@@ -39,19 +39,28 @@ export async function GET(request: NextRequest) {
       logger.dbError('words', 'SELECT', wordsError);
       return NextResponse.json({
         error: 'Database search failed',
-        details: wordsError.message
+        details: wordsError.message,
+        code: wordsError.code || 'UNKNOWN_ERROR'
       }, { status: 500 });
     }
 
-    // Format results
-    const results = words?.map(word => ({
-      id: word.id,
-      word: word.word,
-      meaning: word.definition,
-      example: word.example,
-      match_type: word.word.toLowerCase() === query.toLowerCase() ? 'exact' : 'partial',
-      similarity_score: word.word.toLowerCase() === query.toLowerCase() ? 1.0 : 0.8
-    })) || [];
+    // Format results with defensive checks
+    const results = words?.map(word => {
+      // Defensive check for word data
+      if (!word || !word.word) {
+        logger.warn('Invalid word data found:', word);
+        return null;
+      }
+      
+      return {
+        id: word.id,
+        word: word.word,
+        meaning: word.definition || '',
+        example: word.example || '',
+        match_type: word.word.toLowerCase() === query.toLowerCase() ? 'exact' : 'partial',
+        similarity_score: word.word.toLowerCase() === query.toLowerCase() ? 1.0 : 0.8
+      };
+    }).filter(Boolean) || [];
 
     const duration = Date.now() - startTime;
     logger.performance('search-words', duration);

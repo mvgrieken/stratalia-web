@@ -229,6 +229,25 @@ ORDER BY tablename, policyname;
 
 -- This query should return NO results if security is properly configured
 
+-- Test queries to verify anon access works
+-- Run these as anon user to verify SELECT permissions:
+
+-- Test 1: Words table access
+-- SELECT COUNT(*) FROM words WHERE is_active = true;
+-- Expected: Should return count of active words
+
+-- Test 2: Word of the day access  
+-- SELECT COUNT(*) FROM word_of_the_day;
+-- Expected: Should return count of daily words
+
+-- Test 3: Content updates access
+-- SELECT COUNT(*) FROM content_updates WHERE status = 'approved';
+-- Expected: Should return count of approved content
+
+-- Test 4: Verify anon cannot INSERT (should fail)
+-- INSERT INTO words (word, definition, example, is_active) VALUES ('test', 'test', 'test', true);
+-- Expected: Should fail with permission denied error
+
 -- ==============================================
 -- END OF SECURE RLS POLICIES
 -- ==============================================
