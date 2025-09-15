@@ -93,10 +93,17 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     const duration = Date.now() - startTime;
     logger.performance('search-error', duration);
-    logger.error('Error in search API', error);
+    logger.error('❌ [SEARCH-API] Unexpected error in search API:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      duration: `${duration}ms`,
+      query: searchParams.get('query'),
+      limit: searchParams.get('limit')
+    });
     return NextResponse.json({ 
       error: 'Internal server error',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      details: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
     }, { status: 500 });
   }
 }

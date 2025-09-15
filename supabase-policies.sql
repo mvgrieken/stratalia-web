@@ -235,25 +235,29 @@ ORDER BY tablename, policyname;
 
 -- Test 1: Words table access (should work)
 -- SELECT COUNT(*) FROM words WHERE is_active = true;
--- Expected: Should return count of active words (currently 256)
+-- Expected: Should return count of active words (currently 257)
 
--- Test 2: Word of the day access (should work)
+-- Test 2: Word variants access (should work)
+-- SELECT COUNT(*) FROM word_variants;
+-- Expected: Should return count of word variants (currently 13)
+
+-- Test 3: Word of the day access (should work)
 -- SELECT COUNT(*) FROM word_of_the_day;
 -- Expected: Should return count of daily words (currently 0)
 
--- Test 3: Content updates access (should work)
+-- Test 4: Content updates access (should work)
 -- SELECT COUNT(*) FROM content_updates WHERE status = 'approved';
 -- Expected: Should return count of approved content (currently 1)
 
--- Test 4: Verify anon cannot INSERT (should fail)
+-- Test 5: Verify anon cannot INSERT (should fail)
 -- INSERT INTO words (word, definition, example, is_active) VALUES ('test', 'test', 'test', true);
 -- Expected: Should fail with "new row violates row-level security policy" error
 
--- Test 5: Verify anon cannot UPDATE (should fail)
+-- Test 6: Verify anon cannot UPDATE (should fail)
 -- UPDATE words SET definition = 'updated' WHERE id = 1;
 -- Expected: Should fail with "new row violates row-level security policy" error
 
--- Test 6: Verify anon cannot DELETE (should fail)
+-- Test 7: Verify anon cannot DELETE (should fail)
 -- DELETE FROM words WHERE id = 1;
 -- Expected: Should fail with "new row violates row-level security policy" error
 

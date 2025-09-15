@@ -139,10 +139,15 @@ export async function GET() {
   } catch (error) {
     const duration = Date.now() - startTime;
     logger.performance('daily-word-error', duration);
-    logger.error('Error in daily word API', error);
+    logger.error('❌ [DAILY-API] Unexpected error in daily word API:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      duration: `${duration}ms`
+    });
     return NextResponse.json({ 
       error: 'Internal server error',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      details: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
     }, { status: 500 });
   }
 }
