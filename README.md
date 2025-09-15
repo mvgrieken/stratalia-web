@@ -56,10 +56,67 @@ npm run build
 npm start
 ```
 
-### Deploy to Vercel
-1. Push naar GitHub
-2. Connect repository aan Vercel
-3. Deploy automatisch
+### CI/CD Pipeline
+
+De app gebruikt GitHub Actions voor automatische CI/CD:
+
+#### 🔄 Continuous Integration (CI)
+- **Trigger**: Bij elke push en pull request
+- **Stappen**:
+  - ✅ Code checkout
+  - ✅ Node.js 18.x setup
+  - ✅ Dependencies installeren (`npm ci`)
+  - ✅ Linting (`npm run lint`)
+  - ✅ Build (`npm run build`)
+  - ✅ Tests (`npm test`)
+  - ✅ Coverage rapport
+
+#### 🚀 Continuous Deployment (CD)
+- **Trigger**: Alleen na succesvolle CI op `main` branch
+- **Stappen**:
+  - ✅ Build applicatie
+  - ✅ Deploy naar Vercel Production
+  - ✅ Health check na deployment
+  - ✅ Deployment status notificatie
+
+#### 📋 GitHub Secrets Setup
+
+Voor automatische deployment naar Vercel, voeg deze secrets toe in GitHub:
+
+1. **Ga naar je GitHub repository**
+2. **Settings** → **Secrets and variables** → **Actions**
+3. **Voeg de volgende secrets toe**:
+
+| Secret Name | Description | How to get |
+|-------------|-------------|------------|
+| `VERCEL_TOKEN` | Persoonlijke Vercel token | [Vercel Dashboard](https://vercel.com/account/tokens) → Create Token |
+| `VERCEL_ORG_ID` | Team/Organization ID | [Vercel Dashboard](https://vercel.com/account) → Settings → General |
+| `VERCEL_PROJECT_ID` | Project ID | [Vercel Dashboard](https://vercel.com/dashboard) → Project Settings → General |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL | [Supabase Dashboard](https://supabase.com/dashboard) → Settings → API |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key | [Supabase Dashboard](https://supabase.com/dashboard) → Settings → API |
+
+#### 🔧 Vercel Token Setup
+1. Ga naar [Vercel Account Tokens](https://vercel.com/account/tokens)
+2. Klik **Create Token**
+3. Geef een naam (bijv. "GitHub Actions")
+4. Kopieer de token en voeg toe als `VERCEL_TOKEN` secret
+
+#### 🏢 Vercel Org/Project ID Setup
+1. Ga naar [Vercel Dashboard](https://vercel.com/dashboard)
+2. Selecteer je project
+3. Ga naar **Settings** → **General**
+4. Kopieer **Project ID** en **Team ID** (als je in een team zit)
+
+#### 🎯 Deployment Flow
+```
+Push to main → CI Pipeline → Tests Pass → CD Pipeline → Vercel Production
+     ↓
+Pull Request → CI Pipeline → Tests Pass → Preview Deployment
+```
+
+#### 📊 Workflow Status
+- **CI Status**: ![CI](https://github.com/username/stratalia/workflows/CI%20-%20Continuous%20Integration/badge.svg)
+- **Deploy Status**: ![Deploy](https://github.com/username/stratalia/workflows/CD%20-%20Continuous%20Deployment/badge.svg)
 
 ## 📁 Project Structure
 

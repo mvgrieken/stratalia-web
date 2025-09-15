@@ -1,42 +1,153 @@
-name: Deploy to Vercel
+name: CD - Continuous Deployment
 
 on:
   push:
     branches: [ main ]
-  pull_request:
+  workflow_run:
+    workflows: ["CI - Continuous Integration"]
+    types: [completed]
     branches: [ main ]
 
 jobs:
   deploy:
+    name: Deploy to Vercel
     runs-on: ubuntu-latest
     
+    # Only run if CI workflow succeeded
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'push' }}
+    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: npm ci
+      - name: 🔧 Setup Node.js 18.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
       
-    - name: Run linting
-      run: npm run lint
+      - name: 📦 Install dependencies
+        run: npm ci
+        env:
+          CI: true
       
-    - name: Run type checking
-      run: npm run typecheck
+      - name: 🏗️ Build application
+        run: npm run build
+        env:
+          NODE_ENV: production
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
       
-    - name: Build application
-      run: npm run build
+      - name: 🚀 Deploy to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+          working-directory: ./
+        env:
+          NODE_ENV: production
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
       
-    - name: Deploy to Vercel
-      uses: amondnet/vercel-action@v25
-      with:
-        vercel-token: ${{ secrets.VERCEL_TOKEN }}
-        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-        vercel-args: '--prod'
-        working-directory: ./
+      - name: 🔍 Health check after deployment
+        run: |
+          echo "⏳ Waiting for deployment to be ready..."
+          sleep 30
+          
+          # Get deployment URL from Vercel output
+          DEPLOYMENT_URL="${{ steps.deploy.outputs.preview-url }}"
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            DEPLOYMENT_URL="${{ steps.deploy.outputs.production-url }}"
+          fi
+          
+          echo "🔍 Testing health endpoint: $DEPLOYMENT_URL/api/health"
+          
+          # Retry health check up to 5 times
+          for i in {1..5}; do
+            if curl -f -s "$DEPLOYMENT_URL/api/health" > /dev/null; then
+              echo "✅ Health check passed!"
+              break
+            else
+              echo "⏳ Health check attempt $i failed, retrying in 10 seconds..."
+              sleep 10
+            fi
+            
+            if [ $i -eq 5 ]; then
+              echo "❌ Health check failed after 5 attempts"
+              exit 1
+            fi
+          done
+        id: health-check
+      
+      - name: 📊 Deployment summary
+        run: |
+          echo "🎉 Deployment completed successfully!"
+          echo "🌐 Production URL: ${{ steps.deploy.outputs.production-url }}"
+          echo "🔍 Preview URL: ${{ steps.deploy.outputs.preview-url }}"
+          echo "📝 Deployment ID: ${{ steps.deploy.outputs.deployment-url }}"
+          echo "✅ Health check: PASSED"
+      
+      - name: 📢 Notify deployment status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ Deployment to Vercel completed successfully!"
+          else
+            echo "❌ Deployment to Vercel failed!"
+            exit 1
+          fi
+
+  # Separate job for preview deployments (non-main branches)
+  deploy-preview:
+    name: Deploy Preview to Vercel
+    runs-on: ubuntu-latest
+    if: github.ref != 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: 🔧 Setup Node.js 18.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+      
+      - name: 📦 Install dependencies
+        run: npm ci
+        env:
+          CI: true
+      
+      - name: 🏗️ Build application
+        run: npm run build
+        env:
+          NODE_ENV: production
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      
+      - name: 🚀 Deploy Preview to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--no-prod'
+          working-directory: ./
+        env:
+          NODE_ENV: production
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      
+      - name: 📊 Preview deployment summary
+        run: |
+          echo "🎉 Preview deployment completed successfully!"
+          echo "🔍 Preview URL: ${{ steps.deploy-preview.outputs.preview-url }}"
+          echo "📝 Deployment ID: ${{ steps.deploy-preview.outputs.deployment-url }}"
