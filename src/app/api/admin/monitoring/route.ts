@@ -34,31 +34,35 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
     const sinceDate = since ? new Date(since) : undefined;
 
     switch (type) {
-      case 'stats':
+      case 'stats': {
         const stats = monitoringService.getStats();
         return createSuccessResponse(stats);
+      }
 
-      case 'metrics':
+      case 'metrics': {
         const metrics = monitoringService.getMetrics({ 
           name: name || undefined, 
           since: sinceDate 
         });
         return createSuccessResponse({ metrics, count: metrics.length });
+      }
 
-      case 'errors':
+      case 'errors': {
         const errors = monitoringService.getErrors({ 
           since: sinceDate, 
           userId: userId || undefined 
         });
         return createSuccessResponse({ errors, count: errors.length });
+      }
 
-      case 'userActions':
+      case 'userActions': {
         const userActions = monitoringService.getUserActions({ 
           action: action || undefined, 
           userId: userId || undefined, 
           since: sinceDate 
         });
         return createSuccessResponse({ userActions, count: userActions.length });
+      }
 
       default:
         throw new AppError(

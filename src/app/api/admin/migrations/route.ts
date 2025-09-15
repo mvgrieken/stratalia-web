@@ -27,14 +27,15 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
 
   try {
     switch (action) {
-      case 'run':
+      case 'run': {
         await migrationService.runMigrations(migrations);
         return createSuccessResponse({
           message: 'Migrations executed successfully',
           executedCount: migrations.length
         });
+      }
 
-      case 'status':
+      case 'status': {
         const executedMigrations = await migrationService.getExecutedMigrations();
         const pendingMigrations = migrations.filter(m => !executedMigrations.includes(m.id));
         
@@ -45,6 +46,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
           executedMigrations,
           pendingMigrations: pendingMigrations.map(m => ({ id: m.id, name: m.name }))
         });
+      }
 
       default:
         throw new AppError(

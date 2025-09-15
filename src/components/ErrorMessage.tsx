@@ -6,7 +6,7 @@ interface ErrorMessageProps {
   variant?: 'error' | 'warning' | 'info';
 }
 
-export default function ErrorMessage({ 
+export function ErrorMessage({ 
   title = 'Er is een fout opgetreden',
   message, 
   onRetry, 
@@ -69,3 +69,5 @@ export default function ErrorMessage({
     </div>
   );
 }
+
+export default ErrorMessage;

@@ -191,21 +191,21 @@ export class GamificationHandlers {
   /**
    * Handle quiz completion
    */
-  static async handleQuizCompleted(event: QuizCompletedEvent): Promise<void> {
+  static async handleQuizCompleted(_event: QuizCompletedEvent): Promise<void> {
     logger.info('Processing quiz completion', { 
-      userId: event.userId, 
-      score: event.data.score,
-      percentage: event.data.percentage 
+      userId: _event.userId, 
+      score: _event.data.score,
+      percentage: _event.data.percentage 
     });
 
     // Calculate points based on performance
     const basePoints = 10;
-    const bonusPoints = Math.floor(event.data.percentage / 10) * 5;
-    const timeBonus = event.data.timeTaken < 60 ? 5 : 0;
+    const bonusPoints = Math.floor(_event.data.percentage / 10) * 5;
+    const timeBonus = _event.data.timeTaken < 60 ? 5 : 0;
     const totalPoints = basePoints + bonusPoints + timeBonus;
 
     // Emit points earned event
-    await eventBus.emit(createEvent.levelUp(event.userId, {
+    await eventBus.emit(createEvent.levelUp(_event.userId, {
       newLevel: 1, // This would be calculated based on total points
       previousLevel: 1,
       pointsEarned: totalPoints,
@@ -215,7 +215,7 @@ export class GamificationHandlers {
     // Update user streak if this is a daily quiz
     // This would integrate with a user service
     logger.info('Quiz completion processed', { 
-      userId: event.userId, 
+      userId: _event.userId, 
       pointsEarned: totalPoints 
     });
   }
@@ -223,10 +223,10 @@ export class GamificationHandlers {
   /**
    * Handle word learning
    */
-  static async handleWordLearned(event: WordLearnedEvent): Promise<void> {
+  static async handleWordLearned(_event: WordLearnedEvent): Promise<void> {
     logger.info('Processing word learned', { 
-      userId: event.userId, 
-      word: event.data.word 
+      userId: _event.userId, 
+      word: _event.data.word 
     });
 
     // Award points for learning a new word
@@ -234,8 +234,8 @@ export class GamificationHandlers {
     
     // This would integrate with a user service to update points
     logger.info('Word learned processed', { 
-      userId: event.userId, 
-      word: event.data.word,
+      userId: _event.userId, 
+      word: _event.data.word,
       pointsEarned: points 
     });
   }
@@ -243,17 +243,17 @@ export class GamificationHandlers {
   /**
    * Handle streak updates
    */
-  static async handleStreakUpdated(event: StreakEvent): Promise<void> {
+  static async handleStreakUpdated(_event: StreakEvent): Promise<void> {
     logger.info('Processing streak update', { 
-      userId: event.userId, 
-      currentStreak: event.data.currentStreak 
+      userId: _event.userId, 
+      currentStreak: _event.data.currentStreak 
     });
 
     // Award bonus points for streaks
-    if (event.data.action === 'increased' && event.data.currentStreak % 7 === 0) {
-      const streakBonus = Math.floor(event.data.currentStreak / 7) * 10;
+    if (_event.data.action === 'increased' && _event.data.currentStreak % 7 === 0) {
+      const streakBonus = Math.floor(_event.data.currentStreak / 7) * 10;
       
-      await eventBus.emit(createEvent.levelUp(event.userId, {
+      await eventBus.emit(createEvent.levelUp(_event.userId, {
         newLevel: 1,
         previousLevel: 1,
         pointsEarned: streakBonus,
@@ -262,18 +262,18 @@ export class GamificationHandlers {
     }
 
     logger.info('Streak update processed', { 
-      userId: event.userId, 
-      streak: event.data.currentStreak 
+      userId: _event.userId, 
+      streak: _event.data.currentStreak 
     });
   }
 
   /**
    * Handle level up
    */
-  static async handleLevelUp(event: LevelUpEvent): Promise<void> {
+  static async handleLevelUp(_event: LevelUpEvent): Promise<void> {
     logger.info('Processing level up', { 
-      userId: event.userId, 
-      newLevel: event.data.newLevel 
+      userId: _event.userId, 
+      newLevel: _event.data.newLevel 
     });
 
     // This would integrate with notification service
@@ -281,8 +281,8 @@ export class GamificationHandlers {
     // Unlock new features/achievements
     
     logger.info('Level up processed', { 
-      userId: event.userId, 
-      newLevel: event.data.newLevel 
+      userId: _event.userId, 
+      newLevel: _event.data.newLevel 
     });
   }
 }

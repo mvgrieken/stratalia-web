@@ -192,9 +192,9 @@ export function withErrorHandling<T extends any[], R>(
   fn: (...args: T) => Promise<R>,
   requestId?: string
 ) {
-  return async (...args: T): Promise<R> => {
+  return async (..._args: T): Promise<R> => {
     try {
-      return await fn(...args);
+      return await fn(..._args);
     } catch (error) {
       if (error instanceof AppError) {
         throw error;

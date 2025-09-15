@@ -35,8 +35,8 @@ const SearchResults = memo<SearchResultsProps>(({
   onWordClick,
   onRetry
 }) => {
-  const handleWordClick = useCallback((word: string) => {
-    onWordClick?.(word);
+  const handleWordClick = useCallback((_word: string) => {
+    onWordClick?.(_word);
   }, [onWordClick]);
 
   const handleRetry = useCallback(() => {

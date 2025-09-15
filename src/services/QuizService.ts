@@ -3,10 +3,9 @@
  */
 
 import { getSupabaseClient } from '@/lib/supabase-client';
-import { mockDataService, MockQuizQuestion } from '@/lib/mock-data';
+import { mockDataService } from '@/lib/mock-data';
 import { cacheService } from '@/lib/cache';
 import { logger } from '@/lib/logger';
-import { AppError, Errors } from '@/lib/errors';
 
 export interface QuizQuestion {
   id: string;

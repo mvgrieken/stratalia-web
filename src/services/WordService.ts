@@ -3,8 +3,8 @@
  * Implements Service Layer pattern for better separation of concerns
  */
 
-import { wordRepository, WordEntity } from '@/repositories/WordRepository';
-import { mockDataService, MockWord } from '@/lib/mock-data';
+import { wordRepository } from '@/repositories/WordRepository';
+import { mockDataService } from '@/lib/mock-data';
 import { cacheService } from '@/lib/cache';
 import { logger } from '@/lib/logger';
 import { AppError, Errors } from '@/lib/errors';

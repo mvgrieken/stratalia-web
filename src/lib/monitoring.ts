@@ -228,9 +228,9 @@ export const performance = {
     metricName: string,
     tags?: Record<string, string>
   ): T {
-    return ((...args: any[]) => {
+    return ((..._args: any[]) => {
       const start = performance.now();
-      const result = fn(...args);
+      const result = fn(..._args);
       
       if (result instanceof Promise) {
         return result.finally(() => {

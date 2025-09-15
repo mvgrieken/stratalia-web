@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import QuizQuestion from '@/components/Quiz/QuizQuestion';
+import QuizQuestionComponent from '@/components/Quiz/QuizQuestion';
 import QuizResult from '@/components/Quiz/QuizResult';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { ErrorMessage } from '@/components/ErrorMessage';
@@ -22,7 +22,7 @@ export default function QuizPage() {
   const [score, setScore] = useState(0);
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [startTime, setStartTime] = useState<number>(0);
-  const [questionStartTime, setQuestionStartTime] = useState<number>(0);
+  const [, setQuestionStartTime] = useState<number>(0);
 
   // Use the new useApi hook for data fetching
   const { data: quizData, loading, error, execute: fetchQuiz } = useApi<{questions: QuizQuestion[]}>(
@@ -182,7 +182,7 @@ export default function QuizPage() {
       </div>
 
       {/* Question Component */}
-      <QuizQuestion
+      <QuizQuestionComponent
         question={currentQuestionData}
         selectedAnswer={selectedAnswer}
         onAnswerSelect={handleAnswerSelect}

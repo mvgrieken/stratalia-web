@@ -178,13 +178,12 @@ async function generateTranslation(
   }
 
   // Fallback to hardcoded translation
-  return generateFallbackTranslation(text, direction, _context);
+  return generateFallbackTranslation(text, direction);
 }
 
 async function generateFallbackTranslation(
   text: string, 
-  direction: 'to_slang' | 'to_formal', 
-  _context?: string
+  direction: 'to_slang' | 'to_formal'
 ): Promise<TranslationResponse> {
   const wordsToTranslate = text.toLowerCase().split(' ');
   let translation = text;
