@@ -1,180 +1,195 @@
-# Stratalia Web App
+# Stratalia - Nederlandse Straattaal Leerplatform
 
-Een moderne straattaal vertaalapp voor ouders van tieners, gebouwd met Next.js 15, React 18, en Tailwind CSS.
+Een modern, interactief platform voor het leren van Nederlandse straattaal met AI-vertaling, quizzen, en community features.
 
 ## 🚀 Features
 
-- **Vertalen**: Zoek en vertaal straattaalwoorden naar het Nederlands
-- **Woord van de Dag**: Dagelijks een nieuw straattaalwoord leren
-- **Quiz**: Test je kennis met interactieve quizzen
-- **Kennisbank**: Verdiep je kennis met artikelen en bronnen
-- **Community**: Draag bij aan de straattaal database
-- **Responsive Design**: Werkt perfect op desktop, tablet en mobiel
+- **AI Vertalen**: Bidirectionele vertaling tussen straattaal en standaard Nederlands
+- **Zoeken**: Uitgebreide zoekfunctie met fallback data
+- **Woord van de Dag**: Dagelijks nieuwe straattaalwoorden
+- **Quiz**: Interactieve quizzen met verschillende moeilijkheidsgraden
+- **Kennisbank**: Artikelen, video's, podcasts en infographics
+- **Leaderboard**: Gamification met punten, levels en streaks
+- **Community**: Gebruikers kunnen woorden toevoegen en beoordelen
+- **Mobile App**: Expo/React Native app met offline functionaliteit
 
 ## 🛠️ Tech Stack
 
 - **Frontend**: Next.js 15, React 18, TypeScript
+- **Backend**: Next.js API Routes, Supabase
+- **Database**: PostgreSQL (via Supabase)
+- **Authentication**: Supabase Auth
+- **Mobile**: Expo, React Native
 - **Styling**: Tailwind CSS
-- **Database**: Supabase (PostgreSQL)
 - **Deployment**: Vercel
-- **Testing**: Vitest, Playwright
 
-## 📦 Installation
+## 📋 Vereisten
+
+- Node.js 18+ 
+- npm of yarn
+- Supabase account (optioneel - app werkt met fallback data)
+
+## 🚀 Installatie
 
 1. **Clone de repository**
    ```bash
-   git clone <repository-url>
-   cd stratalia
+   git clone https://github.com/mvgrieken/stratalia-web.git
+   cd stratalia-web
    ```
 
-2. **Install dependencies**
+2. **Installeer dependencies**
    ```bash
    npm install
    ```
 
-3. **Setup environment variables**
+3. **Configureer environment variabelen**
    ```bash
-   cp .env.example .env.local
+   cp env.example .env.local
    ```
    
    Vul de volgende variabelen in:
-   - `NEXT_PUBLIC_SUPABASE_URL`: Je Supabase project URL
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Je Supabase anon key
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+   NEXT_PUBLIC_APP_URL=https://stratalia.nl
+   NEXT_PUBLIC_APP_NAME=Stratalia
+   NODE_ENV=development
+   ```
 
-4. **Start development server**
+4. **Start de development server**
    ```bash
    npm run dev
    ```
 
-   Open [http://localhost:3000](http://localhost:3000) in je browser.
+5. **Open de app**
+   Navigeer naar [http://localhost:3000](http://localhost:3000)
 
-## 🏗️ Build & Deploy
+## 📱 Mobile App
 
-### Local Build
+De mobile app bevindt zich in de `stratalia-mobile` directory:
+
 ```bash
-npm run build
-npm start
-```
-
-### CI/CD Pipeline
-
-De app gebruikt GitHub Actions voor automatische CI/CD:
-
-#### 🔄 Continuous Integration (CI)
-- **Trigger**: Bij elke push en pull request
-- **Stappen**:
-  - ✅ Code checkout
-  - ✅ Node.js 18.x setup
-  - ✅ Dependencies installeren (`npm ci`)
-  - ✅ Linting (`npm run lint`)
-  - ✅ Build (`npm run build`)
-  - ✅ Tests (`npm test`)
-  - ✅ Coverage rapport
-
-#### 🚀 Continuous Deployment (CD)
-- **Trigger**: Alleen na succesvolle CI op `main` branch
-- **Stappen**:
-  - ✅ Build applicatie
-  - ✅ Deploy naar Vercel Production
-  - ✅ Health check na deployment
-  - ✅ Deployment status notificatie
-
-#### 📋 GitHub Secrets Setup
-
-Voor automatische deployment naar Vercel, voeg deze secrets toe in GitHub:
-
-1. **Ga naar je GitHub repository**
-2. **Settings** → **Secrets and variables** → **Actions**
-3. **Voeg de volgende secrets toe**:
-
-| Secret Name | Description | How to get |
-|-------------|-------------|------------|
-| `VERCEL_TOKEN` | Persoonlijke Vercel token | [Vercel Dashboard](https://vercel.com/account/tokens) → Create Token |
-| `VERCEL_ORG_ID` | Team/Organization ID | [Vercel Dashboard](https://vercel.com/account) → Settings → General |
-| `VERCEL_PROJECT_ID` | Project ID | [Vercel Dashboard](https://vercel.com/dashboard) → Project Settings → General |
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL | [Supabase Dashboard](https://supabase.com/dashboard) → Settings → API |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key | [Supabase Dashboard](https://supabase.com/dashboard) → Settings → API |
-
-#### 🔧 Vercel Token Setup
-1. Ga naar [Vercel Account Tokens](https://vercel.com/account/tokens)
-2. Klik **Create Token**
-3. Geef een naam (bijv. "GitHub Actions")
-4. Kopieer de token en voeg toe als `VERCEL_TOKEN` secret
-
-#### 🏢 Vercel Org/Project ID Setup
-1. Ga naar [Vercel Dashboard](https://vercel.com/dashboard)
-2. Selecteer je project
-3. Ga naar **Settings** → **General**
-4. Kopieer **Project ID** en **Team ID** (als je in een team zit)
-
-#### 🎯 Deployment Flow
-```
-Push to main → CI Pipeline → Tests Pass → CD Pipeline → Vercel Production
-     ↓
-Pull Request → CI Pipeline → Tests Pass → Preview Deployment
-```
-
-#### 📊 Workflow Status
-- **CI Status**: ![CI](https://github.com/username/stratalia/workflows/CI%20-%20Continuous%20Integration/badge.svg)
-- **Deploy Status**: ![Deploy](https://github.com/username/stratalia/workflows/CD%20-%20Continuous%20Deployment/badge.svg)
-
-## 📁 Project Structure
-
-```
-├── src/
-│   ├── app/                 # Next.js App Router
-│   │   ├── api/            # API routes
-│   │   ├── search/         # Search page
-│   │   ├── globals.css     # Global styles
-│   │   ├── layout.tsx      # Root layout
-│   │   └── page.tsx        # Homepage
-│   └── __tests__/          # Test setup
-├── tests/                   # E2E tests
-├── public/                  # Static assets
-├── next.config.js          # Next.js config
-├── tailwind.config.js      # Tailwind config
-└── package.json            # Dependencies
+cd stratalia-mobile
+npm install
+npx expo start
 ```
 
 ## 🧪 Testing
 
+### Unit Tests
 ```bash
-# Unit tests
 npm run test
+```
 
-# E2E tests
-npm run test:e2e
-
-# Type checking
-npm run typecheck
-
-# Linting
+### Linting
+```bash
 npm run lint
 ```
 
-## 🔧 Scripts
+### Type Checking
+```bash
+npm run build
+```
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run start` - Start production server
-- `npm run lint` - Run ESLint
-- `npm run typecheck` - Run TypeScript check
-- `npm run test` - Run unit tests
-- `npm run test:e2e` - Run E2E tests
-- `npm run clean` - Clean build artifacts
+### E2E Tests
+```bash
+npm run test:e2e
+```
 
-## 🌐 Environment Variables
+## 🏗️ Build & Deployment
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL | Yes |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key | Yes |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key | No |
-| `NEXT_PUBLIC_APP_URL` | App URL for production | No |
+### Development Build
+```bash
+npm run build
+npm run start
+```
 
-## 📱 Mobile App
+### Production Deployment (Vercel)
+```bash
+npm run build
+vercel --prod
+```
 
-Deze web app is onderdeel van de Stratalia ecosystem. Er is ook een native mobile app beschikbaar voor iOS en Android.
+## 📁 Project Structuur
+
+```
+stratalia-web/
+├── src/
+│   ├── app/                 # Next.js App Router
+│   │   ├── api/            # API Routes
+│   │   ├── (pages)/        # Frontend pages
+│   │   └── globals.css     # Global styles
+│   ├── components/         # React components
+│   ├── hooks/             # Custom React hooks
+│   ├── lib/               # Utilities & config
+│   └── __tests__/         # Test files
+├── stratalia-mobile/       # Expo mobile app
+├── public/                # Static assets
+└── docs/                  # Documentation
+```
+
+## 🔧 API Endpoints
+
+### Core APIs
+- `GET /api/words/search` - Zoek straattaalwoorden
+- `POST /api/ai/translate` - AI vertaling
+- `GET /api/words/daily` - Woord van de dag
+- `GET /api/quiz` - Quiz vragen
+- `GET /api/content/approved` - Kennisbank content
+
+### Gamification
+- `GET /api/gamification/leaderboard` - Leaderboard
+- `GET /api/gamification/challenges` - Challenges
+- `POST /api/gamification/points` - Punten toekennen
+
+### Authentication
+- `POST /api/auth/login` - Inloggen
+- `POST /api/auth/register` - Registreren
+- `POST /api/auth/logout` - Uitloggen
+- `GET /api/auth/me` - Huidige gebruiker
+
+## 🛡️ Error Handling & Fallbacks
+
+De app is gebouwd met robuuste error handling:
+
+- **Configuratie Fallbacks**: Werkt zonder Supabase configuratie
+- **API Fallbacks**: Alle APIs hebben hardcoded fallback data
+- **Error Boundaries**: React error boundaries voor UI crashes
+- **Graceful Degradation**: Features blijven werken bij database issues
+
+## 🎨 Design System
+
+- **Colors**: Tailwind CSS met custom kleuren
+- **Typography**: Inter font family
+- **Components**: Herbruikbare componenten met consistent design
+- **Responsive**: Mobile-first design
+- **Accessibility**: ARIA labels en keyboard navigation
+
+## 📊 Database Schema
+
+### Core Tables
+- `words` - Straattaalwoorden
+- `quiz_questions` - Quiz vragen
+- `knowledge_items` - Kennisbank content
+- `profiles` - Gebruikersprofielen
+- `user_points` - Punten systeem
+- `challenges` - Challenges
+- `notifications` - Notificaties
+
+## 🔐 Security
+
+- **RLS**: Row Level Security op alle tabellen
+- **Input Validation**: Server-side validatie
+- **CORS**: Geconfigureerd voor productie
+- **Environment Variables**: Geen secrets in code
+
+## 🚀 Performance
+
+- **Caching**: API response caching
+- **Image Optimization**: Next.js Image component
+- **Code Splitting**: Automatische code splitting
+- **Bundle Analysis**: `npm run analyze`
 
 ## 🤝 Contributing
 
@@ -184,13 +199,26 @@ Deze web app is onderdeel van de Stratalia ecosystem. Er is ook een native mobil
 4. Push naar de branch (`git push origin feature/amazing-feature`)
 5. Open een Pull Request
 
-## 📄 License
+## 📝 License
 
 Dit project is gelicenseerd onder de MIT License - zie het [LICENSE](LICENSE) bestand voor details.
 
 ## 🆘 Support
 
-Voor vragen of support, open een issue in de GitHub repository of neem contact op via [email](mailto:support@stratalia.com).
+Voor vragen of problemen:
+
+1. Check de [Issues](https://github.com/mvgrieken/stratalia-web/issues)
+2. Maak een nieuwe issue aan
+3. Neem contact op via [stratalia.nl](https://stratalia.nl)
+
+## 🎯 Roadmap
+
+- [ ] Real-time chat features
+- [ ] Voice recognition voor uitspraak
+- [ ] Advanced analytics dashboard
+- [ ] Multi-language support
+- [ ] Offline mode voor web app
+- [ ] Progressive Web App (PWA)
 
 ---
 

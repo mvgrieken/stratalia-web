@@ -4,6 +4,7 @@ import './globals.css'
 import React from 'react'
 import '@/lib/browser-fixes'
 import { AuthProvider } from '@/components/AuthProvider'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -23,9 +24,11 @@ export default function RootLayout({
   return (
     <html lang="nl">
       <body className={inter.className}>
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        <ErrorBoundary>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </ErrorBoundary>
       </body>
     </html>
   )

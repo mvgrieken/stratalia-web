@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { config, isSupabaseConfigured } from '@/lib/config';
 
 interface TranslationRequest {
   text: string;
@@ -13,6 +14,7 @@ interface TranslationResponse {
   alternatives: string[];
   explanation: string;
   etymology?: string;
+  source?: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -24,28 +26,103 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Text and direction are required' }, { status: 400 });
     }
 
-    // Initialize Supabase client
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    
-    if (!supabaseUrl || !supabaseAnonKey) {
-      console.error('❌ Supabase environment variables are missing!');
-      return NextResponse.json({
-        error: 'Database configuration missing'
-      }, { status: 500 });
+    const cleanText = text.trim();
+    if (cleanText.length === 0) {
+      return NextResponse.json({ error: 'Empty text provided' }, { status: 400 });
     }
 
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    // Try database translation first if Supabase is configured
+    if (isSupabaseConfigured()) {
+      try {
+        const supabase = createClient(config.supabase.url, config.supabase.anonKey);
+        const translation = await generateTranslation(cleanText, direction, context, supabase);
+        return NextResponse.json(translation);
+      } catch (dbError) {
+        console.log('Database translation failed, using fallback');
+      }
+    }
 
-    // Use Supabase data for translation
-    const translation = await generateTranslation(text, direction, context, supabase);
-
+    // Fallback to hardcoded translation
+    const translation = await generateFallbackTranslation(cleanText, direction, context);
     return NextResponse.json(translation);
+
   } catch (error) {
     console.error('Error in AI translation:', error);
-    return NextResponse.json({ error: 'Translation failed' }, { status: 500 });
+    
+    // Return a helpful fallback response
+    return NextResponse.json({
+      translation: cleanText,
+      confidence: 0.1,
+      alternatives: ['Vertaling niet beschikbaar'],
+      explanation: 'De vertaalservice is tijdelijk niet beschikbaar. Probeer het later opnieuw.',
+      etymology: '',
+      source: 'error-fallback'
+    });
   }
 }
+
+// Comprehensive fallback translation data
+const STRAATTAAL_TO_NL: Record<string, string> = {
+  'swag': 'stijl, cool, stoer',
+  'flexen': 'opscheppen, pronken',
+  'skeer': 'arm, weinig geld',
+  'breezy': 'makkelijk, relaxed',
+  'chill': 'ontspannen, kalm',
+  'dope': 'geweldig, cool',
+  'lit': 'geweldig, fantastisch',
+  'fire': 'geweldig, fantastisch',
+  'slay': 'geweldig doen, excelleren',
+  'vibe': 'sfeer, gevoel',
+  'goals': 'doelen, aspiraties',
+  'mood': 'stemming, gevoel',
+  'salty': 'boos, gefrustreerd',
+  'savage': 'brutaal, meedogenloos',
+  'cap': 'liegen, onzin vertellen',
+  'no cap': 'geen grap, serieus',
+  'bet': 'oké, deal',
+  'periodt': 'punt uit, einde discussie',
+  'snatched': 'perfect, geweldig',
+  'tea': 'roddel, nieuws',
+  'yass': 'ja, geweldig',
+  'queen': 'koningin, geweldige vrouw',
+  'king': 'koning, geweldige man'
+};
+
+const NL_TO_STRAATTAAL: Record<string, string> = {
+  'stijl': 'swag',
+  'cool': 'swag',
+  'stoer': 'swag',
+  'opscheppen': 'flexen',
+  'pronken': 'flexen',
+  'arm': 'skeer',
+  'weinig geld': 'skeer',
+  'makkelijk': 'breezy',
+  'relaxed': 'breezy',
+  'ontspannen': 'chill',
+  'kalm': 'chill',
+  'geweldig': 'dope',
+  'fantastisch': 'lit',
+  'sfeer': 'vibe',
+  'gevoel': 'vibe',
+  'stemming': 'mood',
+  'doelen': 'goals',
+  'aspiraties': 'goals',
+  'boos': 'salty',
+  'gefrustreerd': 'salty',
+  'brutaal': 'savage',
+  'meedogenloos': 'savage',
+  'liegen': 'cap',
+  'onzin': 'cap',
+  'serieus': 'no cap',
+  'oké': 'bet',
+  'deal': 'bet',
+  'perfect': 'snatched',
+  'roddel': 'tea',
+  'nieuws': 'tea',
+  'ja': 'yass',
+  'koningin': 'queen',
+  'koning': 'king'
+};
 
 async function generateTranslation(
   text: string, 
@@ -55,35 +132,60 @@ async function generateTranslation(
 ): Promise<TranslationResponse> {
   console.log(`🔄 Translating: "${text}" (${direction})`);
 
-  // Simple translation lookup for demo
-  const translationMap: Record<string, string> = {
-    'swag': 'stijl, cool, stoer',
-    'flexen': 'opscheppen, pronken',
-    'skeer': 'arm, weinig geld',
-    'breezy': 'makkelijk, relaxed',
-    'chill': 'ontspannen, kalm',
-    'dope': 'geweldig, cool',
-    'lit': 'geweldig, fantastisch',
-    'fire': 'geweldig, fantastisch',
-    'slay': 'geweldig doen, excelleren',
-    'vibe': 'sfeer, gevoel'
-  };
+  // Try database lookup first
+  if (supabase) {
+    try {
+      if (direction === 'to_formal') {
+        const { data: words, error } = await supabase
+          .from('words')
+          .select('word, definition, example, meaning')
+          .ilike('word', text.toLowerCase())
+          .limit(1);
 
-  const reverseMap: Record<string, string> = {
-    'stijl': 'swag',
-    'cool': 'swag',
-    'stoer': 'swag',
-    'opscheppen': 'flexen',
-    'pronken': 'flexen',
-    'arm': 'skeer',
-    'makkelijk': 'breezy',
-    'relaxed': 'breezy',
-    'ontspannen': 'chill',
-    'kalm': 'chill',
-    'geweldig': 'dope',
-    'fantastisch': 'lit'
-  };
+        if (!error && words && words.length > 0) {
+          const word = words[0];
+          return {
+            translation: word.definition || word.meaning || text,
+            confidence: 0.95,
+            alternatives: [word.definition || word.meaning || text],
+            explanation: `"${text}" betekent "${word.definition || word.meaning}" in het Nederlands.`,
+            etymology: 'Dit woord komt uit de Nederlandse straattaal.',
+            source: 'database'
+          };
+        }
+      } else {
+        const { data: words, error } = await supabase
+          .from('words')
+          .select('word, definition, example, meaning')
+          .or(`definition.ilike.%${text}%,meaning.ilike.%${text}%`)
+          .limit(1);
 
+        if (!error && words && words.length > 0) {
+          const word = words[0];
+          return {
+            translation: word.word,
+            confidence: 0.95,
+            alternatives: [word.word],
+            explanation: `"${text}" kan in straattaal worden uitgedrukt als "${word.word}".`,
+            etymology: 'Dit is een modern straattaalwoord.',
+            source: 'database'
+          };
+        }
+      }
+    } catch (dbError) {
+      console.log('Database lookup failed, using fallback');
+    }
+  }
+
+  // Fallback to hardcoded translation
+  return generateFallbackTranslation(text, direction, _context);
+}
+
+async function generateFallbackTranslation(
+  text: string, 
+  direction: 'to_slang' | 'to_formal', 
+  _context?: string
+): Promise<TranslationResponse> {
   const wordsToTranslate = text.toLowerCase().split(' ');
   let translation = text;
   let confidence = 0.8;
@@ -95,7 +197,7 @@ async function generateTranslation(
     // Translate formal Dutch to slang
     const translatedWords = wordsToTranslate.map(word => {
       const cleanWord = word.replace(/[.,!?]/g, '');
-      return reverseMap[cleanWord] || word;
+      return NL_TO_STRAATTAAL[cleanWord] || word;
     });
     translation = translatedWords.join(' ');
     explanation = 'Deze vertaling gebruikt moderne straattaal uit onze database.';
@@ -104,7 +206,7 @@ async function generateTranslation(
     // Translate slang to formal Dutch
     const translatedWords = wordsToTranslate.map(word => {
       const cleanWord = word.replace(/[.,!?]/g, '');
-      return translationMap[cleanWord] || word;
+      return STRAATTAAL_TO_NL[cleanWord] || word;
     });
     translation = translatedWords.join(' ');
     explanation = 'Deze vertaling geeft de formele Nederlandse betekenis van het straattaalwoord.';
@@ -115,14 +217,14 @@ async function generateTranslation(
   const recognizedWords = wordsToTranslate.filter(word => {
     const cleanWord = word.replace(/[.,!?]/g, '');
     return direction === 'to_slang' 
-      ? reverseMap[cleanWord]
-      : translationMap[cleanWord];
+      ? NL_TO_STRAATTAAL[cleanWord]
+      : STRAATTAAL_TO_NL[cleanWord];
   });
 
   if (recognizedWords.length > 0) {
     alternatives.push(translation + ' (database match)');
     alternatives.push(translation + ' (verified translation)');
-    confidence = 0.9;
+    confidence = 0.8;
   } else {
     alternatives.push(translation + ' (fallback)');
     alternatives.push(translation + ' (contextual)');
@@ -131,8 +233,8 @@ async function generateTranslation(
 
   // Add specific explanation for recognized words
   const firstWord = wordsToTranslate[0]?.replace(/[.,!?]/g, '');
-  if (firstWord && translationMap[firstWord]) {
-    explanation = `"${firstWord}" betekent ${translationMap[firstWord]}`;
+  if (firstWord && STRAATTAAL_TO_NL[firstWord]) {
+    explanation = `"${firstWord}" betekent ${STRAATTAAL_TO_NL[firstWord]}`;
   }
 
   console.log(`✅ Translation completed with confidence: ${confidence}`);
@@ -142,6 +244,7 @@ async function generateTranslation(
     confidence,
     alternatives,
     explanation,
-    etymology
+    etymology,
+    source: 'fallback'
   };
 }

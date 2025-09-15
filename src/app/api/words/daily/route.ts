@@ -1,153 +1,157 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { logger } from '@/lib/logger';
+import { config, isSupabaseConfigured } from '@/lib/config';
+
+// Comprehensive fallback words for daily word feature
+const FALLBACK_WORDS = [
+  {
+    id: 'fallback-1',
+    word: 'skeer',
+    meaning: 'arm, weinig geld hebben',
+    example: 'Ik ben helemaal skeer deze maand.'
+  },
+  {
+    id: 'fallback-2', 
+    word: 'breezy',
+    meaning: 'cool, relaxed',
+    example: 'Die nieuwe sneakers zijn echt breezy.'
+  },
+  {
+    id: 'fallback-3',
+    word: 'flexen',
+    meaning: 'opscheppen, pronken',
+    example: 'Hij flexte met zijn nieuwe auto.'
+  },
+  {
+    id: 'fallback-4',
+    word: 'chill',
+    meaning: 'relaxed, kalm',
+    example: 'Laten we gewoon chillen vandaag.'
+  },
+  {
+    id: 'fallback-5',
+    word: 'swag',
+    meaning: 'stijl, cool',
+    example: 'Die outfit heeft echt swag.'
+  },
+  {
+    id: 'fallback-6',
+    word: 'dope',
+    meaning: 'geweldig, cool',
+    example: 'Die nieuwe track is echt dope.'
+  },
+  {
+    id: 'fallback-7',
+    word: 'lit',
+    meaning: 'geweldig, fantastisch',
+    example: 'Het feest was echt lit gisteren.'
+  },
+  {
+    id: 'fallback-8',
+    word: 'fire',
+    meaning: 'geweldig, fantastisch',
+    example: 'Die nieuwe sneakers zijn fire.'
+  },
+  {
+    id: 'fallback-9',
+    word: 'vibe',
+    meaning: 'sfeer, energie',
+    example: 'Ik hou van de vibe hier.'
+  },
+  {
+    id: 'fallback-10',
+    word: 'mood',
+    meaning: 'stemming, gevoel',
+    example: 'Dit is echt mijn mood vandaag.'
+  }
+];
 
 export async function GET() {
-  const startTime = Date.now();
   try {
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-    logger.info(`🔍 [DAILY-API] Fetching daily word for: ${today}`);
-
-    // Initialize Supabase client
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const today = new Date().toISOString().split('T')[0];
     
-    logger.info(`🔍 [DAILY-API] Environment check - URL: ${supabaseUrl ? 'SET' : 'MISSING'}, Key: ${supabaseAnonKey ? 'SET' : 'MISSING'}`);
-    
-    if (!supabaseUrl || !supabaseAnonKey) {
-      logger.error('❌ [DAILY-API] Supabase environment variables are missing!');
-      return NextResponse.json({
-        error: 'Database configuration missing',
-        details: 'Environment variables not configured'
-      }, { status: 500 });
-    }
+    // Try to get from database first if Supabase is configured
+    if (isSupabaseConfigured()) {
+      try {
+        const supabase = createClient(config.supabase.url, config.supabase.anonKey);
+        
+        // First try to get today's specific daily word
+        const { data: dailyWord, error: dailyError } = await supabase
+          .from('word_of_the_day')
+          .select(`
+            *,
+            words (*)
+          `)
+          .eq('date', today)
+          .single();
 
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
-    logger.info(`🔍 [DAILY-API] Supabase client created successfully`);
+        if (!dailyError && dailyWord && dailyWord.words) {
+          const response = NextResponse.json({
+            id: dailyWord.words.id,
+            word: dailyWord.words.word,
+            meaning: dailyWord.words.definition || dailyWord.words.meaning || 'Betekenis niet beschikbaar',
+            example: dailyWord.words.example || 'Geen voorbeeld beschikbaar',
+            date: today,
+            source: 'database'
+          });
+          
+          response.headers.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
+          return response;
+        }
 
-    // First, try to get today's word of the day
-    logger.info(`🔍 [DAILY-API] Querying word_of_the_day for date: ${today}`);
-    const { data: dailyWord, error: dailyError } = await supabase
-      .from('word_of_the_day')
-      .select(`
-        *,
-        words (*)
-      `)
-      .eq('date', today)
-      .single();
+        // If no daily word, try to get a random word from database
+        const { data: randomWord, error: randomError } = await supabase
+          .from('words')
+          .select('*')
+          .limit(1)
+          .single();
 
-    logger.info(`🔍 [DAILY-API] Daily word query result - Data: ${dailyWord ? 'FOUND' : 'NULL'}, Error: ${dailyError ? dailyError.code : 'NONE'}`);
-    
-    if (dailyError && dailyError.code !== 'PGRST116') {
-      logger.error(`❌ [DAILY-API] Database error:`, {
-        code: dailyError.code,
-        message: dailyError.message,
-        details: dailyError.details,
-        hint: dailyError.hint
-      });
-      return NextResponse.json({ 
-        error: 'Database query failed', 
-        details: dailyError.message,
-        code: dailyError.code
-      }, { status: 400 });
-    }
-
-    // If no word for today, get a random word
-    if (!dailyWord) {
-      logger.info('🔍 [DAILY-API] No daily word found, selecting random word...');
-      
-      const { data: randomWord, error: randomError } = await supabase
-        .from('words')
-        .select('*')
-        .eq('is_active', true)
-        .limit(1)
-        .single();
-
-      logger.info(`🔍 [DAILY-API] Random word query result - Data: ${randomWord ? 'FOUND' : 'NULL'}, Error: ${randomError ? randomError.code : 'NONE'}`);
-
-      if (randomError) {
-        logger.error(`❌ [DAILY-API] Random word database error:`, {
-          code: randomError.code,
-          message: randomError.message,
-          details: randomError.details
-        });
-        return NextResponse.json({ 
-          error: 'Database query failed', 
-          details: randomError.message,
-          code: randomError.code
-        }, { status: 400 });
+        if (!randomError && randomWord) {
+          const response = NextResponse.json({
+            id: randomWord.id,
+            word: randomWord.word,
+            meaning: randomWord.definition || randomWord.meaning || 'Betekenis niet beschikbaar',
+            example: randomWord.example || 'Geen voorbeeld beschikbaar',
+            date: today,
+            source: 'database-random'
+          });
+          
+          response.headers.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
+          return response;
+        }
+      } catch (dbError) {
+        console.log('Database unavailable, using fallback word');
       }
-      
-      // Defensive check for random word data
-      if (!randomWord) {
-        logger.error('❌ [DAILY-API] No random word found in database');
-        return NextResponse.json({
-          error: 'Not found',
-          details: 'No active words available in database'
-        }, { status: 404 });
-      }
-
-      // Note: We don't insert new daily words as anon user doesn't have INSERT permissions
-      // The daily word selection is handled by the system/admin
-      logger.info('Skipping daily word insertion (anon user has no INSERT permissions)');
-
-      const duration = Date.now() - startTime;
-      logger.performance('daily-word-random', duration);
-      logger.info(`Selected random word: ${randomWord.word}`);
-      
-      const response = NextResponse.json({
-        id: randomWord.id,
-        word: randomWord.word,
-        meaning: randomWord.definition,
-        example: randomWord.example,
-        date: today
-      });
-      
-      // Cache for 1 hour since daily word changes once per day
-      response.headers.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
-      return response;
     }
 
-    // Return the existing daily word
-    const word = dailyWord.words;
-    
-    // Defensive check for word data
-    if (!word) {
-      logger.error('Daily word found but words relation is null');
-      return NextResponse.json({
-        error: 'Daily word data incomplete',
-        details: 'Word relation is missing'
-      }, { status: 500 });
-    }
-    
-    const duration = Date.now() - startTime;
-    logger.performance('daily-word-existing', duration);
-    logger.info(`Found existing daily word: ${word.word}`);
-    
+    // Fallback: Return a hardcoded word with consistent daily selection
+    const dayOfMonth = new Date().getDate();
+    const selectedWord = FALLBACK_WORDS[dayOfMonth % FALLBACK_WORDS.length];
+
     const response = NextResponse.json({
-      id: word.id,
-      word: word.word,
-      meaning: word.definition,
-      example: word.example,
-      date: dailyWord.date
+      id: selectedWord.id,
+      word: selectedWord.word,
+      meaning: selectedWord.meaning,
+      example: selectedWord.example,
+      date: today,
+      source: 'fallback'
     });
     
-    // Cache for 1 hour since daily word changes once per day
     response.headers.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
     return response;
 
   } catch (error) {
-    const duration = Date.now() - startTime;
-    logger.performance('daily-word-error', duration);
-    logger.error('❌ [DAILY-API] Unexpected error in daily word API:', {
-      error: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined,
-      duration: `${duration}ms`
+    console.error('❌ [DAILY-API] Unexpected error:', error);
+    
+    // Even on error, return a fallback word
+    const emergencyWord = FALLBACK_WORDS[0];
+    return NextResponse.json({
+      id: emergencyWord.id,
+      word: emergencyWord.word,
+      meaning: emergencyWord.meaning,
+      example: emergencyWord.example,
+      date: new Date().toISOString().split('T')[0],
+      source: 'error-fallback'
     });
-    return NextResponse.json({ 
-      error: 'Internal server error',
-      details: error instanceof Error ? error.message : 'Unknown error',
-      timestamp: new Date().toISOString()
-    }, { status: 500 });
   }
 }

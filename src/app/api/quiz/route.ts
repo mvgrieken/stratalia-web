@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { config, isSupabaseConfigured } from '@/lib/config';
 
 interface QuizQuestion {
   id: string;
@@ -10,11 +11,89 @@ interface QuizQuestion {
   difficulty: string;
 }
 
-// interface QuizResponse {
-//   questions: QuizQuestion[];
-//   total_questions: number;
-//   difficulty: string;
-// }
+// Comprehensive fallback quiz questions
+const FALLBACK_QUESTIONS: QuizQuestion[] = [
+  {
+    id: 'fallback-1',
+    word: 'skeer',
+    question_text: 'Wat betekent het woord "skeer"?',
+    correct_answer: 'arm, weinig geld hebben',
+    wrong_answers: ['cool, relaxed', 'geweldig, fantastisch', 'boos, gefrustreerd'],
+    difficulty: 'easy'
+  },
+  {
+    id: 'fallback-2',
+    word: 'breezy',
+    question_text: 'Wat betekent het woord "breezy"?',
+    correct_answer: 'cool, relaxed',
+    wrong_answers: ['arm, weinig geld', 'opscheppen, pronken', 'geweldig, fantastisch'],
+    difficulty: 'easy'
+  },
+  {
+    id: 'fallback-3',
+    word: 'flexen',
+    question_text: 'Wat betekent het woord "flexen"?',
+    correct_answer: 'opscheppen, pronken',
+    wrong_answers: ['arm, weinig geld', 'cool, relaxed', 'geweldig, fantastisch'],
+    difficulty: 'medium'
+  },
+  {
+    id: 'fallback-4',
+    word: 'dope',
+    question_text: 'Wat betekent het woord "dope"?',
+    correct_answer: 'geweldig, cool',
+    wrong_answers: ['arm, weinig geld', 'opscheppen, pronken', 'boos, gefrustreerd'],
+    difficulty: 'medium'
+  },
+  {
+    id: 'fallback-5',
+    word: 'lit',
+    question_text: 'Wat betekent het woord "lit"?',
+    correct_answer: 'geweldig, fantastisch',
+    wrong_answers: ['arm, weinig geld', 'cool, relaxed', 'opscheppen, pronken'],
+    difficulty: 'medium'
+  },
+  {
+    id: 'fallback-6',
+    word: 'fire',
+    question_text: 'Wat betekent het woord "fire"?',
+    correct_answer: 'geweldig, fantastisch',
+    wrong_answers: ['arm, weinig geld', 'cool, relaxed', 'boos, gefrustreerd'],
+    difficulty: 'hard'
+  },
+  {
+    id: 'fallback-7',
+    word: 'salty',
+    question_text: 'Wat betekent het woord "salty"?',
+    correct_answer: 'boos, gefrustreerd',
+    wrong_answers: ['geweldig, fantastisch', 'cool, relaxed', 'opscheppen, pronken'],
+    difficulty: 'hard'
+  },
+  {
+    id: 'fallback-8',
+    word: 'vibe',
+    question_text: 'Wat betekent het woord "vibe"?',
+    correct_answer: 'sfeer, energie',
+    wrong_answers: ['arm, weinig geld', 'opscheppen, pronken', 'boos, gefrustreerd'],
+    difficulty: 'easy'
+  },
+  {
+    id: 'fallback-9',
+    word: 'mood',
+    question_text: 'Wat betekent het woord "mood"?',
+    correct_answer: 'stemming, gevoel',
+    wrong_answers: ['arm, weinig geld', 'cool, relaxed', 'opscheppen, pronken'],
+    difficulty: 'easy'
+  },
+  {
+    id: 'fallback-10',
+    word: 'goals',
+    question_text: 'Wat betekent het woord "goals"?',
+    correct_answer: 'doelen, aspiraties',
+    wrong_answers: ['arm, weinig geld', 'boos, gefrustreerd', 'opscheppen, pronken'],
+    difficulty: 'medium'
+  }
+];
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,75 +103,80 @@ export async function GET(request: NextRequest) {
 
     console.log(`🎯 Fetching quiz questions with difficulty: ${difficulty}, limit: ${limit}`);
 
-    // Initialize Supabase client
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    
-    if (!supabaseUrl || !supabaseAnonKey) {
-      console.error('❌ Supabase environment variables are missing!');
-      return NextResponse.json({
-        error: 'Database configuration missing'
-      }, { status: 500 });
+    // Try database first if Supabase is configured
+    if (isSupabaseConfigured()) {
+      try {
+        const supabase = createClient(config.supabase.url, config.supabase.anonKey);
+
+        // Haal quiz vragen op uit Supabase
+        const { data: questions, error } = await supabase
+          .from('quiz_questions')
+          .select(`
+            id,
+            question_text,
+            correct_answer,
+            wrong_answers,
+            difficulty,
+            words (
+              word
+            )
+          `)
+          .eq('is_active', true)
+          .eq('difficulty', difficulty)
+          .limit(limit);
+
+        if (!error && questions && questions.length > 0) {
+          // Transform data to match frontend expectations
+          const quizQuestions: QuizQuestion[] = questions.map((q: any) => ({
+            id: q.id,
+            word: q.words?.word || 'Unknown',
+            question_text: q.question_text,
+            correct_answer: q.correct_answer,
+            wrong_answers: q.wrong_answers || [],
+            difficulty: q.difficulty
+          }));
+
+          console.log(`✅ Found ${quizQuestions.length} quiz questions from database`);
+          return NextResponse.json({
+            questions: quizQuestions,
+            total_questions: quizQuestions.length,
+            difficulty,
+            source: 'database'
+          });
+        }
+      } catch (dbError) {
+        console.log('Database quiz questions failed, using fallback');
+      }
     }
 
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    // Fallback: Use hardcoded questions
+    const filteredQuestions = FALLBACK_QUESTIONS
+      .filter(q => q.difficulty === difficulty)
+      .slice(0, limit);
 
-    // Haal quiz vragen op uit Supabase
-    const { data: questions, error } = await supabase
-      .from('quiz_questions')
-      .select(`
-        id,
-        question_text,
-        correct_answer,
-        wrong_answers,
-        difficulty,
-        words (
-          word
-        )
-      `)
-      .eq('is_active', true)
-      .eq('difficulty', difficulty)
-      .limit(limit);
+    // If no questions for specific difficulty, return mixed difficulty
+    const questionsToReturn = filteredQuestions.length > 0 
+      ? filteredQuestions 
+      : FALLBACK_QUESTIONS.slice(0, limit);
 
-    if (error) {
-      console.error('❌ Error fetching quiz questions:', error);
-      return NextResponse.json({
-        error: 'Database unavailable',
-        details: error.message
-      }, { status: 500 });
-    }
-
-    // Transform data to match frontend expectations
-    const quizQuestions: QuizQuestion[] = questions?.map((q: any) => ({
-      id: q.id,
-      word: q.words?.word || 'Unknown',
-      question_text: q.question_text,
-      correct_answer: q.correct_answer,
-      wrong_answers: q.wrong_answers || [],
-      difficulty: q.difficulty
-    })) || [];
-
-    // Als er geen vragen zijn, return error
-    if (quizQuestions.length === 0) {
-      console.log('⚠️ No quiz questions found in database');
-      return NextResponse.json({
-        error: 'No quiz questions available',
-        details: 'No questions found in database for the requested difficulty'
-      }, { status: 404 });
-    }
-
-    console.log(`✅ Found ${quizQuestions.length} quiz questions`);
+    console.log(`✅ Using ${questionsToReturn.length} fallback quiz questions`);
     return NextResponse.json({
-      questions: quizQuestions,
-      total_questions: quizQuestions.length,
-      difficulty
+      questions: questionsToReturn,
+      total_questions: questionsToReturn.length,
+      difficulty: questionsToReturn.length > 0 ? questionsToReturn[0].difficulty : difficulty,
+      source: 'fallback'
     });
 
   } catch (error) {
     console.error('💥 Error in quiz API:', error);
+    
+    // Return emergency fallback questions
+    const emergencyQuestions = FALLBACK_QUESTIONS.slice(0, 3);
     return NextResponse.json({
-      error: 'Internal server error',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+      questions: emergencyQuestions,
+      total_questions: emergencyQuestions.length,
+      difficulty: 'mixed',
+      source: 'error-fallback'
+    });
   }
 }

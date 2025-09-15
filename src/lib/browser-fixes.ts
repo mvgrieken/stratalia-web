@@ -1,169 +1,36 @@
 /**
  * Browser compatibility fixes
- * Fixes for common browser API issues
- * 
- * This module provides comprehensive fixes for browser API issues
- * that can cause runtime errors in production.
- * 
- * ROOT CAUSE: Third-party libraries (like Supabase Auth credentials-library.js)
- * call MutationObserver.observe with null targets when document.querySelector
- * returns null for missing DOM elements.
- * 
- * SOLUTION: Monkey-patch MutationObserver globally to prevent crashes
- * from external libraries before they can cause errors.
+ * Simple fix for MutationObserver errors from third-party libraries
  */
 
-// CRITICAL: Patch MutationObserver BEFORE any external libraries load
 if (typeof window !== 'undefined') {
-  console.log('🔧 [BROWSER-FIX] Initializing MutationObserver patches...');
-  
   // Store original MutationObserver
   const OriginalMutationObserver = window.MutationObserver;
   
-  // Create safe wrapper for MutationObserver
+  // Create safe wrapper
   class SafeMutationObserver extends OriginalMutationObserver {
-    constructor(callback: MutationCallback) {
-      super(callback);
-      console.debug('🔧 [BROWSER-FIX] SafeMutationObserver created');
-    }
-    
     observe(target: Node, options?: MutationObserverInit) {
-      // Debug logging for target analysis
-      console.debug('🔧 [BROWSER-FIX] observe() called with target:', {
-        target,
-        targetType: typeof target,
-        isNode: target instanceof Node,
-        nodeType: target?.nodeType,
-        tagName: target?.nodeName,
-        id: target instanceof Element ? target.id : undefined,
-        className: target instanceof Element ? target.className : undefined
-      });
-      
-      // Comprehensive target validation
+      // Simple null check - if target is null/undefined, just return
       if (!target) {
-        console.warn('🔧 [BROWSER-FIX] MutationObserver.observe called with null/undefined target - skipping');
-        console.debug('🔧 [BROWSER-FIX] Stack trace:', new Error().stack);
         return;
       }
       
+      // Check if target is a valid Node
       if (!(target instanceof Node)) {
-        console.warn('🔧 [BROWSER-FIX] MutationObserver.observe called with invalid target type:', typeof target, target);
-        console.debug('🔧 [BROWSER-FIX] Stack trace:', new Error().stack);
-        return;
-      }
-      
-      // Check if target is still in the document
-      if (target.nodeType === Node.ELEMENT_NODE && !document.contains(target)) {
-        console.warn('🔧 [BROWSER-FIX] MutationObserver.observe called with detached element:', target);
-        console.debug('🔧 [BROWSER-FIX] Stack trace:', new Error().stack);
         return;
       }
       
       try {
-        console.debug('🔧 [BROWSER-FIX] Calling original observe() with valid target');
         return super.observe(target, options);
       } catch (error) {
-        console.error('🔧 [BROWSER-FIX] MutationObserver.observe failed:', error, 'Target:', target);
-        return;
-      }
-    }
-    
-    disconnect() {
-      try {
-        console.debug('🔧 [BROWSER-FIX] SafeMutationObserver disconnect() called');
-        return super.disconnect();
-      } catch (error) {
-        console.error('🔧 [BROWSER-FIX] MutationObserver.disconnect failed:', error);
+        // Silently ignore errors from third-party libraries
         return;
       }
     }
   }
   
-  // Replace global MutationObserver with safe version
+  // Replace global MutationObserver
   window.MutationObserver = SafeMutationObserver as any;
-  console.log('🔧 [BROWSER-FIX] Global MutationObserver replaced with SafeMutationObserver');
-  
-  // Also patch the prototype for existing instances
-  if (OriginalMutationObserver.prototype) {
-    const originalObserve = OriginalMutationObserver.prototype.observe;
-    const originalDisconnect = OriginalMutationObserver.prototype.disconnect;
-    
-    OriginalMutationObserver.prototype.observe = function(target: Node, options?: MutationObserverInit) {
-      console.debug('🔧 [BROWSER-FIX] Prototype observe() called with target:', {
-        target,
-        targetType: typeof target,
-        isNode: target instanceof Node
-      });
-      
-      if (!target) {
-        console.warn('🔧 [BROWSER-FIX] Existing MutationObserver.observe called with null target - skipping');
-        console.debug('🔧 [BROWSER-FIX] Stack trace:', new Error().stack);
-        return;
-      }
-      
-      if (!(target instanceof Node)) {
-        console.warn('🔧 [BROWSER-FIX] Existing MutationObserver.observe called with invalid target type:', typeof target, target);
-        console.debug('🔧 [BROWSER-FIX] Stack trace:', new Error().stack);
-        return;
-      }
-      
-      try {
-        console.debug('🔧 [BROWSER-FIX] Calling original prototype observe() with valid target');
-        return originalObserve.call(this, target, options);
-      } catch (error) {
-        console.error('🔧 [BROWSER-FIX] Existing MutationObserver.observe failed:', error, 'Target:', target);
-        return;
-      }
-    };
-    
-    OriginalMutationObserver.prototype.disconnect = function() {
-      try {
-        console.debug('🔧 [BROWSER-FIX] Prototype disconnect() called');
-        return originalDisconnect.call(this);
-      } catch (error) {
-        console.error('🔧 [BROWSER-FIX] Existing MutationObserver.disconnect failed:', error);
-        return;
-      }
-    };
-    
-    console.log('🔧 [BROWSER-FIX] MutationObserver prototype patched');
-  }
-  
-  // Additional safety: Override document.querySelector to prevent null returns
-  const originalQuerySelector = document.querySelector;
-  document.querySelector = function(selectors: string) {
-    try {
-      console.debug('🔧 [BROWSER-FIX] document.querySelector called with selector:', selectors);
-      const result = originalQuerySelector.call(this, selectors);
-      if (!result) {
-        console.warn('🔧 [BROWSER-FIX] document.querySelector returned null for:', selectors);
-        console.debug('🔧 [BROWSER-FIX] Stack trace:', new Error().stack);
-      } else {
-        console.debug('🔧 [BROWSER-FIX] document.querySelector found element:', result);
-      }
-      return result;
-    } catch (error) {
-      console.error('🔧 [BROWSER-FIX] document.querySelector failed:', error, 'Selector:', selectors);
-      return null;
-    }
-  };
-  
-  // Additional safety: Override document.querySelectorAll to prevent errors
-  const originalQuerySelectorAll = document.querySelectorAll;
-  document.querySelectorAll = function(selectors: string) {
-    try {
-      console.debug('🔧 [BROWSER-FIX] document.querySelectorAll called with selector:', selectors);
-      const result = originalQuerySelectorAll.call(this, selectors);
-      console.debug('🔧 [BROWSER-FIX] document.querySelectorAll found', result.length, 'elements');
-      return result;
-    } catch (error) {
-      console.error('🔧 [BROWSER-FIX] document.querySelectorAll failed:', error, 'Selector:', selectors);
-      return document.createDocumentFragment().querySelectorAll(selectors); // Empty NodeList
-    }
-  };
-  
-  console.log('🔧 [BROWSER-FIX] MutationObserver patched successfully - external libraries are now safe');
-  console.log('🔧 [BROWSER-FIX] Debug logging enabled - check console for detailed MutationObserver activity');
 }
 
 export {};
