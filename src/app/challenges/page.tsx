@@ -30,13 +30,7 @@ export default function ChallengesPage() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'active' | 'completed' | 'upcoming'>('active');
 
-  useEffect(() => {
-    if (user) {
-      fetchChallenges();
-    }
-  }, [user]);
-
-  const fetchChallenges = async () => {
+  const fetchChallenges = useCallback(async () => {
     try {
       const response = await fetch(`/api/gamification/challenges?user_id=${user?.id}&type=all`);
       if (response.ok) {
@@ -50,7 +44,13 @@ export default function ChallengesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (user) {
+      fetchChallenges();
+    }
+  }, [user, fetchChallenges]);
 
   const joinChallenge = async (challengeId: string) => {
     try {

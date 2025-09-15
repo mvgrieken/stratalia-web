@@ -61,6 +61,15 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
+    // Guard: Check if user was created successfully
+    if (!authData.user) {
+      console.error('❌ User registration failed: no user data returned');
+      return NextResponse.json({
+        error: 'User registration failed',
+        details: 'No user data returned from authentication service'
+      }, { status: 400 });
+    }
+
     // Create user profile
     const { error: profileError } = await supabase
       .from('profiles')
