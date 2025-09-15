@@ -33,6 +33,16 @@ jobs:
         env:
           CI: true
       
+      - name: 🗂️ Cache Next.js build
+        uses: actions/cache@v3
+        with:
+          path: |
+            .next/cache
+            .next/static
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
+      
       - name: 🔍 Run ESLint
         run: npm run lint
         continue-on-error: false
@@ -51,7 +61,7 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
       
-      - name: 📊 Test coverage report
+      - name: 📊 Test coverage with thresholds
         run: npm run test:coverage
         if: success()
         env:
@@ -67,6 +77,18 @@ jobs:
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: false
+      
+      - name: 📈 Coverage threshold check
+        run: |
+          echo "🔍 Checking coverage thresholds..."
+          if [ -f "coverage/coverage-summary.json" ]; then
+            echo "📊 Coverage summary found"
+            cat coverage/coverage-summary.json
+          else
+            echo "❌ Coverage summary not found"
+            exit 1
+          fi
+        if: success()
       
       - name: ✅ CI Pipeline completed
         run: |
