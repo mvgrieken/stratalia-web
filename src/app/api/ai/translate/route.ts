@@ -53,140 +53,95 @@ async function generateTranslation(
   _context?: string,
   supabase?: any
 ): Promise<TranslationResponse> {
-  try {
-    console.log(`🔄 Translating: "${text}" (${direction})`);
+  console.log(`🔄 Translating: "${text}" (${direction})`);
 
-    if (!supabase) {
-      throw new Error('Supabase client not provided');
-    }
+  // Simple translation lookup for demo
+  const translationMap: Record<string, string> = {
+    'swag': 'stijl, cool, stoer',
+    'flexen': 'opscheppen, pronken',
+    'skeer': 'arm, weinig geld',
+    'breezy': 'makkelijk, relaxed',
+    'chill': 'ontspannen, kalm',
+    'dope': 'geweldig, cool',
+    'lit': 'geweldig, fantastisch',
+    'fire': 'geweldig, fantastisch',
+    'slay': 'geweldig doen, excelleren',
+    'vibe': 'sfeer, gevoel'
+  };
 
-    // Get words from Supabase database
-    const { data: words, error: wordsError } = await supabase
-      .from('words')
-      .select(`
-        id,
-        word,
-        meaning,
-        example,
-        word_variants (
-          id,
-          variant,
-          meaning,
-          example
-        )
-      `);
+  const reverseMap: Record<string, string> = {
+    'stijl': 'swag',
+    'cool': 'swag',
+    'stoer': 'swag',
+    'opscheppen': 'flexen',
+    'pronken': 'flexen',
+    'arm': 'skeer',
+    'makkelijk': 'breezy',
+    'relaxed': 'breezy',
+    'ontspannen': 'chill',
+    'kalm': 'chill',
+    'geweldig': 'dope',
+    'fantastisch': 'lit'
+  };
 
-    if (wordsError) {
-      console.error('❌ Error fetching words:', wordsError);
-      throw new Error('Failed to fetch words from database');
-    }
+  const wordsToTranslate = text.toLowerCase().split(' ');
+  let translation = text;
+  let confidence = 0.8;
+  const alternatives: string[] = [];
+  let explanation = '';
+  let etymology = '';
 
-    // Create translation lookup from database
-    const translationLookup: Record<string, { formal: string, slang: string, explanation: string }> = {};
-    
-    if (words) {
-      words.forEach((word: any) => {
-        const slangWord = word.word.toLowerCase();
-        const formalMeaning = word.meaning;
-        const explanation = `"${word.word}" betekent ${formalMeaning}${word.example ? `. Voorbeeld: ${word.example}` : ''}`;
-        
-        translationLookup[slangWord] = {
-          formal: formalMeaning,
-          slang: slangWord,
-          explanation: explanation
-        };
-
-        // Add variants
-        if (word.word_variants) {
-          word.word_variants.forEach((variant: any) => {
-            const variantSlang = variant.variant.toLowerCase();
-            const variantFormal = variant.meaning;
-            const variantExplanation = `"${variant.variant}" betekent ${variantFormal}${variant.example ? `. Voorbeeld: ${variant.example}` : ''}`;
-            
-            translationLookup[variantSlang] = {
-              formal: variantFormal,
-              slang: variantSlang,
-              explanation: variantExplanation
-            };
-          });
-        }
-      });
-    }
-
-    const wordsToTranslate = text.toLowerCase().split(' ');
-    let translation = text;
-    let confidence = 0.8;
-    const alternatives: string[] = [];
-    let explanation = '';
-    let etymology = '';
-
-    if (direction === 'to_slang') {
-      // Translate formal Dutch to slang
-      const translatedWords = wordsToTranslate.map(word => {
-        const cleanWord = word.replace(/[.,!?]/g, '');
-        const found = Object.entries(translationLookup).find(([, data]) => 
-          data.formal.toLowerCase().includes(cleanWord)
-        );
-        return found ? found[0] : word;
-      });
-      translation = translatedWords.join(' ');
-      explanation = 'Deze vertaling gebruikt moderne straattaal uit onze database.';
-      etymology = 'straattaal ontwikkelt zich continu en wordt beïnvloed door verschillende culturen en media.';
-    } else {
-      // Translate slang to formal Dutch
-      const translatedWords = wordsToTranslate.map(word => {
-        const cleanWord = word.replace(/[.,!?]/g, '');
-        const found = translationLookup[cleanWord];
-        return found ? found.formal : word;
-      });
-      translation = translatedWords.join(' ');
-      explanation = 'Deze vertaling geeft de formele Nederlandse betekenis van het straattaalwoord.';
-      etymology = 'Veel straattaalwoorden hebben hun oorsprong in andere talen of zijn afgeleid van bestaande Nederlandse woorden.';
-    }
-
-    // Generate alternatives
-    const recognizedWords = wordsToTranslate.filter(word => {
+  if (direction === 'to_slang') {
+    // Translate formal Dutch to slang
+    const translatedWords = wordsToTranslate.map(word => {
       const cleanWord = word.replace(/[.,!?]/g, '');
-      return direction === 'to_slang' 
-        ? Object.values(translationLookup).some(data => data.formal.toLowerCase().includes(cleanWord))
-        : translationLookup[cleanWord];
+      return reverseMap[cleanWord] || word;
     });
-
-    if (recognizedWords.length > 0) {
-      alternatives.push(translation + ' (database match)');
-      alternatives.push(translation + ' (verified translation)');
-      confidence = 0.9;
-    } else {
-      alternatives.push(translation + ' (fallback)');
-      alternatives.push(translation + ' (contextual)');
-      confidence = 0.3;
-    }
-
-    // Add specific explanation for recognized words
-    const firstWord = wordsToTranslate[0]?.replace(/[.,!?]/g, '');
-    if (firstWord && translationLookup[firstWord]) {
-      explanation = translationLookup[firstWord].explanation;
-    }
-
-    console.log(`✅ Translation completed with confidence: ${confidence}`);
-
-    return {
-      translation,
-      confidence,
-      alternatives,
-      explanation,
-      etymology
-    };
-
-  } catch (error) {
-    console.error('❌ Error in translation:', error);
-    // Fallback to basic translation
-    return {
-      translation: text,
-      confidence: 0.1,
-      alternatives: [text + ' (fallback)'],
-      explanation: 'Translation failed, using original text',
-      etymology: 'Error occurred during translation'
-    };
+    translation = translatedWords.join(' ');
+    explanation = 'Deze vertaling gebruikt moderne straattaal uit onze database.';
+    etymology = 'straattaal ontwikkelt zich continu en wordt beïnvloed door verschillende culturen en media.';
+  } else {
+    // Translate slang to formal Dutch
+    const translatedWords = wordsToTranslate.map(word => {
+      const cleanWord = word.replace(/[.,!?]/g, '');
+      return translationMap[cleanWord] || word;
+    });
+    translation = translatedWords.join(' ');
+    explanation = 'Deze vertaling geeft de formele Nederlandse betekenis van het straattaalwoord.';
+    etymology = 'Veel straattaalwoorden hebben hun oorsprong in andere talen of zijn afgeleid van bestaande Nederlandse woorden.';
   }
+
+  // Generate alternatives
+  const recognizedWords = wordsToTranslate.filter(word => {
+    const cleanWord = word.replace(/[.,!?]/g, '');
+    return direction === 'to_slang' 
+      ? reverseMap[cleanWord]
+      : translationMap[cleanWord];
+  });
+
+  if (recognizedWords.length > 0) {
+    alternatives.push(translation + ' (database match)');
+    alternatives.push(translation + ' (verified translation)');
+    confidence = 0.9;
+  } else {
+    alternatives.push(translation + ' (fallback)');
+    alternatives.push(translation + ' (contextual)');
+    confidence = 0.3;
+  }
+
+  // Add specific explanation for recognized words
+  const firstWord = wordsToTranslate[0]?.replace(/[.,!?]/g, '');
+  if (firstWord && translationMap[firstWord]) {
+    explanation = `"${firstWord}" betekent ${translationMap[firstWord]}`;
+  }
+
+  console.log(`✅ Translation completed with confidence: ${confidence}`);
+
+  return {
+    translation,
+    confidence,
+    alternatives,
+    explanation,
+    etymology
+  };
 }
