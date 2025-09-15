@@ -113,7 +113,7 @@ curl -X POST "http://localhost:3000/api/admin/content" \
   -H "Content-Type: application/json" \
   -d '{
     "type": "book",
-    "title": "Nieuwe Straattaal Gids",
+    "title": "Nieuwe straattaal Gids",
     "description": "Een uitgebreide gids over moderne straattaal",
     "url": "https://voorbeeld.nl/straattaal-gids"
   }'

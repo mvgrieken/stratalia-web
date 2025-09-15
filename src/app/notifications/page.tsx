@@ -34,7 +34,7 @@ export default function NotificationsPage() {
       
       if (permission === 'granted') {
         // Show welcome notification
-        new Notification('Straatpraat Notificaties', {
+        new Notification('Stratalia Notificaties', {
           body: 'Je ontvangt nu meldingen voor nieuwe woorden en prestaties!',
           icon: '/favicon.ico'
         });

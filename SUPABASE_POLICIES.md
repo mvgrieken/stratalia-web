@@ -5,7 +5,7 @@ Dit document beschrijft de Row Level Security (RLS) policies die zijn ingesteld 
 
 ## Belangrijke Tabellen voor Anonieme Toegang
 
-### 1. `words` - Straattaal Woorden
+### 1. `words` - straattaal Woorden
 **Policies:**
 - `"Words are publicly viewable"` - `{anon,authenticated}` - `SELECT` - `(is_active = true)`
 - `"words_select_all"` - `{public}` - `SELECT` - `true`

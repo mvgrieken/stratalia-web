@@ -159,7 +159,7 @@ export default function ProfilePage() {
         },
         {
           id: '5',
-          name: 'Straattaal Expert',
+          name: 'straattaal Expert',
           description: 'Leer 100 woorden',
           icon: '👑',
           category: 'achievement',

@@ -38,7 +38,7 @@ export default function HomePage() {
       <div className="flex flex-col items-center justify-center min-h-screen px-6">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Straatpraat
+            Stratalia
           </h1>
           <p className="text-xl text-gray-600 mb-8">
             Leer straattaal op een leuke en interactieve manier
@@ -76,15 +76,15 @@ export default function HomePage() {
 
           <div className="bg-white rounded-lg shadow-md p-6 text-center">
             <div className="text-4xl mb-4">🤖</div>
-            <h3 className="text-xl font-semibold mb-2">AI Vertalen</h3>
+            <h3 className="text-xl font-semibold mb-2">straattaal Zoeken</h3>
             <p className="mb-4 text-gray-600">
-              Geavanceerde AI-vertaling met uitleg en etymologie
+              Zoek straattaalwoorden en vind hun betekenis
             </p>
             <Link
               href="/translate"
               className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 inline-block"
             >
-              AI Vertalen
+              Zoeken
             </Link>
           </div>
 

@@ -1,8 +1,8 @@
 {
-  "name": "stratalia-web",
+  "name": "stratalia",
   "version": "1.0.0",
   "private": true,
-  "description": "Stratalia - Straattaal vertaalapp voor ouders van tieners",
+  "description": "Stratalia - straattaal vertaalapp voor ouders van tieners",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

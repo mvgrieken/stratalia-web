@@ -95,7 +95,7 @@ export default function CommunityPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-            Draag bij aan Straatpraat
+            Draag bij aan Stratalia
           </h1>
 
           <div className="bg-white rounded-lg shadow-lg p-8">
@@ -112,7 +112,7 @@ export default function CommunityPage() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label htmlFor="word" className="block text-sm font-medium text-gray-700 mb-2">
-                  Straattaalwoord *
+                  straattaalwoord *
                 </label>
                 <input
                   type="text"

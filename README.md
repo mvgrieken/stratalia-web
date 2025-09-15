@@ -24,7 +24,7 @@ Een moderne straattaal vertaalapp voor ouders van tieners, gebouwd met Next.js 1
 1. **Clone de repository**
    ```bash
    git clone <repository-url>
-   cd stratalia-web
+   cd stratalia
    ```
 
 2. **Install dependencies**

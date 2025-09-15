@@ -5,7 +5,7 @@ test.describe('Authentication Flow', () => {
     await page.goto('/')
     
     // Check if the main heading is visible
-    await expect(page.getByRole('heading', { name: 'Straatpraat' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Stratalia' })).toBeVisible()
     
     // Check if all feature cards are present
     await expect(page.getByText('Vertalen')).toBeVisible()
@@ -20,7 +20,7 @@ test.describe('Authentication Flow', () => {
     await page.goto('/')
     
     // Check title
-    await expect(page).toHaveTitle('Straatpraat - Leer Straattaal')
+    await expect(page).toHaveTitle('Stratalia - Leer straattaal')
     
     // Check meta description
     const metaDescription = page.locator('meta[name="description"]')
@@ -33,7 +33,7 @@ test.describe('Authentication Flow', () => {
     await page.goto('/')
     
     // Check if content is still visible and properly laid out
-    await expect(page.getByRole('heading', { name: 'Straatpraat' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Stratalia' })).toBeVisible()
     
     // Check if the grid adapts to mobile
     const featureCards = page.locator('[class*="grid"] > div')

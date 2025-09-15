@@ -7,10 +7,10 @@ import '@/lib/browser-fixes'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Straatpraat - Leer Straattaal',
+  title: 'Stratalia - Leer straattaal',
   description: 'Leer straattaal met onze interactieve app. Vertaal woorden, doe quizzen en draag bij aan de community.',
   keywords: 'straattaal, nederlands, vertalen, quiz, community',
-  authors: [{ name: 'Straatpraat Team' }],
+  authors: [{ name: 'Stratalia Team' }],
   viewport: 'width=device-width, initial-scale=1',
 }
 

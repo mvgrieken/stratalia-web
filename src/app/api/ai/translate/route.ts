@@ -131,7 +131,7 @@ async function generateTranslation(
       });
       translation = translatedWords.join(' ');
       explanation = 'Deze vertaling gebruikt moderne straattaal uit onze database.';
-      etymology = 'Straattaal ontwikkelt zich continu en wordt beïnvloed door verschillende culturen en media.';
+      etymology = 'straattaal ontwikkelt zich continu en wordt beïnvloed door verschillende culturen en media.';
     } else {
       // Translate slang to formal Dutch
       const translatedWords = wordsToTranslate.map(word => {

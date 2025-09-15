@@ -2,23 +2,23 @@
 
 import { useState, useRef, useEffect } from 'react';
 
-interface TranslationResult {
-  translation: string;
-  confidence: number;
-  alternatives: string[];
-  explanation: string;
-  etymology?: string;
+interface WordSearchResult {
+  id: string;
+  word: string;
+  meaning: string;
+  example: string;
+  match_type?: string;
+  similarity_score?: number;
 }
 
 export default function TranslatePage() {
-  const [inputText, setInputText] = useState('');
-  const [translationDirection, setTranslationDirection] = useState<'to_slang' | 'to_formal'>('to_slang');
-  const [result, setResult] = useState<TranslationResult | null>(null);
-  const [isTranslating, setIsTranslating] = useState(false);
-  const [translationHistory, setTranslationHistory] = useState<Array<{input: string, result: TranslationResult, direction: string}>>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<WordSearchResult[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
 
   useEffect(() => {
@@ -34,7 +34,7 @@ export default function TranslatePage() {
 
         recognitionRef.current.onresult = (event: any) => {
           const transcript = event.results[0][0].transcript;
-          setInputText(transcript);
+          setSearchQuery(transcript);
           setIsListening(false);
         };
 
@@ -60,66 +60,51 @@ export default function TranslatePage() {
     }
   };
 
-  const speakText = (text: string) => {
+  const speakWord = (word: string) => {
     if (synthRef.current) {
-      const utterance = new SpeechSynthesisUtterance(text);
+      const utterance = new SpeechSynthesisUtterance(word);
       utterance.lang = 'nl-NL';
       utterance.rate = 0.8;
       synthRef.current.speak(utterance);
     }
   };
 
-  const handleTranslate = async () => {
-    if (!inputText.trim()) return;
-
-    setIsTranslating(true);
+  const handleSearch = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (!searchQuery.trim()) return;
+    
+    setIsLoading(true);
+    setError(null);
     try {
-      const response = await fetch('/api/ai/translate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          text: inputText,
-          direction: translationDirection,
-          context: 'general'
-        }),
-      });
-
-      if (response.ok) {
-        const translationResult = await response.json();
-        setResult(translationResult);
-        
-        // Add to history
-        setTranslationHistory(prev => [
-          { input: inputText, result: translationResult, direction: translationDirection },
-          ...prev.slice(0, 9) // Keep last 10 translations
-        ]);
-      } else {
-        console.error('Translation failed');
+      const response = await fetch(`/api/words/search?query=${encodeURIComponent(searchQuery)}&limit=10`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.details || `HTTP ${response.status}`);
       }
-    } catch (error) {
-      console.error('Error translating:', error);
+      const results = await response.json();
+      setSearchResults(results);
+    } catch (err: any) {
+      setError(err.message || 'Er is een fout opgetreden bij het zoeken. Probeer het opnieuw.');
+      setSearchResults([]);
     } finally {
-      setIsTranslating(false);
+      setIsLoading(false);
     }
   };
 
-  const clearTranslation = () => {
-    setInputText('');
-    setResult(null);
+  const clearSearch = () => {
+    setSearchQuery('');
+    setSearchResults([]);
+    setError(null);
   };
 
-  const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 0.8) return 'text-green-600';
-    if (confidence >= 0.6) return 'text-yellow-600';
-    return 'text-red-600';
+  const getMatchTypeColor = (matchType: string) => {
+    if (matchType === 'exact') return 'bg-green-100 text-green-800';
+    return 'bg-blue-100 text-blue-800';
   };
 
-  const getConfidenceText = (confidence: number) => {
-    if (confidence >= 0.8) return 'Hoge betrouwbaarheid';
-    if (confidence >= 0.6) return 'Gemiddelde betrouwbaarheid';
-    return 'Lage betrouwbaarheid';
+  const getMatchTypeText = (matchType: string) => {
+    if (matchType === 'exact') return 'Exacte match';
+    return 'Gedeeltelijke match';
   };
 
   return (
@@ -127,178 +112,132 @@ export default function TranslatePage() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-            AI Vertaalservice
+            straattaal Zoeken
           </h1>
 
-          {/* Translation Interface */}
+          {/* Search Interface */}
           <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-            {/* Direction Selector */}
-            <div className="flex justify-center mb-6">
-              <div className="bg-gray-100 rounded-lg p-1 flex">
+            <form onSubmit={handleSearch} className="mb-6">
+              <div className="flex gap-4 mb-4">
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Zoek een straattaalwoord..."
+                    className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  {isSupported && (
+                    <button
+                      type="button"
+                      onClick={startListening}
+                      disabled={isListening}
+                      className={`absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded-full ${
+                        isListening 
+                          ? 'bg-red-500 text-white animate-pulse' 
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                      title="Spraak invoer"
+                    >
+                      🎤
+                    </button>
+                  )}
+                </div>
                 <button
-                  onClick={() => setTranslationDirection('to_slang')}
-                  className={`px-6 py-2 rounded-md transition-colors ${
-                    translationDirection === 'to_slang'
-                      ? 'bg-blue-600 text-white'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
+                  type="submit"
+                  disabled={isLoading}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
                 >
-                  Nederlands → Straattaal
+                  {isLoading ? "Zoeken..." : "Zoeken"}
                 </button>
                 <button
-                  onClick={() => setTranslationDirection('to_formal')}
-                  className={`px-6 py-2 rounded-md transition-colors ${
-                    translationDirection === 'to_formal'
-                      ? 'bg-blue-600 text-white'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
+                  type="button"
+                  onClick={clearSearch}
+                  className="border border-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-50"
                 >
-                  Straattaal → Nederlands
+                  Wissen
                 </button>
-              </div>
-            </div>
-
-            {/* Input Area */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {translationDirection === 'to_slang' ? 'Nederlandse tekst' : 'Straattaal tekst'}
-              </label>
-              <div className="relative">
-                <textarea
-                  value={inputText}
-                  onChange={(e) => setInputText(e.target.value)}
-                  placeholder={translationDirection === 'to_slang' 
-                    ? 'Typ hier je Nederlandse tekst...' 
-                    : 'Typ hier je straattaal tekst...'
-                  }
-                  rows={4}
-                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                />
-                {isSupported && (
-                  <button
-                    onClick={startListening}
-                    disabled={isListening}
-                    className={`absolute right-2 top-2 p-2 rounded-full ${
-                      isListening 
-                        ? 'bg-red-500 text-white animate-pulse' 
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                    title="Spraak invoer"
-                  >
-                    🎤
-                  </button>
-                )}
               </div>
               {isListening && (
-                <div className="text-center text-blue-600 mt-2">
-                  <div className="animate-pulse">🎤 Luisteren... Spreek nu je tekst uit</div>
+                <div className="text-center text-blue-600 mb-4">
+                  <div className="animate-pulse">🎤 Luisteren... Spreek nu je zoekterm uit</div>
                 </div>
               )}
-            </div>
+            </form>
 
-            {/* Action Buttons */}
-            <div className="flex gap-4 justify-center">
-              <button
-                onClick={handleTranslate}
-                disabled={isTranslating || !inputText.trim()}
-                className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-              >
-                {isTranslating ? 'Vertalen...' : '🤖 AI Vertalen'}
-              </button>
-              <button
-                onClick={clearTranslation}
-                className="border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50"
-              >
-                Wissen
-              </button>
-            </div>
+            {error && (
+              <div className="mb-4 p-3 bg-red-100 text-red-800 rounded-lg" role="alert">
+                {error}
+              </div>
+            )}
           </div>
 
-          {/* Translation Result */}
-          {result && (
-            <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-gray-900">Vertaling</h2>
-                <div className="flex items-center gap-2">
-                  <span className={`text-sm font-medium ${getConfidenceColor(result.confidence)}`}>
-                    {getConfidenceText(result.confidence)}
-                  </span>
-                  <span className="text-sm text-gray-500">
-                    ({Math.round(result.confidence * 100)}%)
-                  </span>
-                </div>
-              </div>
-
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                <p className="text-lg font-medium text-blue-900 mb-2">
-                  {result.translation}
-                </p>
-                <button
-                  onClick={() => speakText(result.translation)}
-                  className="text-blue-600 hover:text-blue-700 text-sm flex items-center gap-1"
-                >
-                  🔊 Uitspraak
-                </button>
-              </div>
-
-              {/* Alternatives */}
-              {result.alternatives.length > 0 && (
-                <div className="mb-4">
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">Alternatieven:</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {result.alternatives.map((alt, index) => (
-                      <button
-                        key={index}
-                        onClick={() => speakText(alt)}
-                        className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-gray-200"
-                      >
-                        {alt}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Explanation */}
-              <div className="mb-4">
-                <h3 className="text-sm font-medium text-gray-700 mb-2">Uitleg:</h3>
-                <p className="text-gray-600 text-sm">{result.explanation}</p>
-              </div>
-
-              {/* Etymology */}
-              {result.etymology && (
-                <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">Etymologie:</h3>
-                  <p className="text-gray-600 text-sm">{result.etymology}</p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Translation History */}
-          {translationHistory.length > 0 && (
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Vertaald</h3>
-              <div className="space-y-3">
-                {translationHistory.slice(0, 5).map((item, index) => (
-                  <div key={index} className="border border-gray-200 rounded-lg p-3">
+          {/* Search Results */}
+          {searchResults.length > 0 ? (
+            <div>
+              <p className="text-lg font-semibold mb-4 text-gray-900">
+                Resultaten ({searchResults.length})
+              </p>
+              <div className="space-y-4">
+                {searchResults.map((result) => (
+                  <div key={result.id} className="bg-white rounded-lg shadow-md p-6">
                     <div className="flex justify-between items-start mb-2">
-                      <span className="text-sm text-gray-500">
-                        {item.direction === 'to_slang' ? 'Nederlands → Straattaal' : 'Straattaal → Nederlands'}
-                      </span>
-                      <span className="text-xs text-gray-400">
-                        {Math.round(item.result.confidence * 100)}%
-                      </span>
+                      <h3 className="text-xl font-bold text-gray-900">
+                        {result.word}
+                      </h3>
+                      {result.match_type && (
+                        <span className={`text-sm px-2 py-1 rounded ${getMatchTypeColor(result.match_type)}`}>
+                          {getMatchTypeText(result.match_type)}
+                        </span>
+                      )}
                     </div>
-                    <p className="text-sm text-gray-700 mb-1">
-                      <strong>Invoer:</strong> {item.input}
+                    
+                    <p className="text-gray-700 mb-3">
+                      {result.meaning}
                     </p>
-                    <p className="text-sm text-gray-700">
-                      <strong>Vertaling:</strong> {item.result.translation}
-                    </p>
+                    
+                    <div className="bg-gray-50 rounded-md p-3">
+                      <p className="text-sm text-gray-600 mb-1">Voorbeeld:</p>
+                      <p className="text-gray-800 italic">"{result.example}"</p>
+                    </div>
+                    
+                    {/* Audio Playback */}
+                    <div className="mt-3 flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => speakWord(result.word)}
+                        className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm"
+                        title="Uitspraak afspelen"
+                      >
+                        🔊 {result.word}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => speakWord(result.meaning)}
+                        className="flex items-center gap-2 text-gray-600 hover:text-gray-700 text-sm"
+                        title="Betekenis uitspreken"
+                      >
+                        🔊 Betekenis
+                      </button>
+                    </div>
+                    
+                    {result.similarity_score && (
+                      <p className="text-sm text-gray-500 mt-2">
+                        Relevancy: {Math.round(result.similarity_score * 100)}%
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-500 text-lg">
+                Zoek naar straattaal woorden
+              </p>
+              <p className="text-gray-400 text-sm mt-2">
+                Probeer woorden zoals 'skeer', 'breezy', of 'chillen'
+              </p>
             </div>
           )}
         </div>
