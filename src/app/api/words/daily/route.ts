@@ -56,18 +56,9 @@ export async function GET() {
         }, { status: 500 });
       }
 
-      // Create a new daily word entry
-      const { error: insertError } = await supabase
-        .from('word_of_the_day')
-        .insert({
-          word_id: randomWord.id,
-          date: today
-        });
-
-      if (insertError) {
-        console.error('⚠️ Error inserting daily word:', insertError);
-        // Continue anyway, we still have the word
-      }
+      // Note: We don't insert new daily words as anon user doesn't have INSERT permissions
+      // The daily word selection is handled by the system/admin
+      console.log('ℹ️ Skipping daily word insertion (anon user has no INSERT permissions)');
 
       console.log(`✅ Selected random word: ${randomWord.word}`);
       return NextResponse.json({
