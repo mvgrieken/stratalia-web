@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
+type ChallengeProgress = {
+  progress: number;
+  completed_at: string | null;
+  points_earned: number;
+};
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -42,7 +48,7 @@ export async function GET(request: NextRequest) {
     }
 
     // If user_id provided, get user progress for challenges
-    let userProgress = {};
+    let userProgress: Record<string, ChallengeProgress> = {};
     if (userId) {
       const { data: progress, error: progressError } = await supabase
         .from('user_challenges')
@@ -57,7 +63,7 @@ export async function GET(request: NextRequest) {
             points_earned: item.points_earned
           };
           return acc;
-        }, {} as any);
+        }, {} as Record<string, ChallengeProgress>);
       }
     }
 
@@ -129,10 +135,10 @@ export async function POST(request: NextRequest) {
 
     if (completed) {
       updateData.completed_at = new Date().toISOString();
-      updateData.points_earned = challenge.points_reward;
+      updateData.points_earned = challenge.reward_points;
     }
 
-    const { data: userChallenge, error: updateError } = await supabase
+    const { data: _userChallenge, error: updateError } = await supabase
       .from('user_challenges')
       .upsert(updateData)
       .select()
@@ -153,7 +159,7 @@ export async function POST(request: NextRequest) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           user_id,
-          points: challenge.points_reward,
+          points: challenge.reward_points,
           action_type: 'challenge_completed',
           metadata: { challenge_id, challenge_title: challenge.title }
         })
@@ -166,8 +172,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      user_challenge,
-      points_awarded: completed ? challenge.points_reward : 0
+      user_challenge: _userChallenge,
+      points_awarded: completed ? challenge.reward_points : 0
     });
 
   } catch (error) {

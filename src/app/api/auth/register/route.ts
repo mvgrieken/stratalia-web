@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-interface RegisterRequest {
-  email: string;
-  password: string;
-  full_name: string;
-}
-
 export async function POST(request: NextRequest) {
   try {
     const { email, password, full_name } = await request.json();
