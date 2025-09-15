@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Navigation from '@/components/Navigation';
 
 interface DailyWord {
   id: string;
@@ -35,6 +36,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Navigation />
       <div className="flex flex-col items-center justify-center min-h-screen px-6">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
@@ -94,12 +96,12 @@ export default function HomePage() {
             <p className="mb-4 text-gray-600">
               Leer elke dag een nieuw straattaalwoord
             </p>
-            <button
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            <Link
+              href="/word-of-the-day"
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 inline-block"
             >
               Bekijk
-            </button>
+            </Link>
           </div>
 
           <div className="bg-white rounded-lg shadow-md p-6 text-center">

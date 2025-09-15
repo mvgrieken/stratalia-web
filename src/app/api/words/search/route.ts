@@ -1,34 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { logger } from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
-  const startTime = Date.now();
   try {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('query');
     const limit = parseInt(searchParams.get('limit') || '10');
 
-    logger.info(`🔍 [SEARCH-API] Request received - Query: "${query}", Limit: ${limit}`);
+    console.log(`🔍 [SEARCH-API] Request received - Query: "${query}", Limit: ${limit}`);
 
     if (!query) {
-      logger.warn('❌ [SEARCH-API] Missing query parameter');
+      console.warn('❌ [SEARCH-API] Missing query parameter');
       return NextResponse.json({ 
         error: 'Query parameter is required',
         details: 'Please provide a search query'
       }, { status: 400 });
     }
 
-    logger.info(`🔍 [SEARCH-API] Searching for: "${query}" with limit: ${limit}`);
+    console.log(`🔍 [SEARCH-API] Searching for: "${query}" with limit: ${limit}`);
 
     // Initialize Supabase client
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     
-    logger.info(`🔍 [SEARCH-API] Environment check - URL: ${supabaseUrl ? 'SET' : 'MISSING'}, Key: ${supabaseAnonKey ? 'SET' : 'MISSING'}`);
+    console.log(`🔍 [SEARCH-API] Environment check - URL: ${supabaseUrl ? 'SET' : 'MISSING'}, Key: ${supabaseAnonKey ? 'SET' : 'MISSING'}`);
     
     if (!supabaseUrl || !supabaseAnonKey) {
-      logger.error('❌ [SEARCH-API] Supabase environment variables are missing!');
+      console.error('❌ [SEARCH-API] Supabase environment variables are missing!');
       return NextResponse.json({
         error: 'Database configuration missing',
         details: 'Environment variables not configured'
@@ -36,20 +34,20 @@ export async function GET(request: NextRequest) {
     }
 
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
-    logger.info(`🔍 [SEARCH-API] Supabase client created successfully`);
+    console.log(`🔍 [SEARCH-API] Supabase client created successfully`);
 
     // Simple search in words table
-    logger.info(`🔍 [SEARCH-API] Executing search query: SELECT * FROM words WHERE word ILIKE '%${query}%' LIMIT ${limit}`);
+    console.log(`🔍 [SEARCH-API] Executing search query: SELECT * FROM words WHERE word ILIKE '%${query}%' LIMIT ${limit}`);
     const { data: words, error: wordsError } = await supabase
       .from('words')
       .select('id, word, definition, example')
       .ilike('word', `%${query}%`)
       .limit(limit);
 
-    logger.info(`🔍 [SEARCH-API] Search query result - Data: ${words ? `${words.length} results` : 'NULL'}, Error: ${wordsError ? wordsError.code : 'NONE'}`);
+    console.log(`🔍 [SEARCH-API] Search query result - Data: ${words ? `${words.length} results` : 'NULL'}, Error: ${wordsError ? wordsError.code : 'NONE'}`);
 
     if (wordsError) {
-      logger.error(`❌ [SEARCH-API] Database search error:`, {
+      console.error(`❌ [SEARCH-API] Database search error:`, {
         code: wordsError.code,
         message: wordsError.message,
         details: wordsError.details,
@@ -66,7 +64,7 @@ export async function GET(request: NextRequest) {
     const results = words?.map(word => {
       // Defensive check for word data
       if (!word || !word.word) {
-        logger.warn('Invalid word data found:', word);
+        console.warn('Invalid word data found:', word);
         return null;
       }
       
@@ -80,9 +78,7 @@ export async function GET(request: NextRequest) {
       };
     }).filter(Boolean) || [];
 
-    const duration = Date.now() - startTime;
-    logger.performance('search-words', duration);
-    logger.info(`✅ [SEARCH-API] Found ${results.length} results for "${query}" in ${duration}ms`);
+    console.log(`✅ [SEARCH-API] Found ${results.length} results for "${query}"`);
     
     const response = NextResponse.json(results);
     
@@ -91,15 +87,7 @@ export async function GET(request: NextRequest) {
     return response;
 
   } catch (error) {
-    const duration = Date.now() - startTime;
-    logger.performance('search-error', duration);
-    logger.error('❌ [SEARCH-API] Unexpected error in search API:', {
-      error: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined,
-      duration: `${duration}ms`,
-      query: searchParams.get('query'),
-      limit: searchParams.get('limit')
-    });
+    console.error('❌ [SEARCH-API] Unexpected error in search API:', error);
     return NextResponse.json({ 
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error',

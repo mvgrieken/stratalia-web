@@ -1,89 +1,76 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useAuth } from '@/components/AuthProvider';
+import Navigation from '@/components/Navigation';
 
 interface Challenge {
   id: string;
   title: string;
   description: string;
-  type: 'daily' | 'weekly' | 'monthly' | 'special';
-  difficulty: 'easy' | 'medium' | 'hard';
+  type: string;
+  category: string;
+  difficulty: string;
   reward_points: number;
-  reward_badge?: string;
-  requirements: {
-    type: 'quiz_score' | 'streak' | 'words_learned' | 'community_contributions' | 'time_spent';
-    target: number;
-    current?: number;
-  }[];
+  conditions: any;
   start_date: string;
   end_date: string;
-  is_completed: boolean;
-  progress_percentage: number;
-  participants_count: number;
-}
-
-interface ChallengesData {
-  active_challenges: Challenge[];
-  completed_challenges: Challenge[];
-  upcoming_challenges: Challenge[];
-  user_stats: {
-    total_challenges_completed: number;
-    total_rewards_earned: number;
-    current_streak: number;
+  is_active: boolean;
+  user_progress?: {
+    progress: number;
+    completed_at: string | null;
+    points_earned: number;
   };
 }
 
 export default function ChallengesPage() {
-  const [challengesData, setChallengesData] = useState<ChallengesData | null>(null);
+  const { user } = useAuth();
+  const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'active' | 'completed' | 'upcoming'>('active');
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'active' | 'completed' | 'upcoming'>('active');
 
   useEffect(() => {
-    fetchChallenges();
-  }, []);
+    if (user) {
+      fetchChallenges();
+    }
+  }, [user]);
 
   const fetchChallenges = async () => {
-    setLoading(true);
-    setError(null);
     try {
-      const response = await fetch('/api/gamification/challenges');
+      const response = await fetch(`/api/gamification/challenges?user_id=${user?.id}&type=all`);
       if (response.ok) {
         const data = await response.json();
-        setChallengesData(data);
+        setChallenges(data.challenges || []);
       } else {
         setError('Fout bij het laden van challenges');
       }
     } catch (err) {
-      console.error('Error fetching challenges:', err);
       setError('Fout bij het laden van challenges');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChallengeAction = async (challengeId: string, action: string) => {
+  const joinChallenge = async (challengeId: string) => {
     try {
       const response = await fetch('/api/gamification/challenges', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          user_id: user?.id,
           challenge_id: challengeId,
-          user_id: 'current_user', // In production, get from auth
-          action: action
-        }),
+          progress: 0
+        })
       });
 
       if (response.ok) {
-        const result = await response.json();
-        console.log('Challenge action result:', result);
-        // Refresh challenges data
-        fetchChallenges();
+        fetchChallenges(); // Refresh challenges
+      } else {
+        setError('Fout bij het deelnemen aan challenge');
       }
-    } catch (error) {
-      console.error('Error handling challenge action:', error);
+    } catch (err) {
+      setError('Fout bij het deelnemen aan challenge');
     }
   };
 
@@ -92,276 +79,189 @@ export default function ChallengesPage() {
       case 'easy': return 'bg-green-100 text-green-800';
       case 'medium': return 'bg-yellow-100 text-yellow-800';
       case 'hard': return 'bg-red-100 text-red-800';
+      case 'expert': return 'bg-purple-100 text-purple-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'daily': return '📅';
-      case 'weekly': return '📆';
-      case 'monthly': return '🗓️';
-      case 'special': return '⭐';
-      default: return '🎯';
-    }
-  };
-
-  const getRequirementIcon = (type: string) => {
-    switch (type) {
-      case 'quiz_score': return '🧠';
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'learning': return '📚';
       case 'streak': return '🔥';
-      case 'words_learned': return '📚';
-      case 'community_contributions': return '👥';
-      case 'time_spent': return '⏰';
+      case 'social': return '👥';
+      case 'exploration': return '🔍';
+      case 'mastery': return '🏆';
       default: return '🎯';
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('nl-NL', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric'
-    });
-  };
+  const filteredChallenges = challenges.filter(challenge => {
+    if (activeTab === 'active') {
+      return challenge.is_active && !challenge.user_progress?.completed_at;
+    } else if (activeTab === 'completed') {
+      return challenge.user_progress?.completed_at;
+    } else if (activeTab === 'upcoming') {
+      return new Date(challenge.start_date) > new Date();
+    }
+    return true;
+  });
 
-  const renderChallengeCard = (challenge: Challenge) => (
-    <div key={challenge.id} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-      <div className="flex justify-between items-start mb-4">
-        <div className="flex items-center space-x-3">
-          <span className="text-2xl">{getTypeIcon(challenge.type)}</span>
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">{challenge.title}</h3>
-            <p className="text-sm text-gray-600">{challenge.description}</p>
-          </div>
-        </div>
-        <div className="flex flex-col items-end space-y-2">
-          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(challenge.difficulty)}`}>
-            {challenge.difficulty}
-          </span>
-          {challenge.reward_badge && (
-            <span className="text-2xl">{challenge.reward_badge}</span>
-          )}
-        </div>
-      </div>
-
-      {/* Progress Bar */}
-      <div className="mb-4">
-        <div className="flex justify-between text-sm text-gray-600 mb-1">
-          <span>Voortgang</span>
-          <span>{challenge.progress_percentage}%</span>
-        </div>
-        <div className="w-full bg-gray-200 rounded-full h-2">
-          <div
-            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-            style={{ width: `${challenge.progress_percentage}%` }}
-          ></div>
-        </div>
-      </div>
-
-      {/* Requirements */}
-      <div className="mb-4">
-        <h4 className="text-sm font-medium text-gray-700 mb-2">Vereisten:</h4>
-        <div className="space-y-1">
-          {challenge.requirements.map((req, index) => (
-            <div key={index} className="flex items-center justify-between text-sm">
-              <div className="flex items-center space-x-2">
-                <span>{getRequirementIcon(req.type)}</span>
-                <span className="text-gray-600">
-                  {req.type === 'quiz_score' && 'Quiz score'}
-                  {req.type === 'streak' && 'Streak'}
-                  {req.type === 'words_learned' && 'Woorden geleerd'}
-                  {req.type === 'community_contributions' && 'Community bijdragen'}
-                  {req.type === 'time_spent' && 'Tijd besteed'}
-                </span>
-              </div>
-              <span className="font-medium">
-                {req.current || 0} / {req.target}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Rewards and Actions */}
-      <div className="flex justify-between items-center">
-        <div className="flex items-center space-x-4">
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navigation />
+        <div className="container mx-auto px-4 py-8">
           <div className="text-center">
-            <p className="text-sm text-gray-600">Beloning</p>
-            <p className="font-semibold text-blue-600">{challenge.reward_points} punten</p>
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Inloggen vereist</h1>
+            <p className="text-gray-600 mb-6">Je moet ingelogd zijn om challenges te bekijken.</p>
+            <a href="/login" className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
+              Inloggen
+            </a>
           </div>
-          <div className="text-center">
-            <p className="text-sm text-gray-600">Deelnemers</p>
-            <p className="font-semibold text-gray-700">{challenge.participants_count}</p>
-          </div>
-        </div>
-        
-        <div className="flex space-x-2">
-          {!challenge.is_completed && (
-            <button
-              onClick={() => handleChallengeAction(challenge.id, 'join')}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
-            >
-              Deelnemen
-            </button>
-          )}
-          {challenge.is_completed && (
-            <button
-              onClick={() => handleChallengeAction(challenge.id, 'claim_reward')}
-              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
-            >
-              Beloning Opeisen
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Date Range */}
-      <div className="mt-4 pt-4 border-t border-gray-200">
-        <p className="text-xs text-gray-500">
-          {formatDate(challenge.start_date)} - {formatDate(challenge.end_date)}
-        </p>
-      </div>
-    </div>
-  );
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-xl text-gray-600">Laden van challenges...</p>
         </div>
       </div>
     );
   }
-
-  if (error) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
-        <p className="text-xl text-red-600 mb-4">{error}</p>
-        <button
-          onClick={fetchChallenges}
-          className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          Opnieuw proberen
-        </button>
-      </div>
-    );
-  }
-
-  if (!challengesData) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <p className="text-xl text-gray-600">Geen challenges data beschikbaar</p>
-      </div>
-    );
-  }
-
-  const currentChallenges = activeTab === 'active' ? challengesData.active_challenges :
-                           activeTab === 'completed' ? challengesData.completed_challenges :
-                           challengesData.upcoming_challenges;
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Navigation />
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-            🎯 Challenges
-          </h1>
-
-          {/* User Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white rounded-lg shadow-md p-6 text-center">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Voltooid</h3>
-              <p className="text-3xl font-bold text-green-600">{challengesData.user_stats.total_challenges_completed}</p>
-            </div>
-            <div className="bg-white rounded-lg shadow-md p-6 text-center">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Beloningen Verdiend</h3>
-              <p className="text-3xl font-bold text-blue-600">{challengesData.user_stats.total_rewards_earned}</p>
-            </div>
-            <div className="bg-white rounded-lg shadow-md p-6 text-center">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Huidige Streak</h3>
-              <p className="text-3xl font-bold text-orange-600">{challengesData.user_stats.current_streak} 🔥</p>
-            </div>
-          </div>
-
-          {/* Tab Navigation */}
-          <div className="flex justify-center mb-8">
-            <div className="bg-white rounded-lg shadow-md p-1 flex">
-              <button
-                onClick={() => setActiveTab('active')}
-                className={`px-6 py-2 rounded-md transition-colors ${
-                  activeTab === 'active'
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                Actieve Challenges ({challengesData.active_challenges.length})
-              </button>
-              <button
-                onClick={() => setActiveTab('completed')}
-                className={`px-6 py-2 rounded-md transition-colors ${
-                  activeTab === 'completed'
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                Voltooid ({challengesData.completed_challenges.length})
-              </button>
-              <button
-                onClick={() => setActiveTab('upcoming')}
-                className={`px-6 py-2 rounded-md transition-colors ${
-                  activeTab === 'upcoming'
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                Binnenkort ({challengesData.upcoming_challenges.length})
-              </button>
+          <h1 className="text-3xl font-bold text-gray-900 mb-8">Challenges</h1>
+          
+          {/* Tabs */}
+          <div className="mb-8">
+            <div className="border-b border-gray-200">
+              <nav className="-mb-px flex space-x-8">
+                <button
+                  onClick={() => setActiveTab('active')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === 'active'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  Actieve Challenges
+                </button>
+                <button
+                  onClick={() => setActiveTab('completed')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === 'completed'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  Voltooid
+                </button>
+                <button
+                  onClick={() => setActiveTab('upcoming')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === 'upcoming'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  Binnenkort
+                </button>
+              </nav>
             </div>
           </div>
 
-          {/* Challenges Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {currentChallenges.length > 0 ? (
-              currentChallenges.map(renderChallengeCard)
-            ) : (
-              <div className="col-span-full text-center py-12 bg-white rounded-lg shadow-md">
-                <p className="text-gray-500 text-lg">
-                  {activeTab === 'active' && 'Geen actieve challenges beschikbaar'}
-                  {activeTab === 'completed' && 'Nog geen challenges voltooid'}
-                  {activeTab === 'upcoming' && 'Geen upcoming challenges'}
-                </p>
-                <p className="text-gray-400 text-sm mt-2">
-                  {activeTab === 'active' && 'Check later voor nieuwe challenges!'}
-                  {activeTab === 'completed' && 'Start met het voltooien van challenges!'}
-                  {activeTab === 'upcoming' && 'Nieuwe challenges komen binnenkort beschikbaar!'}
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Call to Action */}
-          <div className="mt-8 text-center">
-            <p className="text-gray-600 mb-4">
-              Klaar voor een uitdaging? Start met het voltooien van challenges!
-            </p>
-            <div className="flex justify-center space-x-4">
-              <a
-                href="/quiz"
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Start Quiz
-              </a>
-              <a
-                href="/leaderboard"
-                className="border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Bekijk Leaderboard
-              </a>
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md mb-6">
+              {error}
             </div>
-          </div>
+          )}
+
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Challenges laden...</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredChallenges.map((challenge) => (
+                <div key={challenge.id} className="bg-white rounded-lg shadow-md p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center">
+                      <span className="text-2xl mr-2">{getCategoryIcon(challenge.category)}</span>
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900">{challenge.title}</h3>
+                        <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(challenge.difficulty)}`}>
+                          {challenge.difficulty}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-blue-600">{challenge.reward_points}</div>
+                      <div className="text-xs text-gray-500">punten</div>
+                    </div>
+                  </div>
+
+                  <p className="text-gray-600 mb-4">{challenge.description}</p>
+
+                  {/* Progress bar for joined challenges */}
+                  {challenge.user_progress && (
+                    <div className="mb-4">
+                      <div className="flex justify-between text-sm text-gray-600 mb-1">
+                        <span>Voortgang</span>
+                        <span>{challenge.user_progress.progress}%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${challenge.user_progress.progress}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Challenge details */}
+                  <div className="text-sm text-gray-500 mb-4">
+                    <div>Type: {challenge.type}</div>
+                    <div>Eindigt: {new Date(challenge.end_date).toLocaleDateString('nl-NL')}</div>
+                  </div>
+
+                  {/* Action button */}
+                  <div className="flex justify-end">
+                    {challenge.user_progress?.completed_at ? (
+                      <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                        ✅ Voltooid
+                      </span>
+                    ) : challenge.user_progress ? (
+                      <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                        🎯 Actief
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => joinChallenge(challenge.id)}
+                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium"
+                      >
+                        Deelnemen
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {filteredChallenges.length === 0 && !loading && (
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">🎯</div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                {activeTab === 'active' && 'Geen actieve challenges'}
+                {activeTab === 'completed' && 'Geen voltooide challenges'}
+                {activeTab === 'upcoming' && 'Geen aankomende challenges'}
+              </h3>
+              <p className="text-gray-600">
+                {activeTab === 'active' && 'Er zijn momenteel geen actieve challenges beschikbaar.'}
+                {activeTab === 'completed' && 'Je hebt nog geen challenges voltooid.'}
+                {activeTab === 'upcoming' && 'Er zijn geen nieuwe challenges gepland.'}
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

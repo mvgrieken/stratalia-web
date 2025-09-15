@@ -1,23 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { logger } from '@/lib/logger';
 
-// GET /api/content/approved - Haal alleen goedgekeurde content op voor de frontend
 export async function GET(request: NextRequest) {
-  const startTime = Date.now();
   try {
     const { searchParams } = new URL(request.url);
-    const type = searchParams.get('type');
-    const limit = parseInt(searchParams.get('limit') || '20');
+    const type = searchParams.get('type') || 'all';
+    const difficulty = searchParams.get('difficulty') || 'all';
+    const limit = parseInt(searchParams.get('limit') || '50');
 
-    logger.info(`Fetching approved content, type: ${type}, limit: ${limit}`);
+    console.log(`📚 Fetching knowledge items - Type: ${type}, Difficulty: ${difficulty}, Limit: ${limit}`);
 
     // Initialize Supabase client
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     
     if (!supabaseUrl || !supabaseAnonKey) {
-      logger.error('Supabase environment variables are missing!');
+      console.error('❌ Supabase environment variables are missing!');
       return NextResponse.json({
         error: 'Database configuration missing'
       }, { status: 500 });
@@ -25,41 +23,38 @@ export async function GET(request: NextRequest) {
 
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+    // Build query
     let query = supabase
-      .from('content_updates')
+      .from('knowledge_items')
       .select('*')
-      .eq('status', 'approved')
-      .order('created_at', { ascending: false })
+      .eq('is_active', true)
       .limit(limit);
 
-    if (type) {
+    // Apply filters
+    if (type !== 'all') {
       query = query.eq('type', type);
     }
 
-    const { data: content, error } = await query;
+    if (difficulty !== 'all') {
+      query = query.eq('difficulty', difficulty);
+    }
+
+    const { data: items, error } = await query;
 
     if (error) {
-      logger.dbError('content_updates', 'SELECT', error);
+      console.error('❌ Error fetching knowledge items:', error);
       return NextResponse.json({
         error: 'Database unavailable',
         details: error.message
       }, { status: 500 });
     }
 
-    const duration = Date.now() - startTime;
-    logger.performance('content-approved', duration);
-    logger.info(`Found ${content?.length || 0} approved content items`);
-    
-    const response = NextResponse.json(content || []);
-    
-    // Cache for 10 minutes since approved content doesn't change often
-    response.headers.set('Cache-Control', 'public, max-age=600, s-maxage=600');
-    return response;
+    console.log(`✅ Found ${items?.length || 0} knowledge items`);
+
+    return NextResponse.json(items || []);
 
   } catch (error) {
-    const duration = Date.now() - startTime;
-    logger.performance('content-approved-error', duration);
-    logger.error('Error in approved content API', error);
+    console.error('💥 Error in knowledge items API:', error);
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'
