@@ -103,7 +103,6 @@ async function generateChallenges(_user_id?: string | null): Promise<ChallengesR
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
     const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
     // Haal challenges op uit Supabase
     const { data: challenges, error: challengesError } = await supabase

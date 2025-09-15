@@ -90,7 +90,7 @@ async function calculateAdaptiveLearning(request: LearningRequest): Promise<Lear
   const recommendedWords = await generateRecommendedWords(masteryScore, _difficulty, supabase);
 
   // Create learning path
-  const learningPath = generateLearningPath(masteryScore, _difficulty);
+  const learningPath = generateLearningPath(masteryScore);
 
   // Calculate next review time (spaced repetition)
   const nextReviewTime = calculateNextReviewTime(masteryScore, _attempts);

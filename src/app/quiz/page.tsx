@@ -13,17 +13,17 @@ interface QuizQuestion {
   mastery_score?: number;
 }
 
-interface QuizResult {
-  score: number;
-  total: number;
-  time_taken: number;
-  adaptive_feedback?: {
-    next_difficulty: string;
-    recommended_words: string[];
-    learning_path: string[];
-    mastery_score: number;
-  };
-}
+// interface QuizResult {
+//   score: number;
+//   total: number;
+//   time_taken: number;
+//   adaptive_feedback?: {
+//     next_difficulty: string;
+//     recommended_words: string[];
+//     learning_path: string[];
+//     mastery_score: number;
+//   };
+// }
 
 export default function QuizPage() {
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);

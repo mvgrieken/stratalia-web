@@ -10,11 +10,11 @@ interface QuizQuestion {
   difficulty: string;
 }
 
-interface QuizResponse {
-  questions: QuizQuestion[];
-  total_questions: number;
-  difficulty: string;
-}
+// interface QuizResponse {
+//   questions: QuizQuestion[];
+//   total_questions: number;
+//   difficulty: string;
+// }
 
 export async function GET(request: NextRequest) {
   try {
