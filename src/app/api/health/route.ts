@@ -21,7 +21,7 @@ export async function GET() {
 
     // Test database connection
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('words')
       .select('count')
       .limit(1);

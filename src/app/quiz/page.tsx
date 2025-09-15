@@ -13,7 +13,7 @@ interface QuizQuestion {
   mastery_score?: number;
 }
 
-interface _QuizResult {
+interface QuizResult {
   score: number;
   total: number;
   time_taken: number;
@@ -29,7 +29,7 @@ export default function QuizPage() {
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-  const [showResult, setShowResult] = useState(false);
+  const [, setShowResult] = useState(false);
   const [score, setScore] = useState(0);
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [loading, setLoading] = useState(true);

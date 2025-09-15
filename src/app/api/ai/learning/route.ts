@@ -21,7 +21,7 @@ interface LearningResponse {
 export async function POST(request: NextRequest) {
   try {
     const body: LearningRequest = await request.json();
-    const { user_id: _user_id, word_id, difficulty, response_time: _response_time, correct: _correct, attempts: _attempts } = body;
+    const { word_id, difficulty } = body;
 
     if (!word_id || !difficulty) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -139,7 +139,7 @@ async function generateRecommendedWords(masteryScore: number, difficulty: string
   }
 }
 
-function generateLearningPath(masteryScore: number, _difficulty: string): string[] {
+function generateLearningPath(masteryScore: number): string[] {
   const paths = {
     beginner: [
       'Basis woorden leren',

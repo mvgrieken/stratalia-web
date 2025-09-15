@@ -104,9 +104,6 @@ async function generateChallenges(_user_id?: string | null): Promise<ChallengesR
 
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const _tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
-    const _nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
-    const _nextMonth = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
 
     // Haal challenges op uit Supabase
     const { data: challenges, error: challengesError } = await supabase
