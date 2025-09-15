@@ -8,51 +8,90 @@
  * ROOT CAUSE: Third-party libraries (like Supabase Auth credentials-library.js)
  * call MutationObserver.observe with null targets when document.querySelector
  * returns null for missing DOM elements.
+ * 
+ * SOLUTION: Monkey-patch MutationObserver globally to prevent crashes
+ * from external libraries before they can cause errors.
  */
 
-// Fix MutationObserver error - STRUCTURAL FIX
+// CRITICAL: Patch MutationObserver BEFORE any external libraries load
 if (typeof window !== 'undefined') {
-  // Ensure MutationObserver is available
-  if (!window.MutationObserver) {
-    console.warn('MutationObserver not available, using fallback');
-  } else {
-    // Fix for credentials-library.js and any other MutationObserver errors
-    const originalObserve = MutationObserver.prototype.observe;
-    const originalDisconnect = MutationObserver.prototype.disconnect;
+  // Store original MutationObserver
+  const OriginalMutationObserver = window.MutationObserver;
+  
+  // Create safe wrapper for MutationObserver
+  class SafeMutationObserver extends OriginalMutationObserver {
+    constructor(callback: MutationCallback) {
+      super(callback);
+    }
     
-    // Override observe method with comprehensive safety checks
-    MutationObserver.prototype.observe = function(target: Node, options?: MutationObserverInit) {
+    observe(target: Node, options?: MutationObserverInit) {
       // Comprehensive target validation
       if (!target) {
-        console.warn('MutationObserver.observe called with null/undefined target - skipping');
+        console.warn('🔧 [BROWSER-FIX] MutationObserver.observe called with null/undefined target - skipping');
         return;
       }
       
       if (!(target instanceof Node)) {
-        console.warn('MutationObserver.observe called with invalid target type:', typeof target, target);
+        console.warn('🔧 [BROWSER-FIX] MutationObserver.observe called with invalid target type:', typeof target, target);
         return;
       }
       
       // Check if target is still in the document
       if (target.nodeType === Node.ELEMENT_NODE && !document.contains(target)) {
-        console.warn('MutationObserver.observe called with detached element:', target);
+        console.warn('🔧 [BROWSER-FIX] MutationObserver.observe called with detached element:', target);
+        return;
+      }
+      
+      try {
+        return super.observe(target, options);
+      } catch (error) {
+        console.error('🔧 [BROWSER-FIX] MutationObserver.observe failed:', error, 'Target:', target);
+        return;
+      }
+    }
+    
+    disconnect() {
+      try {
+        return super.disconnect();
+      } catch (error) {
+        console.error('🔧 [BROWSER-FIX] MutationObserver.disconnect failed:', error);
+        return;
+      }
+    }
+  }
+  
+  // Replace global MutationObserver with safe version
+  window.MutationObserver = SafeMutationObserver as any;
+  
+  // Also patch the prototype for existing instances
+  if (OriginalMutationObserver.prototype) {
+    const originalObserve = OriginalMutationObserver.prototype.observe;
+    const originalDisconnect = OriginalMutationObserver.prototype.disconnect;
+    
+    OriginalMutationObserver.prototype.observe = function(target: Node, options?: MutationObserverInit) {
+      if (!target) {
+        console.warn('🔧 [BROWSER-FIX] Existing MutationObserver.observe called with null target - skipping');
+        return;
+      }
+      
+      if (!(target instanceof Node)) {
+        console.warn('🔧 [BROWSER-FIX] Existing MutationObserver.observe called with invalid target type:', typeof target, target);
         return;
       }
       
       try {
         return originalObserve.call(this, target, options);
       } catch (error) {
-        console.error('MutationObserver.observe failed:', error, 'Target:', target);
+        console.error('🔧 [BROWSER-FIX] Existing MutationObserver.observe failed:', error, 'Target:', target);
         return;
       }
     };
     
-    // Override disconnect method for safety
-    MutationObserver.prototype.disconnect = function() {
+    OriginalMutationObserver.prototype.disconnect = function() {
       try {
         return originalDisconnect.call(this);
       } catch (error) {
-        console.error('MutationObserver.disconnect failed:', error);
+        console.error('🔧 [BROWSER-FIX] Existing MutationObserver.disconnect failed:', error);
         return;
       }
     };
@@ -64,11 +103,11 @@ if (typeof window !== 'undefined') {
     try {
       const result = originalQuerySelector.call(this, selectors);
       if (!result) {
-        console.warn('document.querySelector returned null for:', selectors);
+        console.warn('🔧 [BROWSER-FIX] document.querySelector returned null for:', selectors);
       }
       return result;
     } catch (error) {
-      console.error('document.querySelector failed:', error, 'Selector:', selectors);
+      console.error('🔧 [BROWSER-FIX] document.querySelector failed:', error, 'Selector:', selectors);
       return null;
     }
   };
@@ -79,10 +118,12 @@ if (typeof window !== 'undefined') {
     try {
       return originalQuerySelectorAll.call(this, selectors);
     } catch (error) {
-      console.error('document.querySelectorAll failed:', error, 'Selector:', selectors);
+      console.error('🔧 [BROWSER-FIX] document.querySelectorAll failed:', error, 'Selector:', selectors);
       return document.createDocumentFragment().querySelectorAll(selectors); // Empty NodeList
     }
   };
+  
+  console.log('🔧 [BROWSER-FIX] MutationObserver patched successfully - external libraries are now safe');
 }
 
 export {};

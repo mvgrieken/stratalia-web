@@ -9,39 +9,57 @@ export async function GET(request: NextRequest) {
     const query = searchParams.get('query');
     const limit = parseInt(searchParams.get('limit') || '10');
 
+    logger.info(`🔍 [SEARCH-API] Request received - Query: "${query}", Limit: ${limit}`);
+
     if (!query) {
-      return NextResponse.json({ error: 'Query parameter is required' }, { status: 400 });
+      logger.warn('❌ [SEARCH-API] Missing query parameter');
+      return NextResponse.json({ 
+        error: 'Query parameter is required',
+        details: 'Please provide a search query'
+      }, { status: 400 });
     }
 
-    logger.info(`Searching for: "${query}" with limit: ${limit}`);
+    logger.info(`🔍 [SEARCH-API] Searching for: "${query}" with limit: ${limit}`);
 
     // Initialize Supabase client
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     
+    logger.info(`🔍 [SEARCH-API] Environment check - URL: ${supabaseUrl ? 'SET' : 'MISSING'}, Key: ${supabaseAnonKey ? 'SET' : 'MISSING'}`);
+    
     if (!supabaseUrl || !supabaseAnonKey) {
-      logger.error('Supabase environment variables are missing!');
+      logger.error('❌ [SEARCH-API] Supabase environment variables are missing!');
       return NextResponse.json({
-        error: 'Database configuration missing'
+        error: 'Database configuration missing',
+        details: 'Environment variables not configured'
       }, { status: 500 });
     }
 
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    logger.info(`🔍 [SEARCH-API] Supabase client created successfully`);
 
     // Simple search in words table
+    logger.info(`🔍 [SEARCH-API] Executing search query: SELECT * FROM words WHERE word ILIKE '%${query}%' LIMIT ${limit}`);
     const { data: words, error: wordsError } = await supabase
       .from('words')
       .select('id, word, definition, example')
       .ilike('word', `%${query}%`)
       .limit(limit);
 
+    logger.info(`🔍 [SEARCH-API] Search query result - Data: ${words ? `${words.length} results` : 'NULL'}, Error: ${wordsError ? wordsError.code : 'NONE'}`);
+
     if (wordsError) {
-      logger.dbError('words', 'SELECT', wordsError);
+      logger.error(`❌ [SEARCH-API] Database search error:`, {
+        code: wordsError.code,
+        message: wordsError.message,
+        details: wordsError.details,
+        hint: wordsError.hint
+      });
       return NextResponse.json({
         error: 'Database search failed',
         details: wordsError.message,
         code: wordsError.code || 'UNKNOWN_ERROR'
-      }, { status: 500 });
+      }, { status: 400 });
     }
 
     // Format results with defensive checks
@@ -64,7 +82,7 @@ export async function GET(request: NextRequest) {
 
     const duration = Date.now() - startTime;
     logger.performance('search-words', duration);
-    logger.info(`Found ${results.length} results for "${query}"`);
+    logger.info(`✅ [SEARCH-API] Found ${results.length} results for "${query}" in ${duration}ms`);
     
     const response = NextResponse.json(results);
     

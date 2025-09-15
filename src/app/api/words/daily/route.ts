@@ -6,22 +6,27 @@ export async function GET() {
   const startTime = Date.now();
   try {
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-    logger.info(`Fetching daily word for: ${today}`);
+    logger.info(`🔍 [DAILY-API] Fetching daily word for: ${today}`);
 
     // Initialize Supabase client
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     
+    logger.info(`🔍 [DAILY-API] Environment check - URL: ${supabaseUrl ? 'SET' : 'MISSING'}, Key: ${supabaseAnonKey ? 'SET' : 'MISSING'}`);
+    
     if (!supabaseUrl || !supabaseAnonKey) {
-      logger.error('Supabase environment variables are missing!');
+      logger.error('❌ [DAILY-API] Supabase environment variables are missing!');
       return NextResponse.json({
-        error: 'Database configuration missing'
+        error: 'Database configuration missing',
+        details: 'Environment variables not configured'
       }, { status: 500 });
     }
 
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    logger.info(`🔍 [DAILY-API] Supabase client created successfully`);
 
     // First, try to get today's word of the day
+    logger.info(`🔍 [DAILY-API] Querying word_of_the_day for date: ${today}`);
     const { data: dailyWord, error: dailyError } = await supabase
       .from('word_of_the_day')
       .select(`
@@ -31,17 +36,25 @@ export async function GET() {
       .eq('date', today)
       .single();
 
+    logger.info(`🔍 [DAILY-API] Daily word query result - Data: ${dailyWord ? 'FOUND' : 'NULL'}, Error: ${dailyError ? dailyError.code : 'NONE'}`);
+    
     if (dailyError && dailyError.code !== 'PGRST116') {
-      logger.dbError('word_of_the_day', 'SELECT', dailyError);
+      logger.error(`❌ [DAILY-API] Database error:`, {
+        code: dailyError.code,
+        message: dailyError.message,
+        details: dailyError.details,
+        hint: dailyError.hint
+      });
       return NextResponse.json({ 
-        error: 'Database unavailable', 
-        details: dailyError.message 
-      }, { status: 500 });
+        error: 'Database query failed', 
+        details: dailyError.message,
+        code: dailyError.code
+      }, { status: 400 });
     }
 
     // If no word for today, get a random word
     if (!dailyWord) {
-      logger.info('No daily word found, selecting random word...');
+      logger.info('🔍 [DAILY-API] No daily word found, selecting random word...');
       
       const { data: randomWord, error: randomError } = await supabase
         .from('words')
@@ -50,20 +63,27 @@ export async function GET() {
         .limit(1)
         .single();
 
+      logger.info(`🔍 [DAILY-API] Random word query result - Data: ${randomWord ? 'FOUND' : 'NULL'}, Error: ${randomError ? randomError.code : 'NONE'}`);
+
       if (randomError) {
-        logger.dbError('words', 'SELECT', randomError);
+        logger.error(`❌ [DAILY-API] Random word database error:`, {
+          code: randomError.code,
+          message: randomError.message,
+          details: randomError.details
+        });
         return NextResponse.json({ 
-          error: 'Database unavailable', 
-          details: randomError.message 
-        }, { status: 500 });
+          error: 'Database query failed', 
+          details: randomError.message,
+          code: randomError.code
+        }, { status: 400 });
       }
       
       // Defensive check for random word data
       if (!randomWord) {
-        logger.error('No random word found in database');
+        logger.error('❌ [DAILY-API] No random word found in database');
         return NextResponse.json({
-          error: 'No words available',
-          details: 'Database contains no active words'
+          error: 'Not found',
+          details: 'No active words available in database'
         }, { status: 404 });
       }
 

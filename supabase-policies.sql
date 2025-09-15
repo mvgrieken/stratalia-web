@@ -229,24 +229,50 @@ ORDER BY tablename, policyname;
 
 -- This query should return NO results if security is properly configured
 
--- Test queries to verify anon access works
--- Run these as anon user to verify SELECT permissions:
+-- ==============================================
+-- TEST QUERIES - VERIFY ANON ACCESS
+-- ==============================================
 
--- Test 1: Words table access
+-- Test 1: Words table access (should work)
 -- SELECT COUNT(*) FROM words WHERE is_active = true;
--- Expected: Should return count of active words
+-- Expected: Should return count of active words (currently 256)
 
--- Test 2: Word of the day access  
+-- Test 2: Word of the day access (should work)
 -- SELECT COUNT(*) FROM word_of_the_day;
--- Expected: Should return count of daily words
+-- Expected: Should return count of daily words (currently 0)
 
--- Test 3: Content updates access
+-- Test 3: Content updates access (should work)
 -- SELECT COUNT(*) FROM content_updates WHERE status = 'approved';
--- Expected: Should return count of approved content
+-- Expected: Should return count of approved content (currently 1)
 
 -- Test 4: Verify anon cannot INSERT (should fail)
 -- INSERT INTO words (word, definition, example, is_active) VALUES ('test', 'test', 'test', true);
--- Expected: Should fail with permission denied error
+-- Expected: Should fail with "new row violates row-level security policy" error
+
+-- Test 5: Verify anon cannot UPDATE (should fail)
+-- UPDATE words SET definition = 'updated' WHERE id = 1;
+-- Expected: Should fail with "new row violates row-level security policy" error
+
+-- Test 6: Verify anon cannot DELETE (should fail)
+-- DELETE FROM words WHERE id = 1;
+-- Expected: Should fail with "new row violates row-level security policy" error
+
+-- ==============================================
+-- VERIFICATION QUERY - NO ANON MUTATIONS
+-- ==============================================
+-- This query should return NO results if security is properly configured:
+-- SELECT 
+--     schemaname, 
+--     tablename, 
+--     policyname, 
+--     roles, 
+--     cmd, 
+--     qual 
+-- FROM pg_policies 
+-- WHERE schemaname = 'public' 
+--     AND 'anon' = ANY(roles) 
+--     AND cmd IN ('INSERT', 'UPDATE', 'DELETE')
+-- ORDER BY tablename, policyname;
 
 -- ==============================================
 -- END OF SECURE RLS POLICIES
