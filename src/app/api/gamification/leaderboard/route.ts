@@ -63,8 +63,8 @@ export async function GET(request: NextRequest) {
 
       const formattedLeaderboard = fallbackData?.map((item, index) => ({
         rank: index + 1,
-        user_id: item.profiles?.email, // Use email as identifier for now
-        full_name: item.profiles?.full_name || 'Anonymous',
+        user_id: (item.profiles as any)?.email || `user_${index}`, // Use email as identifier for now
+        full_name: (item.profiles as any)?.full_name || 'Anonymous',
         total_points: item.total_points || 0,
         current_level: item.current_level || 1,
         current_streak: item.current_streak || 0

@@ -10,7 +10,7 @@ const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
 // Mock Next.js response
-const mockNextResponse = {
+const _mockNextResponse = {
   json: vi.fn(),
   headers: {
     set: vi.fn()

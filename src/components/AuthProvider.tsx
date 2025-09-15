@@ -1,7 +1,6 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
 
 interface User {
   id: string;
@@ -13,8 +12,8 @@ interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error?: string }>;
-  signUp: (email: string, password: string, full_name: string) => Promise<{ error?: string }>;
+  signIn: (_email: string, _password: string) => Promise<{ error?: string }>;
+  signUp: (_email: string, _password: string, _full_name: string) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
 }
 

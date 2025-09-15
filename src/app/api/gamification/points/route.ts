@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { user_id, points, action_type, metadata } = await request.json();
+    const { user_id, points, action_type, metadata: _metadata } = await request.json();
 
     if (!user_id || !points || !action_type) {
       return NextResponse.json({
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
     const newLevel = Math.floor(newTotalPoints / 100) + 1; // 100 points per level
 
     // Update or create user points
-    const { data: updatedPoints, error: updateError } = await supabase
+    const { data: _updatedPoints, error: updateError } = await supabase
       .from('user_points')
       .upsert({
         user_id,
