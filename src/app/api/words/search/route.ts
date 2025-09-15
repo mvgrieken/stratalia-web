@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { logger } from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
+  const startTime = Date.now();
   try {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('query');
@@ -11,14 +13,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Query parameter is required' }, { status: 400 });
     }
 
-    console.log(`🔍 Searching for: "${query}" with limit: ${limit}`);
+    logger.info(`Searching for: "${query}" with limit: ${limit}`);
 
     // Initialize Supabase client
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     
     if (!supabaseUrl || !supabaseAnonKey) {
-      console.error('❌ Supabase environment variables are missing!');
+      logger.error('Supabase environment variables are missing!');
       return NextResponse.json({
         error: 'Database configuration missing'
       }, { status: 500 });
@@ -34,7 +36,7 @@ export async function GET(request: NextRequest) {
       .limit(limit);
 
     if (wordsError) {
-      console.error('❌ Error searching words:', wordsError);
+      logger.dbError('words', 'SELECT', wordsError);
       return NextResponse.json({
         error: 'Database search failed',
         details: wordsError.message
@@ -51,11 +53,20 @@ export async function GET(request: NextRequest) {
       similarity_score: word.word.toLowerCase() === query.toLowerCase() ? 1.0 : 0.8
     })) || [];
 
-    console.log(`✅ Found ${results.length} results for "${query}"`);
-    return NextResponse.json(results);
+    const duration = Date.now() - startTime;
+    logger.performance('search-words', duration);
+    logger.info(`Found ${results.length} results for "${query}"`);
+    
+    const response = NextResponse.json(results);
+    
+    // Cache search results for 5 minutes
+    response.headers.set('Cache-Control', 'public, max-age=300, s-maxage=300');
+    return response;
 
   } catch (error) {
-    console.error('💥 Error in search API:', error);
+    const duration = Date.now() - startTime;
+    logger.performance('search-error', duration);
+    logger.error('Error in search API', error);
     return NextResponse.json({ 
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'

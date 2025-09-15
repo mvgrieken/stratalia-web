@@ -1,105 +1,210 @@
-import { describe, it, expect, beforeAll } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 
+// Integration tests for API endpoints
 describe('API Integration Tests', () => {
-  let baseUrl: string;
+  const baseUrl = process.env.TEST_BASE_URL || 'http://localhost:3000';
 
-  beforeAll(() => {
-    baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  beforeAll(async () => {
+    // Wait for server to be ready
+    await new Promise(resolve => setTimeout(resolve, 1000));
   });
 
-  describe('API Health Check', () => {
-    it('should have all main API endpoints responding', async () => {
-      const endpoints = [
-        '/api/words/search?query=test',
-        '/api/words/daily',
-        '/api/content/approved',
-        '/api/gamification/leaderboard',
-        '/api/gamification/challenges'
-      ];
+  afterAll(async () => {
+    // Cleanup if needed
+  });
 
-      for (const endpoint of endpoints) {
-        const response = await fetch(`${baseUrl}${endpoint}`);
-        expect(response.status).toBe(200);
-        
-        const data = await response.json();
-        expect(data).toBeDefined();
+  describe('Health Check API', () => {
+    it('should return healthy status', async () => {
+      const response = await fetch(`${baseUrl}/api/health`);
+      expect(response.status).toBe(200);
+      
+      const data = await response.json();
+      expect(data.status).toBe('ok');
+      expect(data.message).toBe('All systems operational');
+      expect(data.checks.database).toBe('ok');
+      expect(data.checks.environment).toBe('ok');
+      expect(typeof data.responseTime).toBe('string');
+    });
+
+    it('should include required fields', async () => {
+      const response = await fetch(`${baseUrl}/api/health`);
+      const data = await response.json();
+      
+      expect(data).toHaveProperty('timestamp');
+      expect(data).toHaveProperty('uptime');
+      expect(data).toHaveProperty('environment');
+      expect(data).toHaveProperty('version');
+      expect(data).toHaveProperty('checks');
+    });
+  });
+
+  describe('Words Search API', () => {
+    it('should search for existing word "skeer"', async () => {
+      const response = await fetch(`${baseUrl}/api/words/search?query=skeer&limit=1`);
+      expect(response.status).toBe(200);
+      
+      const data = await response.json();
+      expect(Array.isArray(data)).toBe(true);
+      expect(data.length).toBeGreaterThan(0);
+      
+      const word = data[0];
+      expect(word).toHaveProperty('id');
+      expect(word).toHaveProperty('word');
+      expect(word).toHaveProperty('meaning');
+      expect(word).toHaveProperty('example');
+      expect(word.word.toLowerCase()).toContain('skeer');
+    });
+
+    it('should return empty array for non-existent word', async () => {
+      const response = await fetch(`${baseUrl}/api/words/search?query=nonexistentword123&limit=1`);
+      expect(response.status).toBe(200);
+      
+      const data = await response.json();
+      expect(Array.isArray(data)).toBe(true);
+      expect(data.length).toBe(0);
+    });
+
+    it('should handle missing query parameter', async () => {
+      const response = await fetch(`${baseUrl}/api/words/search`);
+      expect(response.status).toBe(400);
+      
+      const data = await response.json();
+      expect(data.error).toBe('Query parameter is required');
+    });
+
+    it('should respect limit parameter', async () => {
+      const response = await fetch(`${baseUrl}/api/words/search?query=a&limit=3`);
+      expect(response.status).toBe(200);
+      
+      const data = await response.json();
+      expect(Array.isArray(data)).toBe(true);
+      expect(data.length).toBeLessThanOrEqual(3);
+    });
+
+    it('should include match_type and similarity_score', async () => {
+      const response = await fetch(`${baseUrl}/api/words/search?query=skeer&limit=1`);
+      expect(response.status).toBe(200);
+      
+      const data = await response.json();
+      if (data.length > 0) {
+        const word = data[0];
+        expect(word).toHaveProperty('match_type');
+        expect(word).toHaveProperty('similarity_score');
+        expect(['exact', 'partial']).toContain(word.match_type);
+        expect(typeof word.similarity_score).toBe('number');
       }
     });
   });
 
-  describe('Data Consistency Tests', () => {
-    it('should return consistent data types across API calls', async () => {
-      // Test words search
-      const wordsResponse = await fetch(`${baseUrl}/api/words/search?query=a&limit=1`);
-      const wordsData = await wordsResponse.json();
-      expect(Array.isArray(wordsData)).toBe(true);
-
-      // Test daily word
-      const dailyResponse = await fetch(`${baseUrl}/api/words/daily`);
-      const dailyData = await dailyResponse.json();
-      expect(typeof dailyData).toBe('object');
-      expect(dailyData).toHaveProperty('word');
-
-      // Test content approved
-      const contentResponse = await fetch(`${baseUrl}/api/content/approved`);
-      const contentData = await contentResponse.json();
-      expect(Array.isArray(contentData)).toBe(true);
-
-      // Test leaderboard
-      const leaderboardResponse = await fetch(`${baseUrl}/api/gamification/leaderboard`);
-      const leaderboardData = await leaderboardResponse.json();
-      expect(leaderboardData).toHaveProperty('leaderboard');
-      expect(Array.isArray(leaderboardData.leaderboard)).toBe(true);
-
-      // Test challenges
-      const challengesResponse = await fetch(`${baseUrl}/api/gamification/challenges`);
-      const challengesData = await challengesResponse.json();
-      expect(challengesData).toHaveProperty('challenges');
-      expect(Array.isArray(challengesData.challenges)).toBe(true);
+  describe('Daily Word API', () => {
+    it('should return a daily word', async () => {
+      const response = await fetch(`${baseUrl}/api/words/daily`);
+      expect(response.status).toBe(200);
+      
+      const data = await response.json();
+      expect(data).toHaveProperty('id');
+      expect(data).toHaveProperty('word');
+      expect(data).toHaveProperty('meaning');
+      expect(data).toHaveProperty('example');
+      expect(data).toHaveProperty('date');
+      
+      // Validate date format (YYYY-MM-DD)
+      expect(data.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     });
 
-    it('should handle error cases gracefully', async () => {
-      // Test invalid search query
-      const invalidSearchResponse = await fetch(`${baseUrl}/api/words/search?query=`);
-      expect(invalidSearchResponse.status).toBe(200);
-      const invalidSearchData = await invalidSearchResponse.json();
-      expect(Array.isArray(invalidSearchData)).toBe(true);
+    it('should return consistent word for same day', async () => {
+      const response1 = await fetch(`${baseUrl}/api/words/daily`);
+      const response2 = await fetch(`${baseUrl}/api/words/daily`);
+      
+      expect(response1.status).toBe(200);
+      expect(response2.status).toBe(200);
+      
+      const data1 = await response1.json();
+      const data2 = await response2.json();
+      
+      expect(data1.date).toBe(data2.date);
+      // Note: Word might be different if no daily word is set and random selection is used
+    });
 
-      // Test invalid limit parameter
-      const invalidLimitResponse = await fetch(`${baseUrl}/api/words/search?query=test&limit=invalid`);
-      expect(invalidLimitResponse.status).toBe(200);
-      const invalidLimitData = await invalidLimitResponse.json();
-      expect(Array.isArray(invalidLimitData)).toBe(true);
+    it('should have valid word structure', async () => {
+      const response = await fetch(`${baseUrl}/api/words/daily`);
+      expect(response.status).toBe(200);
+      
+      const data = await response.json();
+      expect(typeof data.id).toBe('string');
+      expect(typeof data.word).toBe('string');
+      expect(typeof data.meaning).toBe('string');
+      expect(typeof data.example).toBe('string');
+      expect(data.word.length).toBeGreaterThan(0);
+      expect(data.meaning.length).toBeGreaterThan(0);
     });
   });
 
-  describe('Performance Tests', () => {
-    it('should respond within reasonable time limits', async () => {
-      const startTime = Date.now();
+  describe('Content Approved API', () => {
+    it('should return approved content', async () => {
+      const response = await fetch(`${baseUrl}/api/content/approved`);
+      expect(response.status).toBe(200);
       
-      const response = await fetch(`${baseUrl}/api/words/search?query=test&limit=10`);
+      const data = await response.json();
+      expect(Array.isArray(data)).toBe(true);
+      
+      // If there's content, validate structure
+      if (data.length > 0) {
+        const item = data[0];
+        expect(item).toHaveProperty('id');
+        expect(item).toHaveProperty('word');
+        expect(item).toHaveProperty('definition');
+        expect(item).toHaveProperty('example');
+        expect(item).toHaveProperty('status');
+        expect(item.status).toBe('approved');
+      }
+    });
+
+    it('should only return approved status items', async () => {
+      const response = await fetch(`${baseUrl}/api/content/approved`);
+      expect(response.status).toBe(200);
+      
+      const data = await response.json();
+      if (data.length > 0) {
+        data.forEach((item: any) => {
+          expect(item.status).toBe('approved');
+        });
+      }
+    });
+  });
+
+  describe('API Performance', () => {
+    it('should respond within acceptable time limits', async () => {
+      const startTime = Date.now();
+      const response = await fetch(`${baseUrl}/api/words/search?query=test&limit=1`);
       const endTime = Date.now();
       
       expect(response.status).toBe(200);
-      expect(endTime - startTime).toBeLessThan(5000); // 5 seconds max
+      expect(endTime - startTime).toBeLessThan(2000); // 2 seconds max
     });
 
-    it('should handle concurrent requests', async () => {
-      const promises = Array(5).fill(null).map(() => 
-        fetch(`${baseUrl}/api/words/daily`)
-      );
+    it('should have proper cache headers', async () => {
+      const response = await fetch(`${baseUrl}/api/words/daily`);
+      expect(response.status).toBe(200);
       
-      const responses = await Promise.all(promises);
+      const cacheControl = response.headers.get('cache-control');
+      expect(cacheControl).toContain('max-age');
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('should handle invalid endpoints gracefully', async () => {
+      const response = await fetch(`${baseUrl}/api/nonexistent`);
+      expect(response.status).toBe(404);
+    });
+
+    it('should return proper error format', async () => {
+      const response = await fetch(`${baseUrl}/api/words/search`);
+      expect(response.status).toBe(400);
       
-      responses.forEach(response => {
-        expect(response.status).toBe(200);
-      });
-      
-      const data = await Promise.all(responses.map(r => r.json()));
-      data.forEach(d => {
-        expect(d).toHaveProperty('word');
-        expect(d).toHaveProperty('meaning');
-      });
+      const data = await response.json();
+      expect(data).toHaveProperty('error');
+      expect(typeof data.error).toBe('string');
     });
   });
 });

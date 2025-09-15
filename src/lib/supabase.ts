@@ -1,5 +1,18 @@
 import { createClient } from '@supabase/supabase-js'
 
+// ==============================================
+// SECURITY WARNING: SUPABASE CLIENT CONFIGURATION
+// ==============================================
+// 
+// ⚠️  CRITICAL SECURITY RULES:
+// 1. NEVER use SUPABASE_SERVICE_KEY in client-side code
+// 2. ONLY use NEXT_PUBLIC_SUPABASE_ANON_KEY in frontend
+// 3. Service keys should ONLY be used in API routes (server-side)
+// 4. This client is for READ-ONLY operations from the frontend
+// 5. All mutations must go through API routes with service_role
+//
+// ==============================================
+
 // Environment variables validation
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY

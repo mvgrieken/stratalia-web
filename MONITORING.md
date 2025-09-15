@@ -1,262 +1,235 @@
-# 📊 Stratalia Monitoring & Logging Guide
+# Stratalia Monitoring & Logging Guide
 
-## Vercel Built-in Monitoring
+## Overview
+This document explains how to monitor the Stratalia application in production, including logging, error tracking, and performance monitoring.
 
-### 1. Function Logs
-**Locatie:** Vercel Dashboard → Project → Functions → [API Endpoint] → Logs
+## Logging System
 
-**Wat te monitoren:**
-- API response times
-- Error rates
-- Function invocations
-- Memory usage
+### Production-Safe Logger
+The application uses a custom logger (`src/lib/logger.ts`) that:
+- **Development**: Logs all levels (debug, info, warn, error)
+- **Production**: Only logs warnings and errors
+- **Format**: Structured JSON with timestamps and context
 
-**Real-time monitoring:**
-```bash
-# Via Vercel CLI (als beschikbaar)
-vercel logs --follow
-```
+### Log Levels
+- **ERROR**: Critical issues that need immediate attention
+- **WARN**: Issues that should be investigated but don't break functionality
+- **INFO**: General application flow (API requests, database operations)
+- **DEBUG**: Detailed information for development (disabled in production)
 
-### 2. Analytics Dashboard
-**Locatie:** Vercel Dashboard → Project → Analytics
+### Log Categories
+- **API**: Request/response logging with status codes and duration
+- **Database**: Query operations with performance metrics
+- **Security**: Authentication, authorization, and security events
+- **Performance**: Slow operations (>1000ms) and performance metrics
 
-**Metrics:**
-- Page views
-- Unique visitors
-- Core Web Vitals
-- Performance scores
+## Monitoring Endpoints
 
-### 3. Deployment Logs
-**Locatie:** Vercel Dashboard → Project → Deployments → [Deployment] → Build Logs
+### Health Check
+**Endpoint**: `GET /api/health`
 
-**Wat te checken:**
-- Build success/failure
-- Environment variable loading
-- Dependency installation
-- Build time
-
-## Application Logging
-
-### 1. API Endpoint Logging
-Alle API endpoints hebben al logging geïmplementeerd:
-
-```typescript
-// Voorbeeld uit search API
-console.log(`✅ Found ${results.length} results for "${query}"`);
-console.error('💥 Error in search API:', error);
-```
-
-### 2. Database Logging
-Import_log tabel voor database operaties:
-
-```sql
--- Check recent database operations
-SELECT type, status, created_at, source 
-FROM import_log 
-ORDER BY created_at DESC 
-LIMIT 10;
-```
-
-### 3. Error Tracking
-**Huidige implementatie:**
-- Console.error voor alle API errors
-- Try-catch blocks in alle endpoints
-- Proper HTTP status codes
-- Error details in response
-
-## Optional Monitoring Integrations
-
-### 1. Sentry (Error Tracking)
-**Setup:**
-```bash
-npm install @sentry/nextjs
-```
-
-**Configuratie:**
-```javascript
-// sentry.client.config.js
-import * as Sentry from "@sentry/nextjs";
-
-Sentry.init({
-  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-  tracesSampleRate: 1.0,
-});
-```
-
-**Voordelen:**
-- Real-time error notifications
-- Error grouping en deduplication
-- Performance monitoring
-- User context tracking
-
-### 2. Vercel Analytics
-**Setup:**
-```bash
-npm install @vercel/analytics
-```
-
-**Implementatie:**
-```javascript
-// app/layout.tsx
-import { Analytics } from '@vercel/analytics/react';
-
-export default function RootLayout({ children }) {
-  return (
-    <html>
-      <body>
-        {children}
-        <Analytics />
-      </body>
-    </html>
-  );
+**Response**:
+```json
+{
+  "status": "ok",
+  "message": "All systems operational",
+  "timestamp": "2025-01-15T10:30:00.000Z",
+  "uptime": 3600,
+  "environment": "production",
+  "version": "1.0.0",
+  "checks": {
+    "database": "ok",
+    "environment": "ok"
+  },
+  "responseTime": "45ms"
 }
 ```
 
-**Voordelen:**
-- Privacy-focused analytics
-- Core Web Vitals tracking
-- Real-time visitor data
-- Performance insights
+**Status Codes**:
+- `200`: All systems healthy
+- `503`: Service unavailable (database issues, missing env vars)
 
-### 3. Supabase Monitoring
-**Locatie:** Supabase Dashboard → Project → Logs
+## Vercel Monitoring
 
-**Wat te monitoren:**
-- Database query performance
-- API request logs
-- Authentication events
-- Real-time subscriptions
+### 1. Vercel Dashboard
+- **URL**: https://vercel.com/dashboard
+- **Metrics**: Function invocations, response times, error rates
+- **Logs**: Real-time function logs and errors
 
-## Alerting Setup
+### 2. Function Logs
+```bash
+# View recent logs
+vercel logs --follow
 
-### 1. Vercel Alerts
-**Setup:**
-- Vercel Dashboard → Project → Settings → Notifications
-- Configure email/Slack notifications voor:
-  - Failed deployments
-  - Function errors
-  - Performance degradation
+# View logs for specific function
+vercel logs --function=api/words/search
+```
 
-### 2. Custom Health Checks
-**Implementatie:**
-```typescript
-// app/api/health/route.ts
-export async function GET() {
-  try {
-    // Test database connection
-    const { data, error } = await supabase
-      .from('words')
-      .select('count')
-      .limit(1);
-    
-    if (error) throw error;
-    
-    return NextResponse.json({ 
-      status: 'healthy',
-      database: 'connected',
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    return NextResponse.json({ 
-      status: 'unhealthy',
-      error: error.message 
-    }, { status: 500 });
+### 3. Performance Monitoring
+- **Core Web Vitals**: Available in Vercel Analytics
+- **Function Duration**: Monitor in Vercel Dashboard
+- **Error Rates**: Track in Vercel Functions tab
+
+## Supabase Monitoring
+
+### 1. Supabase Dashboard
+- **URL**: https://supabase.com/dashboard
+- **Database**: Query performance, connection pool status
+- **Auth**: User authentication metrics
+- **Storage**: File upload/download metrics
+
+### 2. Database Logs
+```sql
+-- Check recent errors
+SELECT * FROM pg_stat_database WHERE datname = 'postgres';
+
+-- Monitor slow queries
+SELECT query, mean_time, calls 
+FROM pg_stat_statements 
+ORDER BY mean_time DESC 
+LIMIT 10;
+```
+
+### 3. RLS Policy Monitoring
+```sql
+-- Check policy violations
+SELECT schemaname, tablename, policyname, roles, cmd
+FROM pg_policies 
+WHERE schemaname = 'public';
+```
+
+## Error Tracking
+
+### 1. Application Errors
+All errors are logged with structured format:
+```json
+{
+  "timestamp": "2025-01-15T10:30:00.000Z",
+  "level": "ERROR",
+  "message": "Database connection failed",
+  "context": {
+    "endpoint": "/api/words/search",
+    "method": "GET",
+    "duration": "5000ms"
   }
 }
 ```
 
+### 2. Common Error Scenarios
+- **Database Connection**: Check Supabase status and credentials
+- **RLS Policy Violations**: Verify user permissions
+- **Environment Variables**: Ensure all required vars are set
+- **Rate Limiting**: Monitor API usage patterns
+
 ## Performance Monitoring
 
-### 1. Core Web Vitals
-**Metrics te monitoren:**
-- **LCP (Largest Contentful Paint):** < 2.5s
-- **FID (First Input Delay):** < 100ms
-- **CLS (Cumulative Layout Shift):** < 0.1
+### 1. API Response Times
+- **Target**: < 500ms for most endpoints
+- **Alert**: > 1000ms response time
+- **Monitoring**: Built into logger with performance metrics
 
-**Tools:**
-- Vercel Analytics
-- Google PageSpeed Insights
-- Chrome DevTools
+### 2. Database Performance
+- **Connection Pool**: Monitor active connections
+- **Query Performance**: Track slow queries (>100ms)
+- **Index Usage**: Ensure proper indexing
 
-### 2. API Performance
-**Targets:**
-- Search API: < 1s
-- Daily Word API: < 1s
-- Admin Content API: < 1s
-- AI Translate API: < 2s
+### 3. Caching
+- **API Responses**: Cache headers set for appropriate endpoints
+- **Static Assets**: Vercel CDN caching
+- **Database**: Query result caching where applicable
 
-**Monitoring:**
-- Vercel Function logs
-- Custom timing logs
-- Database query performance
+## Alerting Setup
 
-## Security Monitoring
+### 1. Vercel Alerts
+- **Function Errors**: > 5% error rate
+- **Response Time**: > 2000ms average
+- **Function Timeout**: Any timeout errors
 
-### 1. Access Logs
-**Wat te monitoren:**
-- Failed authentication attempts
-- Unusual API usage patterns
-- Admin panel access
-- Database query patterns
+### 2. Supabase Alerts
+- **Database Connection**: Connection pool exhaustion
+- **Query Performance**: Slow query detection
+- **Storage Usage**: Approaching limits
 
-### 2. Environment Security
-**Checks:**
-- No service keys in client code
-- Proper CORS configuration
-- Input validation
-- Rate limiting (optioneel)
+### 3. Custom Monitoring
+```bash
+# Health check monitoring
+curl -f https://your-app.vercel.app/api/health || echo "Health check failed"
 
-## Daily Monitoring Checklist
+# API endpoint monitoring
+curl -f https://your-app.vercel.app/api/words/daily || echo "Daily word API failed"
+```
 
-### Morning Check (5 minuten):
-- [ ] Check Vercel deployment status
-- [ ] Review overnight error logs
-- [ ] Check database connection health
-- [ ] Verify API response times
+## Log Analysis
 
-### Weekly Review (30 minuten):
-- [ ] Analyze performance trends
-- [ ] Review error patterns
-- [ ] Check user engagement metrics
-- [ ] Update monitoring dashboards
+### 1. Production Logs
+```bash
+# Filter for errors only
+vercel logs | grep "ERROR"
 
-### Monthly Deep Dive (2 uur):
-- [ ] Performance optimization review
-- [ ] Security audit
-- [ ] Capacity planning
-- [ ] Monitoring tool evaluation
+# Filter for specific endpoint
+vercel logs | grep "api/words/search"
 
-## Troubleshooting Common Issues
+# Filter for performance issues
+vercel logs | grep "PERF"
+```
+
+### 2. Database Logs
+```sql
+-- Recent errors
+SELECT * FROM pg_stat_database 
+WHERE datname = 'postgres' 
+AND numbackends > 0;
+
+-- Query performance
+SELECT query, mean_time, calls, total_time
+FROM pg_stat_statements 
+WHERE mean_time > 100
+ORDER BY mean_time DESC;
+```
+
+## Troubleshooting Guide
 
 ### 1. High Error Rates
-**Check:**
-- Environment variables
-- Database connection
-- API endpoint logs
-- Network connectivity
+1. Check Vercel function logs
+2. Verify environment variables
+3. Test database connectivity
+4. Check RLS policies
 
 ### 2. Slow Performance
-**Check:**
-- Database query performance
-- Function memory usage
-- CDN cache hit rates
-- Third-party service latency
+1. Monitor function duration in Vercel
+2. Check database query performance
+3. Verify caching is working
+4. Review API response sizes
 
-### 3. Deployment Failures
-**Check:**
-- Build logs
-- Environment variable configuration
-- Dependency versions
-- Node.js version compatibility
+### 3. Database Issues
+1. Check Supabase dashboard
+2. Verify connection limits
+3. Review RLS policies
+4. Check for long-running queries
 
-## Monitoring Tools Summary
+## Best Practices
 
-| Tool | Purpose | Cost | Setup Time |
-|------|---------|------|------------|
-| Vercel Analytics | Built-in performance | Free | 0 min |
-| Vercel Logs | Function monitoring | Free | 0 min |
-| Supabase Logs | Database monitoring | Free | 0 min |
-| Sentry | Error tracking | Free tier | 15 min |
-| Google Analytics | User analytics | Free | 10 min |
+### 1. Logging
+- Use structured logging with consistent format
+- Include relevant context (user ID, request ID, etc.)
+- Don't log sensitive information
+- Use appropriate log levels
 
-**Recommendation:** Start met Vercel built-in tools, voeg Sentry toe voor error tracking als je meer detail nodig hebt.
+### 2. Monitoring
+- Set up alerts for critical metrics
+- Monitor both application and infrastructure
+- Regular health check monitoring
+- Performance baseline establishment
+
+### 3. Error Handling
+- Graceful degradation for non-critical features
+- Clear error messages for users
+- Detailed error logging for debugging
+- Proper HTTP status codes
+
+## Contact Information
+
+For monitoring issues or questions:
+- **Vercel Support**: https://vercel.com/support
+- **Supabase Support**: https://supabase.com/support
+- **Application Issues**: Check logs and health endpoint first

@@ -1,17 +1,19 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { logger } from '@/lib/logger';
 
 export async function GET() {
+  const startTime = Date.now();
   try {
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-    console.log(`📅 Fetching daily word for: ${today}`);
+    logger.info(`Fetching daily word for: ${today}`);
 
     // Initialize Supabase client
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     
     if (!supabaseUrl || !supabaseAnonKey) {
-      console.error('❌ Supabase environment variables are missing!');
+      logger.error('Supabase environment variables are missing!');
       return NextResponse.json({
         error: 'Database configuration missing'
       }, { status: 500 });
@@ -30,7 +32,7 @@ export async function GET() {
       .single();
 
     if (dailyError && dailyError.code !== 'PGRST116') {
-      console.error('❌ Error fetching daily word:', dailyError);
+      logger.dbError('word_of_the_day', 'SELECT', dailyError);
       return NextResponse.json({ 
         error: 'Database unavailable', 
         details: dailyError.message 
@@ -39,7 +41,7 @@ export async function GET() {
 
     // If no word for today, get a random word
     if (!dailyWord) {
-      console.log('📝 No daily word found, selecting random word...');
+      logger.info('No daily word found, selecting random word...');
       
       const { data: randomWord, error: randomError } = await supabase
         .from('words')
@@ -49,7 +51,7 @@ export async function GET() {
         .single();
 
       if (randomError) {
-        console.error('❌ Error fetching random word:', randomError);
+        logger.dbError('words', 'SELECT', randomError);
         return NextResponse.json({ 
           error: 'Database unavailable', 
           details: randomError.message 
@@ -58,31 +60,47 @@ export async function GET() {
 
       // Note: We don't insert new daily words as anon user doesn't have INSERT permissions
       // The daily word selection is handled by the system/admin
-      console.log('ℹ️ Skipping daily word insertion (anon user has no INSERT permissions)');
+      logger.info('Skipping daily word insertion (anon user has no INSERT permissions)');
 
-      console.log(`✅ Selected random word: ${randomWord.word}`);
-      return NextResponse.json({
+      const duration = Date.now() - startTime;
+      logger.performance('daily-word-random', duration);
+      logger.info(`Selected random word: ${randomWord.word}`);
+      
+      const response = NextResponse.json({
         id: randomWord.id,
         word: randomWord.word,
         meaning: randomWord.definition,
         example: randomWord.example,
         date: today
       });
+      
+      // Cache for 1 hour since daily word changes once per day
+      response.headers.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
+      return response;
     }
 
     // Return the existing daily word
     const word = dailyWord.words;
-    console.log(`✅ Found existing daily word: ${word.word}`);
-    return NextResponse.json({
+    const duration = Date.now() - startTime;
+    logger.performance('daily-word-existing', duration);
+    logger.info(`Found existing daily word: ${word.word}`);
+    
+    const response = NextResponse.json({
       id: word.id,
       word: word.word,
       meaning: word.definition,
       example: word.example,
       date: dailyWord.date
     });
+    
+    // Cache for 1 hour since daily word changes once per day
+    response.headers.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
+    return response;
 
   } catch (error) {
-    console.error('💥 Error in daily word API:', error);
+    const duration = Date.now() - startTime;
+    logger.performance('daily-word-error', duration);
+    logger.error('Error in daily word API', error);
     return NextResponse.json({ 
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'
