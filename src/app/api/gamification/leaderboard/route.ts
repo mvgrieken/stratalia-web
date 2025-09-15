@@ -192,10 +192,25 @@ export async function GET(request: NextRequest) {
       });
     }
 
+        return NextResponse.json({
+          period,
+          total_users: leaderboard?.length || 0,
+          leaderboard: leaderboard || []
+        });
+      } catch (dbError) {
+        console.log('Database connection failed, using mock data');
+      }
+    }
+
+    // Fallback: Use mock data
+    const limitedMockData = MOCK_LEADERBOARD.slice(0, limit);
+
+    console.log(`✅ Using ${limitedMockData.length} mock leaderboard entries`);
     return NextResponse.json({
       period,
-      total_users: leaderboard?.length || 0,
-      leaderboard: leaderboard || []
+      total_users: limitedMockData.length,
+      leaderboard: limitedMockData,
+      source: 'mock'
     });
 
   } catch (error) {
