@@ -35,8 +35,8 @@ if (typeof window !== 'undefined') {
         isNode: target instanceof Node,
         nodeType: target?.nodeType,
         tagName: target?.nodeName,
-        id: target?.id,
-        className: target?.className
+        id: target instanceof Element ? target.id : undefined,
+        className: target instanceof Element ? target.className : undefined
       });
       
       // Comprehensive target validation

@@ -23,29 +23,38 @@ export default function TranslatePage() {
   const synthRef = useRef<SpeechSynthesis | null>(null);
 
   useEffect(() => {
-    // Check for speech recognition support
+    // Check for speech recognition support with proper fallbacks
     if (typeof window !== 'undefined') {
-      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      if (SpeechRecognition) {
-        setIsSupported(true);
-        recognitionRef.current = new SpeechRecognition();
-        recognitionRef.current.continuous = false;
-        recognitionRef.current.interimResults = false;
-        recognitionRef.current.lang = 'nl-NL';
+      try {
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        if (SpeechRecognition) {
+          setIsSupported(true);
+          const recognition = new SpeechRecognition();
+          recognition.continuous = false;
+          recognition.interimResults = false;
+          recognition.lang = 'nl-NL';
 
-        recognitionRef.current.onresult = (event: any) => {
-          const transcript = event.results[0][0].transcript;
-          setSearchQuery(transcript);
-          setIsListening(false);
-        };
+          recognition.onresult = (event: any) => {
+            const transcript = event.results[0][0].transcript;
+            setSearchQuery(transcript);
+            setIsListening(false);
+          };
 
-        recognitionRef.current.onerror = () => {
-          setIsListening(false);
-        };
+          recognition.onerror = () => {
+            setIsListening(false);
+          };
 
-        recognitionRef.current.onend = () => {
-          setIsListening(false);
-        };
+          recognition.onend = () => {
+            setIsListening(false);
+          };
+
+          recognitionRef.current = recognition;
+        } else {
+          setIsSupported(false);
+        }
+      } catch (error) {
+        console.warn('Speech recognition not supported:', error);
+        setIsSupported(false);
       }
 
       if ('speechSynthesis' in window) {
@@ -55,18 +64,31 @@ export default function TranslatePage() {
   }, []);
 
   const startListening = () => {
-    if (recognitionRef.current && !isListening) {
+    if (!isSupported || !recognitionRef.current || isListening) {
+      return;
+    }
+    
+    try {
       setIsListening(true);
-      recognitionRef.current!.start();
+      recognitionRef.current.start();
+    } catch (error) {
+      console.error('Failed to start speech recognition:', error);
+      setIsListening(false);
     }
   };
 
   const speakWord = (word: string) => {
-    if (synthRef.current) {
+    if (!synthRef.current) {
+      return;
+    }
+    
+    try {
       const utterance = new SpeechSynthesisUtterance(word);
       utterance.lang = 'nl-NL';
       utterance.rate = 0.8;
-      synthRef.current!.speak(utterance);
+      synthRef.current.speak(utterance);
+    } catch (error) {
+      console.error('Failed to speak word:', error);
     }
   };
 
@@ -129,7 +151,7 @@ export default function TranslatePage() {
                     placeholder="Zoek een straattaalwoord..."
                     className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                  {isSupported && (
+                  {isSupported ? (
                     <button
                       type="button"
                       onClick={startListening}
@@ -143,6 +165,13 @@ export default function TranslatePage() {
                     >
                       🎤
                     </button>
+                  ) : (
+                    <div 
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded-full bg-gray-100 text-gray-400 cursor-not-allowed"
+                      title="Spraakherkenning niet ondersteund in deze browser"
+                    >
+                      🎤
+                    </div>
                   )}
                 </div>
                 <button

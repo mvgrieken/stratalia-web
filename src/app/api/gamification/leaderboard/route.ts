@@ -11,15 +11,15 @@ export async function GET(request: NextRequest) {
 
     // Initialize Supabase client
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     
-    if (!supabaseUrl || !supabaseServiceKey) {
+    if (!supabaseUrl || !supabaseAnonKey) {
       return NextResponse.json({
         error: 'Server configuration error'
       }, { status: 500 });
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
     // Build date filter based on period
     let dateFilter = '';
@@ -41,15 +41,14 @@ export async function GET(request: NextRequest) {
       
       // Fallback: simple query without RPC
       const { data: fallbackData, error: fallbackError } = await supabase
-        .from('user_points')
+        .from('profiles')
         .select(`
+          id,
+          full_name,
           total_points,
-          current_level,
+          level,
           current_streak,
-          profiles!inner (
-            full_name,
-            email
-          )
+          longest_streak
         `)
         .order('total_points', { ascending: false })
         .limit(limit);

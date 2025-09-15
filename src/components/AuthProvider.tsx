@@ -12,7 +12,9 @@ interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  // eslint-disable-next-line no-unused-vars
   signIn: (_email: string, _password: string) => Promise<{ error?: string }>;
+  // eslint-disable-next-line no-unused-vars
   signUp: (_email: string, _password: string, _full_name: string) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
 }

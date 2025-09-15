@@ -9,7 +9,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
-// Mock Next.js response
+// Mock Next.js response (intentionally unused for future test expansion)
+// eslint-disable-next-line no-unused-vars
 const _mockNextResponse = {
   json: vi.fn(),
   headers: {

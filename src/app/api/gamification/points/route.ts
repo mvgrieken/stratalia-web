@@ -52,7 +52,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // eslint-disable-next-line no-unused-vars
     const { user_id, points, action_type, metadata: _metadata } = await request.json();
+    // _metadata intentionally unused for now but kept for future functionality
 
     if (!user_id || !points || !action_type) {
       return NextResponse.json({
@@ -91,7 +93,7 @@ export async function POST(request: NextRequest) {
     const newLevel = Math.floor(newTotalPoints / 100) + 1; // 100 points per level
 
     // Update or create user points
-    const { data: _updatedPoints, error: updateError } = await supabase
+    const { error: updateError } = await supabase
       .from('user_points')
       .upsert({
         user_id,
