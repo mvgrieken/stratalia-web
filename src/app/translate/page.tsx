@@ -12,6 +12,7 @@ interface WordSearchResult {
 }
 
 export default function TranslatePage() {
+  // Main component for straattaal word search with speech recognition
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<WordSearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -56,7 +57,7 @@ export default function TranslatePage() {
   const startListening = () => {
     if (recognitionRef.current && !isListening) {
       setIsListening(true);
-      recognitionRef.current.start();
+      recognitionRef.current!.start();
     }
   };
 
@@ -65,7 +66,7 @@ export default function TranslatePage() {
       const utterance = new SpeechSynthesisUtterance(word);
       utterance.lang = 'nl-NL';
       utterance.rate = 0.8;
-      synthRef.current.speak(utterance);
+      synthRef.current!.speak(utterance);
     }
   };
 
@@ -114,6 +115,7 @@ export default function TranslatePage() {
           <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">
             straattaal Zoeken
           </h1>
+          {/* Updated: Fixed TypeScript nullability issues for deployment */}
 
           {/* Search Interface */}
           <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
