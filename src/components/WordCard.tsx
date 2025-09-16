@@ -14,7 +14,7 @@ interface WordCardProps {
     category?: string;
     difficulty?: 'easy' | 'medium' | 'hard';
   };
-  onWordClick?: (_word: string) => void;
+  onWordClick?: (word: string) => void;
   showCategory?: boolean;
   showDifficulty?: boolean;
   className?: string;

@@ -58,11 +58,11 @@ export interface LevelUpEvent extends UserEvent {
 
 export type GameEvent = QuizCompletedEvent | WordLearnedEvent | StreakEvent | LevelUpEvent;
 
-type EventHandler<T extends BaseEvent = BaseEvent> = (event: T) => void | Promise<void>;
+type EventHandler<T extends BaseEvent = BaseEvent> = (_event: T) => void | Promise<void>;
 
 class EventBus {
   private handlers = new Map<string, EventHandler[]>();
-  private middleware: Array<(event: BaseEvent) => BaseEvent | null> = [];
+  private middleware: Array<(_event: BaseEvent) => BaseEvent | null> = [];
 
   /**
    * Subscribe to an event type
@@ -125,7 +125,7 @@ class EventBus {
   /**
    * Add middleware to process events
    */
-  use(middleware: (event: BaseEvent) => BaseEvent | null): void {
+  use(middleware: (_event: BaseEvent) => BaseEvent | null): void {
     this.middleware.push(middleware);
   }
 

@@ -146,7 +146,7 @@ export function withRateLimit(
 ) {
   return function rateLimitMiddleware(
     request: NextRequest,
-    handler: (request: NextRequest) => Promise<NextResponse>
+    handler: (_request: NextRequest) => Promise<NextResponse>
   ): Promise<NextResponse> {
     const limiter = customLimiter || rateLimiters[limiterType];
     const identifier = getClientIdentifier(request);

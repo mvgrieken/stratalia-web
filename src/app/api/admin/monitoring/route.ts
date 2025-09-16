@@ -72,8 +72,8 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
         );
     }
   } catch (error) {
-    logger.error('Monitoring data request failed', error);
-    return createErrorResponse(error as Error);
+    logger.error('Monitoring data request failed', error instanceof Error ? error : new Error(String(error)));
+    return createErrorResponse(error instanceof Error ? error : new Error(String(error)));
   }
 });
 

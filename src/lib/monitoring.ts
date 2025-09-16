@@ -223,14 +223,14 @@ export const performance = {
   /**
    * Measure function execution time
    */
-  measure<T extends (...args: any[]) => any>(
+  measure<T extends (..._args: any[]) => any>(
     fn: T,
     metricName: string,
     tags?: Record<string, string>
   ): T {
-    return ((...args: any[]) => {
+    return ((..._args: any[]) => {
       const start = performance.now();
-      const result = fn(...args);
+      const result = fn(..._args);
       
       if (result instanceof Promise) {
         return result.finally(() => {
