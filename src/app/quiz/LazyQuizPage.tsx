@@ -6,6 +6,7 @@ import QuizResult from '@/components/Quiz/QuizResult';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { ErrorMessage } from '@/components/ErrorMessage';
 import { useApi } from '@/hooks/useApi';
+import Navigation from '@/components/Navigation';
 
 interface QuizQuestion {
   id: string;
@@ -75,44 +76,53 @@ export default function LazyQuizPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <LoadingSpinner />
-          <p className="mt-4 text-gray-600">Quiz wordt geladen...</p>
+      <>
+        <Navigation />
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="text-center">
+            <LoadingSpinner />
+            <p className="mt-4 text-gray-600">Quiz wordt geladen...</p>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center max-w-md mx-auto">
-          <ErrorMessage message="Er is een fout opgetreden bij het laden van de quiz" />
-          <button
-            onClick={handleRetry}
-            className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Opnieuw proberen
-          </button>
+      <>
+        <Navigation />
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="text-center max-w-md mx-auto">
+            <ErrorMessage message="Er is een fout opgetreden bij het laden van de quiz" />
+            <button
+              onClick={handleRetry}
+              className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Opnieuw proberen
+            </button>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   if (questions.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <p className="text-gray-600">Geen quiz vragen beschikbaar</p>
-          <button
-            onClick={handleRetry}
-            className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Opnieuw proberen
-          </button>
+      <>
+        <Navigation />
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="text-center">
+            <p className="text-gray-600">Geen quiz vragen beschikbaar</p>
+            <button
+              onClick={handleRetry}
+              className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Opnieuw proberen
+            </button>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
@@ -121,25 +131,30 @@ export default function LazyQuizPage() {
     const percentage = Math.round((score / questions.length) * 100);
 
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-2xl mx-auto px-4">
-          <QuizResult
-            score={score}
-            totalQuestions={questions.length}
-            timeTaken={timeTaken}
-            onRestart={handleRestart}
-            onBackToHome={() => window.location.href = '/'}
-          />
+      <>
+        <Navigation />
+        <div className="min-h-screen bg-gray-50 py-8">
+          <div className="max-w-2xl mx-auto px-4">
+            <QuizResult
+              score={score}
+              totalQuestions={questions.length}
+              timeTaken={timeTaken}
+              onRestart={handleRestart}
+              onBackToHome={() => window.location.href = '/'}
+            />
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   const currentQuestionData = questions[currentQuestion];
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4">
+    <>
+      <Navigation />
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-4xl mx-auto px-4">
         {/* Quiz Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -172,5 +187,6 @@ export default function LazyQuizPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }

@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import Navigation from '@/components/Navigation';
+import { ApiErrorHandler } from '@/components/ApiErrorHandler';
 
 interface TranslationResult {
   translation: string;
@@ -154,8 +156,10 @@ export default function TranslatePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
+    <>
+      <Navigation />
+      <div className="min-h-screen bg-gray-50">
+        <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">
             AI Vertalen
@@ -252,11 +256,16 @@ export default function TranslatePage() {
               )}
             </form>
 
-            {error && (
-              <div className="mb-4 p-3 bg-red-100 text-red-800 rounded-lg" role="alert">
-                {error}
-              </div>
-            )}
+            <ApiErrorHandler 
+              error={error} 
+              onRetry={() => {
+                if (inputText.trim()) {
+                  handleTranslate();
+                }
+              }}
+              onClear={() => setError(null)}
+              className="mb-4"
+            />
           </div>
 
           {/* Translation Results */}
@@ -345,5 +354,6 @@ export default function TranslatePage() {
         </div>
       </div>
     </div>
+    </>
   );
 }

@@ -236,7 +236,25 @@ const NL_TO_STRAATTAAL: Record<string, string> = {
   'fear of missing out': 'fomo',
   'angst om iets te missen': 'fomo',
   'joy of missing out': 'jomo',
-  'plezier van iets missen': 'jomo'
+  'plezier van iets missen': 'jomo',
+  'auto': 'waggi',
+  'wagen': 'waggi',
+  'vriend': 'bro',
+  'maat': 'bro',
+  'geweldig': 'sick',
+  'cool': 'sick',
+  'ontspannen': 'chillen',
+  'relaxen': 'chillen',
+  'opscheppen': 'flex',
+  'pronken': 'flex',
+  'sfeer controleren': 'vibe check',
+  'geweldig presteren': 'slay',
+  'punt uit': 'periodt',
+  'einde discussie': 'periodt',
+  'zeker': 'bet',
+  'waar': 'bet',
+  'fan zijn van': 'stan',
+  'steunen': 'stan'
 };
 
 async function generateTranslation(

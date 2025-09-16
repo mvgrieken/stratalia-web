@@ -1,0 +1,338 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import Navigation from '@/components/Navigation';
+
+interface KnowledgeItem {
+  id: string;
+  type: 'article' | 'video' | 'podcast' | 'infographic';
+  title: string;
+  content: string;
+  author: string;
+  category: string;
+  tags: string[];
+  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  created_at: string;
+  updated_at: string;
+  is_active: boolean;
+  thumbnail_url?: string;
+  duration?: number;
+  word_count?: number;
+}
+
+export default function KnowledgeDetailPage() {
+  const params = useParams();
+  const router = useRouter();
+  const [item, setItem] = useState<KnowledgeItem | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchItem = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Try to fetch from API first
+        const response = await fetch(`/api/content/approved?id=${params.id}`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.items && data.items.length > 0) {
+            setItem(data.items[0]);
+            return;
+          }
+        }
+
+        // Fallback to mock data
+        const mockItems = [
+          {
+            id: 'knowledge-1',
+            title: 'De Geschiedenis van Nederlandse Straattaal',
+            content: `Straattaal in Nederland heeft een rijke geschiedenis die teruggaat tot de jaren 80. Het ontstond in multiculturele wijken waar verschillende talen en culturen samenkwamen.
+
+## De Oorsprong
+
+In de jaren 80 begon straattaal zich te ontwikkelen in steden zoals Amsterdam, Rotterdam en Den Haag. Jongeren uit verschillende culturen creëerden een nieuwe manier van communiceren die hun identiteit weerspiegelde.
+
+## Belangrijke Invloeden
+
+- **Surinaams-Nederlands**: Veel woorden komen uit het Sranan Tongo
+- **Engels**: Populaire muziek en films brachten Engelse termen
+- **Arabisch**: Woorden uit het Marokkaans-Arabisch
+- **Turks**: Invloeden uit de Turkse gemeenschap
+
+## Moderne Ontwikkeling
+
+Vandaag de dag is straattaal een integraal onderdeel van de Nederlandse jeugdcultuur. Het wordt gebruikt in:
+- Sociale media
+- Muziek en entertainment
+- Dagelijks gesprek
+- Online gaming
+
+## De Toekomst
+
+Straattaal blijft evolueren en nieuwe woorden worden constant toegevoegd. Het is een levende taal die de diversiteit van de Nederlandse samenleving weerspiegelt.`,
+            type: 'article' as const,
+            difficulty: 'beginner' as const,
+            category: 'geschiedenis',
+            tags: ['geschiedenis', 'cultuur', 'jeugd'],
+            author: 'Stratalia Team',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            is_active: true,
+            word_count: 150
+          },
+          {
+            id: 'knowledge-2',
+            title: 'Top 10 Meest Gebruikte Straattaalwoorden',
+            content: `Ontdek de meest populaire straattaalwoorden van dit moment:
+
+## 1. Skeer
+**Betekenis**: Arm zijn, weinig geld hebben
+**Voorbeeld**: "Ik ben helemaal skeer deze maand."
+
+## 2. Breezy
+**Betekenis**: Cool, relaxed
+**Voorbeeld**: "Die nieuwe sneakers zijn echt breezy."
+
+## 3. Flexen
+**Betekenis**: Opscheppen, pronken
+**Voorbeeld**: "Hij flexte met zijn nieuwe auto."
+
+## 4. Chill
+**Betekenis**: Ontspannen, kalm
+**Voorbeeld**: "Laten we gewoon chillen vandaag."
+
+## 5. Dope
+**Betekenis**: Geweldig, cool
+**Voorbeeld**: "Die nieuwe track is echt dope."
+
+## 6. Lit
+**Betekenis**: Fantastisch, geweldig
+**Voorbeeld**: "Het feest was echt lit gisteren."
+
+## 7. Fire
+**Betekenis**: Geweldig, fantastisch
+**Voorbeeld**: "Die nieuwe sneakers zijn fire."
+
+## 8. Vibe
+**Betekenis**: Sfeer, energie
+**Voorbeeld**: "Ik hou van de vibe hier."
+
+## 9. Mood
+**Betekenis**: Stemming, gevoel
+**Voorbeeld**: "Dit is echt mijn mood vandaag."
+
+## 10. Goals
+**Betekenis**: Doelen, aspiraties
+**Voorbeeld**: "Jullie relatie is echt goals."`,
+            type: 'infographic' as const,
+            difficulty: 'beginner' as const,
+            category: 'woordenlijst',
+            tags: ['top 10', 'populair', 'woorden'],
+            author: 'Stratalia Team',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            is_active: true,
+            word_count: 75
+          }
+        ];
+
+        const foundItem = mockItems.find(i => i.id === params.id);
+        if (foundItem) {
+          setItem(foundItem);
+        } else {
+          setError('Item niet gevonden');
+        }
+      } catch (err) {
+        console.error('Error fetching knowledge item:', err);
+        setError('Er is een fout opgetreden bij het laden van het item');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (params.id) {
+      fetchItem();
+    }
+  }, [params.id]);
+
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case 'article': return '📄';
+      case 'video': return '🎥';
+      case 'podcast': return '🎧';
+      case 'book': return '📚';
+      case 'music': return '🎵';
+      default: return '📄';
+    }
+  };
+
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty) {
+      case 'beginner': return 'bg-green-100 text-green-800';
+      case 'intermediate': return 'bg-yellow-100 text-yellow-800';
+      case 'advanced': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  if (loading) {
+    return (
+      <>
+        <Navigation />
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Item wordt geladen...</p>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  if (error || !item) {
+    return (
+      <>
+        <Navigation />
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center max-w-md mx-auto">
+            <div className="text-6xl mb-4">😕</div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Item niet gevonden</h1>
+            <p className="text-gray-600 mb-6">
+              {error || 'Het gevraagde item kon niet worden gevonden.'}
+            </p>
+            <button
+              onClick={() => router.push('/knowledge')}
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
+            >
+              Terug naar Kennisbank
+            </button>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Navigation />
+      <div className="min-h-screen bg-gray-50">
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-4xl mx-auto">
+            {/* Breadcrumb */}
+            <nav className="mb-6">
+              <ol className="flex items-center space-x-2 text-sm text-gray-500">
+                <li>
+                  <button
+                    onClick={() => router.push('/')}
+                    className="hover:text-blue-600"
+                  >
+                    Home
+                  </button>
+                </li>
+                <li>/</li>
+                <li>
+                  <button
+                    onClick={() => router.push('/knowledge')}
+                    className="hover:text-blue-600"
+                  >
+                    Kennisbank
+                  </button>
+                </li>
+                <li>/</li>
+                <li className="text-gray-900">{item.title}</li>
+              </ol>
+            </nav>
+
+            {/* Article Header */}
+            <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
+              <div className="flex items-center mb-4">
+                <span className="text-3xl mr-3">{getTypeIcon(item.type)}</span>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${getDifficultyColor(item.difficulty)}`}>
+                  {item.difficulty}
+                </span>
+              </div>
+
+              <h1 className="text-3xl font-bold text-gray-900 mb-4">
+                {item.title}
+              </h1>
+
+              <div className="flex items-center text-sm text-gray-500 mb-6">
+                <span>👤 {item.author}</span>
+                <span className="ml-4">📅 {new Date(item.created_at).getFullYear()}</span>
+                {item.duration && <span className="ml-4">⏱️ {Math.floor(item.duration / 60)} min</span>}
+                {item.word_count && <span className="ml-4">📝 {item.word_count} woorden</span>}
+              </div>
+
+              <div className="flex flex-wrap gap-2 mb-6">
+                {item.tags.map((tag, index) => (
+                  <span
+                    key={index}
+                    className="px-3 py-1 bg-blue-100 text-blue-600 text-sm rounded-full"
+                  >
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Article Content */}
+            <div className="bg-white rounded-lg shadow-lg p-8">
+              <div className="prose prose-lg max-w-none">
+                {item.type === 'article' || item.type === 'infographic' ? (
+                  <div 
+                    className="whitespace-pre-line"
+                    dangerouslySetInnerHTML={{ 
+                      __html: item.content.replace(/\n/g, '<br>').replace(/## /g, '<h2 class="text-2xl font-bold mt-6 mb-4">').replace(/# /g, '<h1 class="text-3xl font-bold mt-8 mb-6">').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    }}
+                  />
+                ) : item.type === 'video' ? (
+                  <div className="text-center">
+                    <div className="bg-gray-100 rounded-lg p-12 mb-6">
+                      <div className="text-6xl mb-4">🎥</div>
+                      <p className="text-gray-600">Video content zou hier worden weergegeven</p>
+                    </div>
+                    <div className="text-left">
+                      <p className="text-gray-700">{item.content}</p>
+                    </div>
+                  </div>
+                ) : item.type === 'podcast' ? (
+                  <div className="text-center">
+                    <div className="bg-gray-100 rounded-lg p-12 mb-6">
+                      <div className="text-6xl mb-4">🎧</div>
+                      <p className="text-gray-600">Podcast audio zou hier worden weergegeven</p>
+                    </div>
+                    <div className="text-left">
+                      <p className="text-gray-700">{item.content}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-gray-700">{item.content}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="mt-8 flex justify-between">
+              <button
+                onClick={() => router.push('/knowledge')}
+                className="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700"
+              >
+                ← Terug naar Kennisbank
+              </button>
+              <button
+                onClick={() => router.push('/')}
+                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
+              >
+                Home
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}

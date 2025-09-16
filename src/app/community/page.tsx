@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
+import Navigation from '@/components/Navigation';
+import { ApiErrorHandler, ApiSuccessHandler } from '@/components/ApiErrorHandler';
 
 interface Submission {
   word: string;
@@ -122,7 +124,9 @@ export default function CommunityPage() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <>
+        <Navigation />
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-8 text-center">
           <div className="text-6xl mb-4">🎉</div>
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Bedankt voor je bijdrage!</h1>
@@ -146,12 +150,15 @@ export default function CommunityPage() {
           </div>
         </div>
       </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
+    <>
+      <Navigation />
+      <div className="min-h-screen bg-gray-50">
+        <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">
             Draag bij aan Stratalia
@@ -168,6 +175,17 @@ export default function CommunityPage() {
               </p>
             </div>
 
+            <ApiErrorHandler 
+              error={error} 
+              onRetry={() => {
+                if (submission.word.trim() && submission.definition.trim() && submission.example.trim()) {
+                  handleSubmit(new Event('submit') as any);
+                }
+              }}
+              onClear={() => setError(null)}
+              className="mb-6"
+            />
+
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label htmlFor="word" className="block text-sm font-medium text-gray-700 mb-2">
@@ -179,9 +197,14 @@ export default function CommunityPage() {
                   value={submission.word}
                   onChange={(e) => handleInputChange('word', e.target.value)}
                   placeholder="bijv. 'skeer', 'breezy', 'flexen'"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    validationErrors.word ? 'border-red-500' : 'border-gray-300'
+                  }`}
                   required
                 />
+                {validationErrors.word && (
+                  <p className="mt-1 text-sm text-red-600">{validationErrors.word}</p>
+                )}
               </div>
 
               <div>
@@ -194,14 +217,19 @@ export default function CommunityPage() {
                   onChange={(e) => handleInputChange('definition', e.target.value)}
                   placeholder="Leg uit wat dit woord betekent in het Nederlands"
                   rows={3}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    validationErrors.definition ? 'border-red-500' : 'border-gray-300'
+                  }`}
                   required
                 />
+                {validationErrors.definition && (
+                  <p className="mt-1 text-sm text-red-600">{validationErrors.definition}</p>
+                )}
               </div>
 
               <div>
                 <label htmlFor="example" className="block text-sm font-medium text-gray-700 mb-2">
-                  Voorbeeldzin
+                  Voorbeeldzin *
                 </label>
                 <textarea
                   id="example"
@@ -209,8 +237,14 @@ export default function CommunityPage() {
                   onChange={(e) => handleInputChange('example', e.target.value)}
                   placeholder="Geef een voorbeeldzin waarin het woord wordt gebruikt"
                   rows={2}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    validationErrors.example ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  required
                 />
+                {validationErrors.example && (
+                  <p className="mt-1 text-sm text-red-600">{validationErrors.example}</p>
+                )}
               </div>
 
               <div>
@@ -223,8 +257,13 @@ export default function CommunityPage() {
                   onChange={(e) => handleInputChange('context', e.target.value)}
                   placeholder="Extra context: waar heb je dit woord gehoord? In welke situatie wordt het gebruikt?"
                   rows={2}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    validationErrors.context ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 />
+                {validationErrors.context && (
+                  <p className="mt-1 text-sm text-red-600">{validationErrors.context}</p>
+                )}
               </div>
 
               <div>
@@ -237,8 +276,13 @@ export default function CommunityPage() {
                   value={submission.source}
                   onChange={(e) => handleInputChange('source', e.target.value)}
                   placeholder="Waar heb je dit woord gehoord? (bijv. 'mijn tiener', 'social media', 'muziek')"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    validationErrors.source ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 />
+                {validationErrors.source && (
+                  <p className="mt-1 text-sm text-red-600">{validationErrors.source}</p>
+                )}
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -297,5 +341,6 @@ export default function CommunityPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }

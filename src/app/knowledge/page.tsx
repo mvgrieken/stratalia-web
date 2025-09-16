@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import Navigation from '@/components/Navigation';
 
 interface KnowledgeItem {
   id: string;
@@ -202,8 +203,10 @@ export default function KnowledgePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
+    <>
+      <Navigation />
+      <div className="min-h-screen bg-gray-50">
+        <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           <h1 className="text-3xl font-bold text-gray-900 mb-8">Kennisbank</h1>
 
@@ -311,8 +314,7 @@ export default function KnowledgePage() {
                   <button
                     className="block w-full bg-blue-600 text-white text-center py-2 rounded-lg hover:bg-blue-700 transition-colors"
                     onClick={() => {
-                      // In a real app, this would open the content
-                      alert(`Opening: ${item.title}`);
+                      window.location.href = `/knowledge/${item.id}`;
                     }}
                   >
                     Bekijk
@@ -361,5 +363,6 @@ export default function KnowledgePage() {
         </div>
       </div>
     </div>
+    </>
   );
 }

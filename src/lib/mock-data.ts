@@ -170,6 +170,86 @@ class MockDataService {
       example: 'No cap, dat was echt geweldig.',
       category: 'positief',
       difficulty: 'hard'
+    },
+    {
+      id: 'mock-16',
+      word: 'waggi',
+      meaning: 'auto, wagen',
+      example: 'Die waggi is echt sick.',
+      category: 'vervoer',
+      difficulty: 'medium'
+    },
+    {
+      id: 'mock-17',
+      word: 'bro',
+      meaning: 'vriend, maat',
+      example: 'Hey bro, hoe gaat het?',
+      category: 'relaties',
+      difficulty: 'easy'
+    },
+    {
+      id: 'mock-18',
+      word: 'sick',
+      meaning: 'geweldig, cool',
+      example: 'Die nieuwe track is echt sick.',
+      category: 'positief',
+      difficulty: 'medium'
+    },
+    {
+      id: 'mock-19',
+      word: 'chillen',
+      meaning: 'ontspannen, relaxen',
+      example: 'Laten we gewoon chillen vandaag.',
+      category: 'activiteiten',
+      difficulty: 'easy'
+    },
+    {
+      id: 'mock-20',
+      word: 'flex',
+      meaning: 'opscheppen, pronken',
+      example: 'Hij flexte met zijn nieuwe telefoon.',
+      category: 'gedrag',
+      difficulty: 'medium'
+    },
+    {
+      id: 'mock-21',
+      word: 'vibe check',
+      meaning: 'sfeer controleren',
+      example: 'Laten we een vibe check doen.',
+      category: 'abstract',
+      difficulty: 'hard'
+    },
+    {
+      id: 'mock-22',
+      word: 'slay',
+      meaning: 'geweldig presteren',
+      example: 'Ze slayed die presentatie.',
+      category: 'positief',
+      difficulty: 'medium'
+    },
+    {
+      id: 'mock-23',
+      word: 'periodt',
+      meaning: 'punt uit, einde discussie',
+      example: 'Dat is gewoon zo, periodt.',
+      category: 'abstract',
+      difficulty: 'hard'
+    },
+    {
+      id: 'mock-24',
+      word: 'bet',
+      meaning: 'zeker, waar',
+      example: 'Bet, ik kom eraan.',
+      category: 'abstract',
+      difficulty: 'hard'
+    },
+    {
+      id: 'mock-25',
+      word: 'stan',
+      meaning: 'fan zijn van, steunen',
+      example: 'Ik stan die artiest echt.',
+      category: 'relaties',
+      difficulty: 'medium'
     }
   ];
 
@@ -252,6 +332,38 @@ class MockDataService {
       question_text: 'Wat betekent het woord "goals"?',
       correct_answer: 'doelen, aspiraties',
       wrong_answers: ['arm, weinig geld', 'boos, gefrustreerd', 'opscheppen, pronken'],
+      difficulty: 'medium'
+    },
+    {
+      id: 'quiz-11',
+      word: 'waggi',
+      question_text: 'Wat betekent het woord "waggi"?',
+      correct_answer: 'auto, wagen',
+      wrong_answers: ['vriend, maat', 'geweldig, cool', 'ontspannen, relaxen'],
+      difficulty: 'medium'
+    },
+    {
+      id: 'quiz-12',
+      word: 'bro',
+      question_text: 'Wat betekent het woord "bro"?',
+      correct_answer: 'vriend, maat',
+      wrong_answers: ['auto, wagen', 'geweldig, cool', 'opscheppen, pronken'],
+      difficulty: 'easy'
+    },
+    {
+      id: 'quiz-13',
+      word: 'sick',
+      question_text: 'Wat betekent het woord "sick"?',
+      correct_answer: 'geweldig, cool',
+      wrong_answers: ['auto, wagen', 'vriend, maat', 'ontspannen, relaxen'],
+      difficulty: 'medium'
+    },
+    {
+      id: 'quiz-14',
+      word: 'slay',
+      question_text: 'Wat betekent het woord "slay"?',
+      correct_answer: 'geweldig presteren',
+      wrong_answers: ['auto, wagen', 'vriend, maat', 'ontspannen, relaxen'],
       difficulty: 'medium'
     }
   ];

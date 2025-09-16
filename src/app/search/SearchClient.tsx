@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { ApiErrorHandler } from '@/components/ApiErrorHandler';
 
 interface WordSearchResult {
   id: string;
@@ -225,11 +226,16 @@ export default function SearchClient() {
         )}
       </form>
 
-      {error && (
-        <div className="mb-4 p-3 bg-red-100 text-red-800 rounded-lg" role="alert">
-          {error}
-        </div>
-      )}
+      <ApiErrorHandler 
+        error={error} 
+        onRetry={() => {
+          if (searchQuery.trim()) {
+            performSearch(searchQuery);
+          }
+        }}
+        onClear={() => setError(null)}
+        className="mb-4"
+      />
 
       {/* Search Message */}
       {searchMessage && (
