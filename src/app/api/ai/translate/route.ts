@@ -138,12 +138,7 @@ const STRAATTAAL_TO_NL: Record<string, string> = {
   'bro': 'vriend, maat',
   'sick': 'geweldig, cool',
   'chillen': 'ontspannen, relaxen',
-  'flex': 'opscheppen, pronken',
-  'vibe check': 'sfeer controleren',
-  'slay': 'geweldig presteren',
-  'periodt': 'punt uit, einde discussie',
-  'bet': 'zeker, waar',
-  'stan': 'fan zijn van, steunen'
+  'vibe check': 'sfeer controleren'
 };
 
 const NL_TO_STRAATTAAL: Record<string, string> = {
