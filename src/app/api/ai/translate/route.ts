@@ -241,8 +241,6 @@ const NL_TO_STRAATTAAL: Record<string, string> = {
   'wagen': 'waggi',
   'vriend': 'bro',
   'maat': 'bro',
-  'geweldig': 'sick',
-  'ontspannen': 'chillen',
   'relaxen': 'chillen',
   'sfeer controleren': 'vibe check',
   'geweldig presteren': 'slay',
