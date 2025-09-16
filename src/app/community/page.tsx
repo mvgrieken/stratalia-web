@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Navigation from '@/components/Navigation';
-import { ApiErrorHandler, ApiSuccessHandler } from '@/components/ApiErrorHandler';
+import { ApiErrorHandler } from '@/components/ApiErrorHandler';
 
 interface Submission {
   word: string;
@@ -93,7 +93,6 @@ export default function CommunityPage() {
       });
 
       if (response.ok) {
-        const data = await response.json();
         setSubmitted(true);
         setSubmission({
           word: '',

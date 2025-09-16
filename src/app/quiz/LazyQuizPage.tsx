@@ -128,7 +128,6 @@ export default function LazyQuizPage() {
 
   if (quizCompleted) {
     const timeTaken = Math.round((Date.now() - startTime) / 1000);
-    const percentage = Math.round((score / questions.length) * 100);
 
     return (
       <>

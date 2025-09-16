@@ -242,19 +242,14 @@ const NL_TO_STRAATTAAL: Record<string, string> = {
   'vriend': 'bro',
   'maat': 'bro',
   'geweldig': 'sick',
-  'cool': 'sick',
   'ontspannen': 'chillen',
   'relaxen': 'chillen',
-  'opscheppen': 'flex',
-  'pronken': 'flex',
   'sfeer controleren': 'vibe check',
   'geweldig presteren': 'slay',
   'punt uit': 'periodt',
   'einde discussie': 'periodt',
   'zeker': 'bet',
-  'waar': 'bet',
-  'fan zijn van': 'stan',
-  'steunen': 'stan'
+  'waar': 'bet'
 };
 
 async function generateTranslation(
