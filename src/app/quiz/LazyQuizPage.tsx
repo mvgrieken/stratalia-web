@@ -82,8 +82,8 @@ export default function LazyQuizPage() {
   }, [fetchQuizQuestions]);
 
   const handleRetry = useCallback(() => {
-    fetchQuiz();
-  }, [fetchQuiz]);
+    fetchQuizQuestions();
+  }, [fetchQuizQuestions]);
 
   if (loading) {
     return (
