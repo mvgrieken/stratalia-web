@@ -33,7 +33,7 @@ export async function GET(
         );
       }
       
-      logger.error('Database error fetching knowledge item:', error);
+      logger.error(`Database error fetching knowledge item: ${error.message}`);
       return NextResponse.json(
         { 
           success: false, 
@@ -54,7 +54,7 @@ export async function GET(
       .order('created_at', { ascending: false })
       .limit(3);
 
-    logger.info(`Fetched knowledge item: ${item.title}`, { id });
+    logger.info(`Fetched knowledge item: ${item.title} (id: ${id})`);
 
     return NextResponse.json({
       success: true,
@@ -65,7 +65,7 @@ export async function GET(
     });
 
   } catch (error) {
-    logger.error('Error in knowledge item API:', error);
+    logger.error(`Error in knowledge item API: ${error instanceof Error ? error.message : 'Unknown error'}`);
     return NextResponse.json(
       { 
         success: false, 

@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
     let refreshCount = 0;
     const errors: string[] = [];
 
-    logger.info('Starting knowledge refresh', { type, force });
+    logger.info(`Starting knowledge refresh (type: ${type}, force: ${force})`);
 
     // Refresh articles
     if (!type || type === 'articles') {
@@ -196,14 +196,10 @@ export async function POST(request: NextRequest) {
       revalidatePath('/knowledge');
       revalidatePath('/knowledge/[id]', 'page');
     } catch (error) {
-      logger.warn('Failed to revalidate cache:', error);
+      logger.warn(`Failed to revalidate cache: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 
-    logger.info('Knowledge refresh completed', { 
-      refreshCount, 
-      errors: errors.length,
-      type 
-    });
+    logger.info(`Knowledge refresh completed (refreshCount: ${refreshCount}, errors: ${errors.length}, type: ${type})`);
 
     return NextResponse.json({
       success: true,
@@ -216,7 +212,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    logger.error('Error in knowledge refresh:', error);
+    logger.error(`Error in knowledge refresh: ${error instanceof Error ? error.message : 'Unknown error'}`);
     return NextResponse.json(
       { 
         success: false, 

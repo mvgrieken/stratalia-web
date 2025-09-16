@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
     const { data: items, error } = await query;
 
     if (error) {
-      logger.error('Database error fetching knowledge items:', error);
+      logger.error(`Database error fetching knowledge items: ${error.message}`);
       return NextResponse.json(
         { 
           success: false, 
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
     const { count, error: countError } = await countQuery;
 
     if (countError) {
-      logger.warn('Failed to get count:', countError);
+      logger.warn(`Failed to get count: ${countError.message}`);
     }
 
     // Get statistics
@@ -92,9 +92,7 @@ export async function GET(request: NextRequest) {
       }, {}) || {}
     };
 
-    logger.info(`Fetched ${items?.length || 0} knowledge items`, {
-      type, category, difficulty, search, limit, offset
-    });
+    logger.info(`Fetched ${items?.length || 0} knowledge items (type: ${type}, category: ${category}, difficulty: ${difficulty}, search: ${search}, limit: ${limit}, offset: ${offset})`);
 
     return NextResponse.json({
       success: true,
@@ -111,7 +109,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    logger.error('Error in knowledge items API:', error);
+    logger.error(`Error in knowledge items API: ${error instanceof Error ? error.message : 'Unknown error'}`);
     return NextResponse.json(
       { 
         success: false, 

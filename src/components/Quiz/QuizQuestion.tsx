@@ -29,7 +29,7 @@ const QuizQuestion = memo<QuizQuestionProps>(({
   isLastQuestion,
   disabled = false
 }) => {
-  const handleAnswerClick = useCallback((_answer: string) => {
+  const handleAnswerClick = useCallback((answer: string) => {
     if (!disabled) {
       onAnswerSelect(answer);
     }
