@@ -10,7 +10,6 @@ export interface WordEntity {
   id: string;
   word: string;
   definition?: string;
-  meaning?: string;
   example?: string;
   category?: string;
   difficulty?: 'easy' | 'medium' | 'hard';
@@ -49,8 +48,8 @@ class WordRepository {
       
       const { data, error } = await supabase
         .from(this.tableName)
-        .select('id, word, definition, meaning, example, category, difficulty, created_at, updated_at')
-        .or(`word.ilike.%${query}%,definition.ilike.%${query}%,meaning.ilike.%${query}%`)
+        .select('id, word, definition, example, category, difficulty, created_at, updated_at')
+        .or(`word.ilike.%${query}%,definition.ilike.%${query}%`)
         .range(offset, offset + limit - 1)
         .order('word');
 
@@ -78,7 +77,7 @@ class WordRepository {
       
       const { data, error } = await supabase
         .from(this.tableName)
-        .select('id, word, definition, meaning, example, category, difficulty, created_at, updated_at')
+        .select('id, word, definition, example, category, difficulty, created_at, updated_at')
         .eq('id', id)
         .single();
 
@@ -162,7 +161,7 @@ class WordRepository {
       
       const { data, error } = await supabase
         .from(this.tableName)
-        .select('id, word, definition, meaning, example, category, difficulty, created_at, updated_at')
+        .select('id, word, definition, example, category, difficulty, created_at, updated_at')
         .limit(1);
 
       if (error) {
@@ -244,7 +243,7 @@ class WordRepository {
       const { data, error } = await supabase
         .from(this.tableName)
         .insert([wordData])
-        .select('id, word, definition, meaning, example, category, difficulty, created_at, updated_at')
+        .select('id, word, definition, example, category, difficulty, created_at, updated_at')
         .single();
 
       if (error) {
@@ -273,7 +272,7 @@ class WordRepository {
         .from(this.tableName)
         .update({ ...wordData, updated_at: new Date().toISOString() })
         .eq('id', id)
-        .select('id, word, definition, meaning, example, category, difficulty, created_at, updated_at')
+        .select('id, word, definition, example, category, difficulty, created_at, updated_at')
         .single();
 
       if (error) {

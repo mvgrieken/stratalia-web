@@ -64,7 +64,7 @@ class QuizService {
       
       let query = supabase
         .from('quiz_questions')
-        .select('id, word, question_text, correct_answer, wrong_answers, difficulty')
+        .select('id, word_id, question_text, correct_answer, wrong_answers, difficulty')
         .limit(limit);
 
       if (difficulty) {
@@ -76,7 +76,7 @@ class QuizService {
       if (!error && questions && questions.length > 0) {
         const results = questions.map(q => ({
           id: q.id,
-          word: q.word,
+          word: q.word_id || 'unknown',
           question_text: q.question_text,
           correct_answer: q.correct_answer,
           wrong_answers: q.wrong_answers || [],

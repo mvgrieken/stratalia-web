@@ -68,7 +68,7 @@ class WordService extends BaseService {
             const results = words.map(word => ({
               id: word.id,
               word: word.word,
-              meaning: word.definition || word.meaning || '',
+              meaning: word.definition || '',
               example: word.example || '',
               match_type: word.word.toLowerCase() === searchQuery ? 'exact' as const : 'partial' as const,
               similarity_score: word.word.toLowerCase() === searchQuery ? 1.0 : 0.8
