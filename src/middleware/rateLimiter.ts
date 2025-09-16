@@ -111,6 +111,9 @@ const rateLimiters = {
   
   // Auth rate limiter (very restrictive)
   auth: new RateLimiter(15 * 60 * 1000, 5), // 5 requests per 15 minutes
+  
+  // Community rate limiter (moderate)
+  community: new RateLimiter(5 * 60 * 1000, 10), // 10 requests per 5 minutes
 };
 
 // Auto-cleanup every 5 minutes

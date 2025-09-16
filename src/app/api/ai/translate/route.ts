@@ -40,10 +40,14 @@ export async function POST(request: NextRequest) {
       try {
         const supabase = createClient(config.supabase.url, config.supabase.anonKey);
         const translation = await generateTranslation(cleanText, direction, context, supabase);
+        logger.info(`Translation completed: text="${cleanText}", direction="${direction}", source="database"`);
         return NextResponse.json(translation);
       } catch (dbError) {
-        console.log('Database translation failed, using fallback');
+        const normalized = normalizeError(dbError);
+        logger.warn(`Database translation failed, using fallback: ${normalized.message}`);
       }
+    } else {
+      logger.info('Supabase not configured, using fallback translation');
     }
 
     // Fallback to hardcoded translation
@@ -68,31 +72,68 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Comprehensive fallback translation data
+// Comprehensive fallback translation data - updated with all mock data words
 const STRAATTAAL_TO_NL: Record<string, string> = {
   'swag': 'stijl, cool, stoer',
   'flexen': 'opscheppen, pronken',
-  'skeer': 'arm, weinig geld',
-  'breezy': 'makkelijk, relaxed',
-  'chill': 'ontspannen, kalm',
+  'skeer': 'arm, weinig geld hebben',
+  'breezy': 'cool, relaxed',
+  'chill': 'relaxed, kalm',
   'dope': 'geweldig, cool',
   'lit': 'geweldig, fantastisch',
   'fire': 'geweldig, fantastisch',
-  'slay': 'geweldig doen, excelleren',
-  'vibe': 'sfeer, gevoel',
-  'goals': 'doelen, aspiraties',
+  'vibe': 'sfeer, energie',
   'mood': 'stemming, gevoel',
+  'goals': 'doelen, aspiraties',
   'salty': 'boos, gefrustreerd',
   'savage': 'brutaal, meedogenloos',
   'cap': 'liegen, onzin vertellen',
   'no cap': 'geen grap, serieus',
+  'slay': 'geweldig doen, excelleren',
   'bet': 'oké, deal',
   'periodt': 'punt uit, einde discussie',
   'snatched': 'perfect, geweldig',
   'tea': 'roddel, nieuws',
   'yass': 'ja, geweldig',
   'queen': 'koningin, geweldige vrouw',
-  'king': 'koning, geweldige man'
+  'king': 'koning, geweldige man',
+  'basic': 'saai, gewoon',
+  'extra': 'overdreven, te veel',
+  'lowkey': 'stiekem, een beetje',
+  'highkey': 'openlijk, heel erg',
+  'stan': 'fan zijn van, steunen',
+  'ship': 'een koppel steunen',
+  'ghost': 'negeren, niet reageren',
+  'flex': 'opscheppen, pronken',
+  'clout': 'aandacht, populariteit',
+  'clout chaser': 'iemand die aandacht zoekt',
+  'thirsty': 'wanhopig, aandacht zoekend',
+  'woke': 'bewust, alert',
+  'cancelled': 'afgekeurd, geboycot',
+  'sus': 'verdacht, sketchy',
+  'simp': 'iemand die te veel doet voor iemand',
+  'noob': 'beginner, onervaren',
+  'pro': 'professional, ervaren',
+  'op': 'overpowered, te sterk',
+  'nerf': 'zwakker maken',
+  'buff': 'sterker maken',
+  'glitch': 'fout, bug',
+  'lag': 'vertraging, traagheid',
+  'afk': 'away from keyboard, niet aanwezig',
+  'irl': 'in real life, in het echte leven',
+  'tbh': 'to be honest, eerlijk gezegd',
+  'imo': 'in my opinion, naar mijn mening',
+  'fyi': 'for your information, ter informatie',
+  'btw': 'by the way, trouwens',
+  'lol': 'laughing out loud, hardop lachen',
+  'rofl': 'rolling on floor laughing, rollend van het lachen',
+  'lmao': 'laughing my ass off, me kapot lachen',
+  'omg': 'oh my god, oh mijn god',
+  'wtf': 'what the fuck, wat de fuck',
+  'fml': 'fuck my life, verpest mijn leven',
+  'yolo': 'you only live once, je leeft maar één keer',
+  'fomo': 'fear of missing out, angst om iets te missen',
+  'jomo': 'joy of missing out, plezier van iets missen'
 };
 
 const NL_TO_STRAATTAAL: Record<string, string> = {
@@ -128,7 +169,74 @@ const NL_TO_STRAATTAAL: Record<string, string> = {
   'nieuws': 'tea',
   'ja': 'yass',
   'koningin': 'queen',
-  'koning': 'king'
+  'koning': 'king',
+  'saai': 'basic',
+  'gewoon': 'basic',
+  'overdreven': 'extra',
+  'te veel': 'extra',
+  'stiekem': 'lowkey',
+  'een beetje': 'lowkey',
+  'openlijk': 'highkey',
+  'heel erg': 'highkey',
+  'fan zijn van': 'stan',
+  'steunen': 'stan',
+  'een koppel steunen': 'ship',
+  'negeren': 'ghost',
+  'niet reageren': 'ghost',
+  'aandacht': 'clout',
+  'populariteit': 'clout',
+  'iemand die aandacht zoekt': 'clout chaser',
+  'wanhopig': 'thirsty',
+  'aandacht zoekend': 'thirsty',
+  'bewust': 'woke',
+  'alert': 'woke',
+  'afgekeurd': 'cancelled',
+  'geboycot': 'cancelled',
+  'verdacht': 'sus',
+  'sketchy': 'sus',
+  'iemand die te veel doet': 'simp',
+  'beginner': 'noob',
+  'onervaren': 'noob',
+  'professional': 'pro',
+  'ervaren': 'pro',
+  'overpowered': 'op',
+  'te sterk': 'op',
+  'zwakker maken': 'nerf',
+  'sterker maken': 'buff',
+  'fout': 'glitch',
+  'bug': 'glitch',
+  'vertraging': 'lag',
+  'traagheid': 'lag',
+  'away from keyboard': 'afk',
+  'niet aanwezig': 'afk',
+  'in real life': 'irl',
+  'in het echte leven': 'irl',
+  'to be honest': 'tbh',
+  'eerlijk gezegd': 'tbh',
+  'in my opinion': 'imo',
+  'naar mijn mening': 'imo',
+  'for your information': 'fyi',
+  'ter informatie': 'fyi',
+  'by the way': 'btw',
+  'trouwens': 'btw',
+  'laughing out loud': 'lol',
+  'hardop lachen': 'lol',
+  'rolling on floor laughing': 'rofl',
+  'rollend van het lachen': 'rofl',
+  'laughing my ass off': 'lmao',
+  'me kapot lachen': 'lmao',
+  'oh my god': 'omg',
+  'oh mijn god': 'omg',
+  'what the fuck': 'wtf',
+  'wat de fuck': 'wtf',
+  'fuck my life': 'fml',
+  'verpest mijn leven': 'fml',
+  'you only live once': 'yolo',
+  'je leeft maar één keer': 'yolo',
+  'fear of missing out': 'fomo',
+  'angst om iets te missen': 'fomo',
+  'joy of missing out': 'jomo',
+  'plezier van iets missen': 'jomo'
 };
 
 async function generateTranslation(

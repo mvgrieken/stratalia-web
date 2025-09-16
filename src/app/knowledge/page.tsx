@@ -4,17 +4,19 @@ import { useState, useEffect, useCallback } from 'react';
 
 interface KnowledgeItem {
   id: string;
-  type: 'article' | 'video' | 'podcast' | 'book' | 'music';
+  type: 'article' | 'video' | 'podcast' | 'infographic';
   title: string;
+  content: string;
   author: string;
-  description: string;
-  url?: string;
-  duration?: string;
-  year?: number;
+  category: string;
   tags: string[];
   difficulty: 'beginner' | 'intermediate' | 'advanced';
-  rating: number;
-  views: number;
+  created_at: string;
+  updated_at: string;
+  is_active: boolean;
+  thumbnail_url?: string;
+  duration?: number;
+  word_count?: number;
 }
 
 export default function KnowledgePage() {
@@ -43,7 +45,9 @@ export default function KnowledgePage() {
     if (searchQuery) {
       filtered = filtered.filter(item => 
         item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.description.toLowerCase().includes(searchQuery.toLowerCase())
+        item.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
       );
     }
 
@@ -65,16 +69,19 @@ export default function KnowledgePage() {
         // Transform content data to knowledge items
         const knowledgeItems: KnowledgeItem[] = data.items?.map((item: any) => ({
           id: item.id,
-          type: (item.type as 'video' | 'article' | 'podcast' | 'book' | 'music') || 'article',
+          type: item.type || 'article',
           title: item.title,
+          content: item.content,
           author: item.author || 'Stratalia Community',
-          description: item.description || item.content,
-          url: item.url || '#',
-          year: new Date(item.created_at).getFullYear(),
+          category: item.category || 'algemeen',
           tags: item.tags || ['straattaal', 'leren'],
           difficulty: item.difficulty || 'intermediate',
-          rating: 4.0, // Default rating
-          views: Math.floor(Math.random() * 1000) + 100 // Simulated views
+          created_at: item.created_at,
+          updated_at: item.updated_at,
+          is_active: item.is_active !== false,
+          thumbnail_url: item.thumbnail_url,
+          duration: item.duration,
+          word_count: item.word_count
         })) || [];
 
         if (knowledgeItems.length > 0) {
@@ -89,40 +96,44 @@ export default function KnowledgePage() {
           id: '1',
           type: 'article',
           title: 'Welkom bij Stratalia',
+          content: 'Leer meer over Nederlandse straattaal en hoe je het kunt gebruiken. Deze kennisbank bevat artikelen, video\'s en podcasts over straattaal.',
           author: 'Stratalia Team',
-          description: 'Leer meer over Nederlandse straattaal en hoe je het kunt gebruiken.',
-          url: '#',
-          year: 2024,
+          category: 'introductie',
           tags: ['introductie', 'straattaal', 'leren'],
           difficulty: 'beginner',
-          rating: 4.5,
-          views: 100
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          is_active: true,
+          word_count: 50
         },
         {
           id: '2',
           type: 'video',
           title: 'Straattaal voor Beginners',
+          content: 'Een video introductie tot Nederlandse straattaal. Leer de basiswoorden en hoe je ze kunt gebruiken.',
           author: 'Stratalia Team',
-          description: 'Een video introductie tot Nederlandse straattaal.',
-          url: '#',
-          year: 2024,
+          category: 'video',
           tags: ['video', 'straattaal', 'beginners'],
           difficulty: 'beginner',
-          rating: 4.2,
-          views: 250
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          is_active: true,
+          duration: 300,
+          thumbnail_url: '/images/straattaal-video.jpg'
         },
         {
           id: '3',
           type: 'podcast',
           title: 'Straattaal Podcast',
+          content: 'Luister naar gesprekken over straattaal en cultuur. Experts delen hun kennis over de evolutie van straattaal.',
           author: 'Stratalia Team',
-          description: 'Luister naar gesprekken over straattaal en cultuur.',
-          url: '#',
-          year: 2024,
+          category: 'podcast',
           tags: ['podcast', 'straattaal', 'cultuur'],
           difficulty: 'intermediate',
-          rating: 4.3,
-          views: 180
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          is_active: true,
+          duration: 1800
         }
       ];
 
@@ -136,14 +147,15 @@ export default function KnowledgePage() {
           id: 'fallback-1',
           type: 'article',
           title: 'Straattaal Basis',
+          content: 'Leer de basis van Nederlandse straattaal. Een introductie tot de meest gebruikte woorden en uitdrukkingen.',
           author: 'Stratalia Team',
-          description: 'Leer de basis van Nederlandse straattaal.',
-          url: '#',
-          year: 2024,
+          category: 'basis',
           tags: ['straattaal', 'basis', 'leren'],
           difficulty: 'beginner',
-          rating: 4.0,
-          views: 50
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          is_active: true,
+          word_count: 100
         }
       ];
       
@@ -261,23 +273,28 @@ export default function KnowledgePage() {
                   </h3>
 
                   <p className="text-sm text-gray-600 mb-3 line-clamp-3">
-                    {item.description}
+                    {item.content}
                   </p>
 
                   <div className="flex items-center text-sm text-gray-500 mb-3">
                     <span>👤 {item.author}</span>
-                    {item.year && <span className="ml-4">📅 {item.year}</span>}
-                    {item.duration && <span className="ml-4">⏱️ {item.duration}</span>}
+                    <span className="ml-4">📅 {new Date(item.created_at).getFullYear()}</span>
+                    {item.duration && <span className="ml-4">⏱️ {Math.floor(item.duration / 60)} min</span>}
                   </div>
 
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center">
-                      <span className="text-yellow-500">⭐</span>
-                      <span className="text-sm text-gray-600 ml-1">{item.rating}</span>
+                      <span className="text-sm text-gray-600">
+                        {item.word_count ? `${item.word_count} woorden` : 'Artikel'}
+                      </span>
                     </div>
-                    <div className="text-sm text-gray-500">
-                      👁️ {item.views.toLocaleString()}
-                    </div>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      item.difficulty === 'beginner' ? 'bg-green-100 text-green-800' :
+                      item.difficulty === 'intermediate' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-red-100 text-red-800'
+                    }`}>
+                      {item.difficulty}
+                    </span>
                   </div>
 
                   <div className="flex flex-wrap gap-1 mb-4">
@@ -291,16 +308,15 @@ export default function KnowledgePage() {
                     ))}
                   </div>
 
-                  {item.url && (
-                    <a
-                      href={item.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block w-full bg-blue-600 text-white text-center py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                      Bekijk
-                    </a>
-                  )}
+                  <button
+                    className="block w-full bg-blue-600 text-white text-center py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                    onClick={() => {
+                      // In a real app, this would open the content
+                      alert(`Opening: ${item.title}`);
+                    }}
+                  >
+                    Bekijk
+                  </button>
                 </div>
               </div>
             ))}

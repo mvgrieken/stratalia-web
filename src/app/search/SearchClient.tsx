@@ -34,51 +34,77 @@ export default function SearchClient() {
 
   // Initialize speech recognition and synthesis after hydration
   useEffect(() => {
-    // Check for speech recognition support
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      setIsSupported(true);
-      recognitionRef.current = new SpeechRecognition();
-      if (recognitionRef.current) {
-        recognitionRef.current.continuous = false;
-        recognitionRef.current.interimResults = false;
-        recognitionRef.current.lang = 'nl-NL';
+    // Check for speech recognition support with proper error handling
+    if (typeof window !== 'undefined') {
+      try {
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        if (SpeechRecognition) {
+          setIsSupported(true);
+          recognitionRef.current = new SpeechRecognition();
+          if (recognitionRef.current) {
+            recognitionRef.current.continuous = false;
+            recognitionRef.current.interimResults = false;
+            recognitionRef.current.lang = 'nl-NL';
 
-        recognitionRef.current.onresult = (event) => {
-          const transcript = event.results[0][0].transcript;
-          setSearchQuery(transcript);
-          setIsListening(false);
-        };
+            recognitionRef.current.onresult = (event) => {
+              const transcript = event.results[0][0].transcript;
+              setSearchQuery(transcript);
+              setIsListening(false);
+            };
 
-        recognitionRef.current.onerror = () => {
-          setIsListening(false);
-        };
+            recognitionRef.current.onerror = (event) => {
+              console.warn('Speech recognition error:', event.error);
+              setIsListening(false);
+            };
 
-        recognitionRef.current.onend = () => {
-          setIsListening(false);
-        };
+            recognitionRef.current.onend = () => {
+              setIsListening(false);
+            };
+          }
+        } else {
+          setIsSupported(false);
+        }
+      } catch (error) {
+        console.warn('Speech recognition not supported:', error);
+        setIsSupported(false);
       }
-    }
 
-    // Check for speech synthesis support
-    if ('speechSynthesis' in window) {
-      synthRef.current = window.speechSynthesis;
+      // Check for speech synthesis support
+      if ('speechSynthesis' in window) {
+        synthRef.current = window.speechSynthesis;
+      }
     }
   }, []);
 
   const startListening = () => {
-    if (recognitionRef.current && !isListening) {
+    if (!isSupported || !recognitionRef.current || isListening) {
+      return;
+    }
+    
+    try {
       setIsListening(true);
       recognitionRef.current.start();
+    } catch (error) {
+      console.error('Failed to start speech recognition:', error);
+      setIsListening(false);
     }
   };
 
   const speakWord = (word: string) => {
-    if (synthRef.current) {
-      const utterance = new SpeechSynthesisUtterance(word);
-      utterance.lang = 'nl-NL';
-      utterance.rate = 0.8;
-      synthRef.current.speak(utterance);
+    try {
+      if (synthRef.current) {
+        const utterance = new SpeechSynthesisUtterance(word);
+        utterance.lang = 'nl-NL';
+        utterance.rate = 0.8;
+        utterance.onerror = (event) => {
+          console.warn('Speech synthesis error:', event.error);
+        };
+        synthRef.current.speak(utterance);
+      } else {
+        console.warn('Speech synthesis not supported in this browser');
+      }
+    } catch (error) {
+      console.error('Error speaking word:', error);
     }
   };
 
@@ -156,20 +182,29 @@ export default function SearchClient() {
               placeholder="Zoek een woord..."
               className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            {isSupported && (
+            {isSupported ? (
               <button
                 type="button"
                 onClick={startListening}
                 disabled={isListening}
-                className={`absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded-full ${
+                className={`absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded-full transition-colors ${
                   isListening 
                     ? 'bg-red-500 text-white animate-pulse' 
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
                 title="Spraak invoer"
+                aria-label="Start spraakherkenning"
               >
                 🎤
               </button>
+            ) : (
+              <div 
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded-full bg-gray-100 text-gray-400 cursor-not-allowed"
+                title="Spraakherkenning niet ondersteund in deze browser"
+                aria-label="Spraakherkenning niet beschikbaar"
+              >
+                🎤
+              </div>
             )}
           </div>
           <button

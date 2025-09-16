@@ -20,9 +20,65 @@ export default function CommunityPage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+  const validateSubmission = (): boolean => {
+    const errors: Record<string, string> = {};
+    
+    // Word validation
+    if (!submission.word.trim()) {
+      errors.word = 'Woord is verplicht';
+    } else if (submission.word.trim().length < 2) {
+      errors.word = 'Woord moet minimaal 2 karakters bevatten';
+    } else if (submission.word.trim().length > 50) {
+      errors.word = 'Woord mag maximaal 50 karakters bevatten';
+    }
+    
+    // Definition validation
+    if (!submission.definition.trim()) {
+      errors.definition = 'Betekenis is verplicht';
+    } else if (submission.definition.trim().length < 10) {
+      errors.definition = 'Betekenis moet minimaal 10 karakters bevatten';
+    } else if (submission.definition.trim().length > 500) {
+      errors.definition = 'Betekenis mag maximaal 500 karakters bevatten';
+    }
+    
+    // Example validation
+    if (!submission.example.trim()) {
+      errors.example = 'Voorbeeldzin is verplicht';
+    } else if (submission.example.trim().length < 10) {
+      errors.example = 'Voorbeeldzin moet minimaal 10 karakters bevatten';
+    } else if (submission.example.trim().length > 200) {
+      errors.example = 'Voorbeeldzin mag maximaal 200 karakters bevatten';
+    }
+    
+    // Context validation (optional but if provided, should be reasonable)
+    if (submission.context.trim() && submission.context.trim().length > 300) {
+      errors.context = 'Context mag maximaal 300 karakters bevatten';
+    }
+    
+    // Source validation (optional but if provided, should be reasonable)
+    if (submission.source.trim() && submission.source.trim().length > 100) {
+      errors.source = 'Bron mag maximaal 100 karakters bevatten';
+    }
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Clear previous errors
+    setError(null);
+    setValidationErrors({});
+    
+    // Validate submission
+    if (!validateSubmission()) {
+      return;
+    }
+    
     setIsSubmitting(true);
 
     try {
@@ -35,6 +91,7 @@ export default function CommunityPage() {
       });
 
       if (response.ok) {
+        const data = await response.json();
         setSubmitted(true);
         setSubmission({
           word: '',
@@ -43,12 +100,14 @@ export default function CommunityPage() {
           context: '',
           source: ''
         });
+        setError(null);
       } else {
-        alert('Er is een fout opgetreden. Probeer het opnieuw.');
+        const errorData = await response.json().catch(() => ({}));
+        setError(errorData.error || 'Er is een fout opgetreden bij het indienen. Probeer het opnieuw.');
       }
     } catch (error) {
       console.error('Error submitting word:', error);
-      alert('Er is een fout opgetreden. Probeer het opnieuw.');
+      setError('Er is een netwerkfout opgetreden. Controleer je internetverbinding en probeer het opnieuw.');
     } finally {
       setIsSubmitting(false);
     }

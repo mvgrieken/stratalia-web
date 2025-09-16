@@ -21,10 +21,17 @@ export default function WordOfTheDayPage() {
   const [weeklyProgress, setWeeklyProgress] = useState<WeeklyProgress[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [audioSupported, setAudioSupported] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
     fetchDailyWord();
     fetchWeeklyProgress();
+    
+    // Check for speech synthesis support
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      setAudioSupported(true);
+    }
   }, []);
 
   const fetchDailyWord = async () => {
@@ -92,20 +99,28 @@ export default function WordOfTheDayPage() {
   };
 
   const speakWord = (word: string) => {
+    if (!audioSupported || !word) return;
+    
     try {
-      if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(word);
-        utterance.lang = 'nl-NL';
-        utterance.rate = 0.8;
-        utterance.onerror = (event) => {
-          console.warn('Speech synthesis error:', event.error);
-        };
-        window.speechSynthesis.speak(utterance);
-      } else {
-        console.warn('Speech synthesis not supported in this browser');
-      }
+      setIsPlaying(true);
+      const utterance = new SpeechSynthesisUtterance(word);
+      utterance.lang = 'nl-NL';
+      utterance.rate = 0.8;
+      utterance.pitch = 1;
+      
+      utterance.onend = () => {
+        setIsPlaying(false);
+      };
+      
+      utterance.onerror = (event) => {
+        console.warn('Speech synthesis error:', event.error);
+        setIsPlaying(false);
+      };
+      
+      window.speechSynthesis.speak(utterance);
     } catch (error) {
       console.error('Error speaking word:', error);
+      setIsPlaying(false);
     }
   };
 
@@ -178,18 +193,30 @@ export default function WordOfTheDayPage() {
                 
                 {/* Audio Controls */}
                 <div className="flex justify-center gap-4">
-                  <button
-                    onClick={() => speakWord(dailyWord.word)}
-                    className="bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-                  >
-                    🔊 {dailyWord.word}
-                  </button>
-                  <button
-                    onClick={() => speakMeaning(dailyWord.meaning)}
-                    className="bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-                  >
-                    🔊 Betekenis
-                  </button>
+                  {audioSupported ? (
+                    <>
+                      <button
+                        onClick={() => speakWord(dailyWord.word)}
+                        disabled={isPlaying}
+                        className="bg-white bg-opacity-20 hover:bg-opacity-30 disabled:opacity-50 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+                        aria-label={`Spreek het woord "${dailyWord.word}" uit`}
+                      >
+                        {isPlaying ? '⏸️' : '🔊'} {dailyWord.word}
+                      </button>
+                      <button
+                        onClick={() => speakMeaning(dailyWord.meaning)}
+                        disabled={isPlaying}
+                        className="bg-white bg-opacity-20 hover:bg-opacity-30 disabled:opacity-50 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+                        aria-label="Spreek de betekenis uit"
+                      >
+                        {isPlaying ? '⏸️' : '🔊'} Betekenis
+                      </button>
+                    </>
+                  ) : (
+                    <div className="text-white bg-opacity-20 px-4 py-2 rounded-lg text-sm">
+                      🔊 Audio niet ondersteund in deze browser
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -199,23 +226,47 @@ export default function WordOfTheDayPage() {
           <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
             <h3 className="text-xl font-semibold text-gray-900 mb-6">Weekoverzicht</h3>
             <div className="grid grid-cols-7 gap-4">
-              {weeklyProgress.map((day, index) => (
-                <div key={day.date} className="text-center">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2 ${
-                    day.completed 
-                      ? 'bg-green-500 text-white' 
-                      : 'bg-gray-200 text-gray-500'
-                  }`}>
-                    {day.completed ? '✓' : index + 1}
+              {weeklyProgress.map((day, index) => {
+                const isToday = day.date === new Date().toISOString().split('T')[0];
+                const isFuture = new Date(day.date) > new Date();
+                
+                return (
+                  <div key={day.date} className="text-center">
+                    <div 
+                      className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2 transition-colors ${
+                        isToday
+                          ? 'bg-blue-500 text-white ring-2 ring-blue-300' // Today - highlighted
+                          : day.completed 
+                            ? 'bg-green-500 text-white' // Completed
+                            : isFuture
+                              ? 'bg-gray-100 text-gray-400' // Future - disabled
+                              : 'bg-gray-200 text-gray-500' // Missed
+                      }`}
+                      title={
+                        isToday 
+                          ? 'Vandaag' 
+                          : day.completed 
+                            ? `Voltooid: ${day.word || 'Woord geleerd'}` 
+                            : isFuture
+                              ? 'Toekomstige dag'
+                              : 'Gemist'
+                      }
+                    >
+                      {day.completed ? '✓' : index + 1}
+                    </div>
+                    <p className={`text-sm ${
+                      isToday ? 'text-blue-600 font-semibold' : 'text-gray-600'
+                    }`}>
+                      {new Date(day.date).toLocaleDateString('nl-NL', { weekday: 'short' })}
+                    </p>
+                    <p className={`text-xs ${
+                      isToday ? 'text-blue-500 font-medium' : 'text-gray-500'
+                    }`}>
+                      {new Date(day.date).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}
+                    </p>
                   </div>
-                  <p className="text-sm text-gray-600">
-                    {new Date(day.date).toLocaleDateString('nl-NL', { weekday: 'short' })}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {new Date(day.date).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}
-                  </p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 

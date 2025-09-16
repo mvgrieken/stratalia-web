@@ -32,25 +32,32 @@ export default function ChallengesPage() {
 
   const fetchChallenges = useCallback(async () => {
     try {
-      const response = await fetch(`/api/gamification/challenges?user_id=${user?.id}&type=all`);
+      setLoading(true);
+      setError(null);
+      
+      const response = await fetch(`/api/gamification/challenges?user_id=${user?.id || 'anonymous'}&type=all`);
       if (response.ok) {
         const data = await response.json();
         setChallenges(data.challenges || []);
       } else {
-        setError('Fout bij het laden van challenges');
+        const errorData = await response.json().catch(() => ({}));
+        setError(errorData.error || 'Fout bij het laden van challenges');
+        
+        // Set fallback challenges so the page is still usable
+        setChallenges([]);
       }
     } catch (err) {
+      console.error('Error fetching challenges:', err);
       setError('Fout bij het laden van challenges');
+      setChallenges([]);
     } finally {
       setLoading(false);
     }
   }, [user?.id]);
 
   useEffect(() => {
-    if (user) {
-      fetchChallenges();
-    }
-  }, [user, fetchChallenges]);
+    fetchChallenges();
+  }, [fetchChallenges]);
 
   const joinChallenge = async (challengeId: string) => {
     try {
@@ -111,12 +118,100 @@ export default function ChallengesPage() {
       <div className="min-h-screen bg-gray-50">
         <Navigation />
         <div className="container mx-auto px-4 py-8">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Inloggen vereist</h1>
-            <p className="text-gray-600 mb-6">Je moet ingelogd zijn om challenges te bekijken.</p>
-            <a href="/login" className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
-              Inloggen
-            </a>
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-12">
+              <h1 className="text-4xl font-bold text-gray-900 mb-4">🎯 Challenges</h1>
+              <p className="text-xl text-gray-600 mb-8">
+                Test je kennis van straattaal en verdien punten met dagelijkse uitdagingen!
+              </p>
+            </div>
+
+            {/* Challenge Preview */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+              <div className="bg-white rounded-lg shadow-lg p-6 border-2 border-blue-200">
+                <div className="text-3xl mb-4">📚</div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Dagelijkse Quiz</h3>
+                <p className="text-gray-600 mb-4">
+                  Beantwoord 5 vragen over straattaal en verdien 50 punten per dag.
+                </p>
+                <div className="text-sm text-blue-600 font-medium">+50 punten</div>
+              </div>
+
+              <div className="bg-white rounded-lg shadow-lg p-6 border-2 border-green-200">
+                <div className="text-3xl mb-4">🔥</div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Streak Challenge</h3>
+                <p className="text-gray-600 mb-4">
+                  Houd je leerstreak 7 dagen vol en verdien een bonus van 200 punten.
+                </p>
+                <div className="text-sm text-green-600 font-medium">+200 punten</div>
+              </div>
+
+              <div className="bg-white rounded-lg shadow-lg p-6 border-2 border-purple-200">
+                <div className="text-3xl mb-4">🏆</div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Mastery Badge</h3>
+                <p className="text-gray-600 mb-4">
+                  Leer 100 nieuwe woorden en ontgrendel de Mastery Badge.
+                </p>
+                <div className="text-sm text-purple-600 font-medium">+500 punten</div>
+              </div>
+            </div>
+
+            {/* Benefits Section */}
+            <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Waarom meedoen?</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="flex items-start space-x-3">
+                  <div className="text-2xl">🎯</div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-1">Gamified Learning</h3>
+                    <p className="text-gray-600">Leer straattaal op een leuke en uitdagende manier.</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <div className="text-2xl">📈</div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-1">Track Progress</h3>
+                    <p className="text-gray-600">Volg je voortgang en zie hoe je verbetert.</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <div className="text-2xl">🏅</div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-1">Earn Rewards</h3>
+                    <p className="text-gray-600">Verdien punten, badges en unlock nieuwe content.</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <div className="text-2xl">👥</div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-1">Compete</h3>
+                    <p className="text-gray-600">Strijd tegen andere gebruikers op de leaderboard.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Call to Action */}
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Klaar om te beginnen?</h2>
+              <p className="text-gray-600 mb-6">
+                Registreer je gratis account en start met het verdienen van punten!
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <a 
+                  href="/register" 
+                  className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                >
+                  Gratis Registreren
+                </a>
+                <a 
+                  href="/login" 
+                  className="bg-gray-200 text-gray-800 px-8 py-3 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                >
+                  Inloggen
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </div>
