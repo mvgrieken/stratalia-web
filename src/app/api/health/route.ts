@@ -39,7 +39,7 @@ export async function GET() {
     }
 
     const duration = Date.now() - startTime;
-    logger.performance('health-check', duration);
+    logger.info(`Health check completed in ${duration}ms`);
 
     // Return healthy status
     return NextResponse.json({

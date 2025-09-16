@@ -12,7 +12,7 @@ export const GET = withErrorHandling(async (_request: NextRequest) => {
   }
 
   // Check if user is admin (in production, implement proper auth)
-  const authHeader = request.headers.get('authorization');
+  const authHeader = _request.headers.get('authorization');
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     throw new AppError(
       Errors.UNAUTHORIZED.code,
@@ -21,14 +21,14 @@ export const GET = withErrorHandling(async (_request: NextRequest) => {
     );
   }
 
-  const { searchParams } = new URL(request.url);
+  const { searchParams } = new URL(_request.url);
   const type = searchParams.get('type') || 'stats';
   const since = searchParams.get('since');
   const name = searchParams.get('name');
   const userId = searchParams.get('userId');
   const action = searchParams.get('action');
 
-  logger.info('Monitoring data request', { type, since, name, userId, action });
+  logger.info(`Monitoring data request: ${type}${since ? ` since=${since}` : ''}${name ? ` name=${name}` : ''}${userId ? ` userId=${userId}` : ''}${action ? ` action=${action}` : ''}`);
 
   try {
     const sinceDate = since ? new Date(since) : undefined;
@@ -86,7 +86,7 @@ export const DELETE = withErrorHandling(async (_request: NextRequest) => {
   }
 
   // Check if user is admin
-  const authHeader = request.headers.get('authorization');
+  const authHeader = _request.headers.get('authorization');
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     throw new AppError(
       Errors.UNAUTHORIZED.code,
@@ -95,10 +95,10 @@ export const DELETE = withErrorHandling(async (_request: NextRequest) => {
     );
   }
 
-  const { searchParams } = new URL(request.url);
+  const { searchParams } = new URL(_request.url);
   const olderThanHours = parseInt(searchParams.get('olderThanHours') || '24');
 
-  logger.info('Clearing old monitoring data', { olderThanHours });
+  logger.info(`Clearing old monitoring data older than ${olderThanHours} hours`);
 
   try {
     monitoringService.clearOldData(olderThanHours);

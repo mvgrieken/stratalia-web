@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { quizService } from '@/services/QuizService';
-import { createSuccessResponse, withErrorHandling, Errors } from '@/lib/errors';
+import { createSuccessResponse, withErrorHandling, Errors, AppError } from '@/lib/errors';
 import { logger } from '@/lib/logger';
 
 export const GET = withErrorHandling(async (request: NextRequest) => {
@@ -25,7 +25,7 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
     );
   }
 
-  logger.info('Quiz questions request', { difficulty, limit });
+  logger.info(`Quiz questions request: difficulty=${difficulty || 'any'}, limit=${limit}`);
 
   // Use the QuizService for business logic
   const questions = await quizService.getQuizQuestions(difficulty, limit);

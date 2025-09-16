@@ -20,6 +20,8 @@ interface TranslationResponse {
 }
 
 export async function POST(request: NextRequest) {
+  let cleanText = '';
+  
   try {
     const body: TranslationRequest = await request.json();
     const { text, direction, context } = body;
@@ -28,7 +30,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Text and direction are required' }, { status: 400 });
     }
 
-    const cleanText = text.trim();
+    cleanText = text.trim();
     if (cleanText.length === 0) {
       return NextResponse.json({ error: 'Empty text provided' }, { status: 400 });
     }
@@ -45,7 +47,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Fallback to hardcoded translation
-    const translation = await generateFallbackTranslation(cleanText, direction, context);
+    const translation = await generateFallbackTranslation(cleanText, direction);
     return NextResponse.json(translation);
 
   } catch (error) {
