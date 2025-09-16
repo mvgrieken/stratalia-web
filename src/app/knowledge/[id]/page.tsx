@@ -35,12 +35,12 @@ export default function KnowledgeDetailPage() {
         setError(null);
 
         // Try to fetch from API first
-        const response = await fetch(`/api/content/approved?id=${params.id}`);
+        const response = await fetch(`/api/content/approved/${params.id}`);
         
         if (response.ok) {
           const data = await response.json();
-          if (data.items && data.items.length > 0) {
-            setItem(data.items[0]);
+          if (data.success && data.data.item) {
+            setItem(data.data.item);
             return;
           }
         }

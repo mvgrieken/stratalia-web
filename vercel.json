@@ -22,5 +22,11 @@
     "src/app/api/**/*.ts": {
       "maxDuration": 30
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/refresh-knowledge",
+      "schedule": "0 3 * * *"
+    }
+  ]
 }

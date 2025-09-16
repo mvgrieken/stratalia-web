@@ -40,6 +40,8 @@ export default function AdminPage() {
   const [knowledgeItems, setKnowledgeItems] = useState<KnowledgeItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [refreshStatus, setRefreshStatus] = useState<{[key: string]: 'idle' | 'loading' | 'success' | 'error'}>({});
+  const [refreshMessage, setRefreshMessage] = useState('');
 
   // Redirect if not admin
   useEffect(() => {
@@ -97,6 +99,41 @@ export default function AdminPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const refreshContent = async (type?: string) => {
+    const refreshKey = type || 'all';
+    setRefreshStatus(prev => ({ ...prev, [refreshKey]: 'loading' }));
+    setRefreshMessage('');
+
+    try {
+      const url = type ? `/api/refresh-knowledge?type=${type}` : '/api/refresh-knowledge';
+      const response = await fetch(url, { method: 'POST' });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setRefreshStatus(prev => ({ ...prev, [refreshKey]: 'success' }));
+        setRefreshMessage(`Succesvol ${data.data.refreshCount} items ververst`);
+        
+        // Refresh the current tab data
+        if (activeTab === 'knowledge') {
+          fetchKnowledgeItems();
+        }
+      } else {
+        const errorData = await response.json();
+        setRefreshStatus(prev => ({ ...prev, [refreshKey]: 'error' }));
+        setRefreshMessage(`Fout: ${errorData.error}`);
+      }
+    } catch (err) {
+      setRefreshStatus(prev => ({ ...prev, [refreshKey]: 'error' }));
+      setRefreshMessage('Fout bij het verversen van content');
+    }
+
+    // Clear message after 5 seconds
+    setTimeout(() => {
+      setRefreshMessage('');
+      setRefreshStatus(prev => ({ ...prev, [refreshKey]: 'idle' }));
+    }, 5000);
   };
 
   useEffect(() => {
@@ -269,10 +306,53 @@ export default function AdminPage() {
                 {activeTab === 'knowledge' && (
                   <div className="bg-white shadow overflow-hidden sm:rounded-md">
                     <div className="px-4 py-5 sm:px-6">
-                      <h3 className="text-lg leading-6 font-medium text-gray-900">Kennisbank Items</h3>
-                      <p className="mt-1 max-w-2xl text-sm text-gray-500">
-                        Beheer alle kennisbank items in de database
-                      </p>
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h3 className="text-lg leading-6 font-medium text-gray-900">Kennisbank Items</h3>
+                          <p className="mt-1 max-w-2xl text-sm text-gray-500">
+                            Beheer alle kennisbank items in de database
+                          </p>
+                        </div>
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => refreshContent('articles')}
+                            disabled={refreshStatus.articles === 'loading'}
+                            className="px-3 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 disabled:opacity-50"
+                          >
+                            {refreshStatus.articles === 'loading' ? '⏳' : '📄'} Artikelen
+                          </button>
+                          <button
+                            onClick={() => refreshContent('videos')}
+                            disabled={refreshStatus.videos === 'loading'}
+                            className="px-3 py-2 bg-purple-600 text-white text-sm rounded-md hover:bg-purple-700 disabled:opacity-50"
+                          >
+                            {refreshStatus.videos === 'loading' ? '⏳' : '🎥'} Video's
+                          </button>
+                          <button
+                            onClick={() => refreshContent('podcasts')}
+                            disabled={refreshStatus.podcasts === 'loading'}
+                            className="px-3 py-2 bg-orange-600 text-white text-sm rounded-md hover:bg-orange-700 disabled:opacity-50"
+                          >
+                            {refreshStatus.podcasts === 'loading' ? '⏳' : '🎧'} Podcasts
+                          </button>
+                          <button
+                            onClick={() => refreshContent()}
+                            disabled={refreshStatus.all === 'loading'}
+                            className="px-3 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 disabled:opacity-50"
+                          >
+                            {refreshStatus.all === 'loading' ? '⏳' : '🔄'} Alles
+                          </button>
+                        </div>
+                      </div>
+                      {refreshMessage && (
+                        <div className={`mt-3 p-3 rounded-md text-sm ${
+                          refreshMessage.includes('Fout') 
+                            ? 'bg-red-50 text-red-700 border border-red-200' 
+                            : 'bg-green-50 text-green-700 border border-green-200'
+                        }`}>
+                          {refreshMessage}
+                        </div>
+                      )}
                     </div>
                     <ul className="divide-y divide-gray-200">
                       {knowledgeItems.map((item) => (
