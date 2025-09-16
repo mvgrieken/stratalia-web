@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { monitoringService } from '@/lib/monitoring';
-import { createSuccessResponse, createErrorResponse, withErrorHandling, Errors } from '@/lib/errors';
+import { createSuccessResponse, createErrorResponse, withErrorHandling, Errors, AppError } from '@/lib/errors';
 import { applyRateLimit } from '@/middleware/rateLimiter';
 import { logger } from '@/lib/logger';
 

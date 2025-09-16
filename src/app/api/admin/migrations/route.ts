@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { migrationService, migrations } from '@/lib/migrations';
-import { createSuccessResponse, createErrorResponse, withErrorHandling, Errors } from '@/lib/errors';
+import { createSuccessResponse, createErrorResponse, withErrorHandling, Errors, AppError } from '@/lib/errors';
 import { applyRateLimit } from '@/middleware/rateLimiter';
 import { logger } from '@/lib/logger';
 

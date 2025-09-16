@@ -189,7 +189,7 @@ export function validateRequired<T extends Record<string, any>>(
  * Async error handler wrapper
  */
 export function withErrorHandling<T extends any[], R>(
-  fn: (...args: T) => Promise<R>,
+  fn: (..._args: T) => Promise<R>,
   requestId?: string
 ) {
   return async (..._args: T): Promise<R> => {
