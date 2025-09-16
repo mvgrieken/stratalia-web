@@ -33,12 +33,32 @@ export default function WordOfTheDayPage() {
       if (response.ok) {
         const data = await response.json();
         setDailyWord(data);
+        setError(null); // Clear any previous errors
       } else {
-        const errorData = await response.json();
+        // Even if API fails, try to get fallback data
+        const errorData = await response.json().catch(() => ({}));
         setError(errorData.details || 'Kon het woord van de dag niet ophalen');
+        
+        // Set a fallback word so the page is still usable
+        setDailyWord({
+          id: 'fallback-emergency',
+          word: 'skeer',
+          meaning: 'arm, weinig geld hebben',
+          example: 'Ik ben helemaal skeer deze maand.',
+          date: new Date().toISOString().split('T')[0]
+        });
       }
     } catch (err: any) {
       setError('Er is een fout opgetreden bij het ophalen van het woord van de dag');
+      
+      // Set a fallback word so the page is still usable
+      setDailyWord({
+        id: 'fallback-emergency',
+        word: 'skeer',
+        meaning: 'arm, weinig geld hebben',
+        example: 'Ik ben helemaal skeer deze maand.',
+        date: new Date().toISOString().split('T')[0]
+      });
     } finally {
       setLoading(false);
     }
@@ -72,20 +92,38 @@ export default function WordOfTheDayPage() {
   };
 
   const speakWord = (word: string) => {
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(word);
-      utterance.lang = 'nl-NL';
-      utterance.rate = 0.8;
-      window.speechSynthesis.speak(utterance);
+    try {
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(word);
+        utterance.lang = 'nl-NL';
+        utterance.rate = 0.8;
+        utterance.onerror = (event) => {
+          console.warn('Speech synthesis error:', event.error);
+        };
+        window.speechSynthesis.speak(utterance);
+      } else {
+        console.warn('Speech synthesis not supported in this browser');
+      }
+    } catch (error) {
+      console.error('Error speaking word:', error);
     }
   };
 
   const speakMeaning = (meaning: string) => {
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(meaning);
-      utterance.lang = 'nl-NL';
-      utterance.rate = 0.8;
-      window.speechSynthesis.speak(utterance);
+    try {
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(meaning);
+        utterance.lang = 'nl-NL';
+        utterance.rate = 0.8;
+        utterance.onerror = (event) => {
+          console.warn('Speech synthesis error:', event.error);
+        };
+        window.speechSynthesis.speak(utterance);
+      } else {
+        console.warn('Speech synthesis not supported in this browser');
+      }
+    } catch (error) {
+      console.error('Error speaking meaning:', error);
     }
   };
 

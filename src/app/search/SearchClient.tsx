@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 
 interface WordSearchResult {
   id: string;
@@ -11,15 +11,26 @@ interface WordSearchResult {
   similarity_score?: number;
 }
 
+interface SearchResponse {
+  results: WordSearchResult[];
+  message: string;
+  suggestions: string[];
+  total: number;
+  source: string;
+}
+
 export default function SearchClient() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<WordSearchResult[]>([]);
+  const [searchMessage, setSearchMessage] = useState<string>('');
+  const [suggestions, setSuggestions] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Initialize speech recognition and synthesis after hydration
   useEffect(() => {
@@ -71,25 +82,67 @@ export default function SearchClient() {
     }
   };
 
-  const handleSearch = async (e?: React.FormEvent) => {
-    e?.preventDefault();
-    if (!searchQuery.trim()) return;
+  const performSearch = useCallback(async (query: string) => {
+    if (!query.trim()) return;
     
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/words/search?query=${encodeURIComponent(searchQuery)}&limit=10`);
+      const response = await fetch(`/api/words/search?query=${encodeURIComponent(query)}&limit=10`);
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
-      const results = await response.json();
-      setSearchResults(results);
+      const data: SearchResponse = await response.json();
+      setSearchResults(data.results);
+      setSearchMessage(data.message);
+      setSuggestions(data.suggestions);
     } catch (err: any) {
       setError(err.message || 'Er is een fout opgetreden bij het zoeken. Probeer het opnieuw.');
+      setSearchResults([]);
+      setSearchMessage('');
+      setSuggestions([]);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  const handleSearch = useCallback((e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (!searchQuery.trim()) return;
+    
+    // Clear existing timeout
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+    
+    // Set new timeout for debounced search
+    debounceTimeoutRef.current = setTimeout(() => {
+      performSearch(searchQuery);
+    }, 300); // 300ms debounce
+  }, [searchQuery, performSearch]);
+
+  // Auto-search on query change (debounced)
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+      
+      debounceTimeoutRef.current = setTimeout(() => {
+        performSearch(searchQuery);
+      }, 500); // 500ms debounce for auto-search
+    } else {
+      setSearchResults([]);
+      setSearchMessage('');
+      setSuggestions([]);
+    }
+
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, [searchQuery, performSearch]);
 
   return (
     <>
@@ -122,8 +175,11 @@ export default function SearchClient() {
           <button
             type="submit"
             disabled={isLoading}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
           >
+            {isLoading && (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            )}
             {isLoading ? "Zoeken..." : "Zoeken"}
           </button>
         </div>
@@ -140,11 +196,37 @@ export default function SearchClient() {
         </div>
       )}
 
+      {/* Search Message */}
+      {searchMessage && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-blue-800">{searchMessage}</p>
+        </div>
+      )}
+
+      {/* Suggestions */}
+      {suggestions.length > 0 && (
+        <div className="mb-6">
+          <p className="text-sm text-gray-600 mb-2">Probeer deze woorden:</p>
+          <div className="flex flex-wrap gap-2">
+            {suggestions.map((suggestion, index) => (
+              <button
+                key={index}
+                onClick={() => {
+                  setSearchQuery(suggestion);
+                  performSearch(suggestion);
+                }}
+                className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full text-sm transition-colors"
+              >
+                {suggestion}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Results */}
       {searchResults.length > 0 ? (
         <div>
-          <p className="text-lg font-semibold mb-4 text-gray-900">
-            Resultaten ({searchResults.length})
-          </p>
           <div className="space-y-4">
             {searchResults.map((result) => (
               <div key={result.id} className="bg-white rounded-lg shadow-md p-6">
@@ -153,7 +235,13 @@ export default function SearchClient() {
                     {result.word}
                   </h3>
                   {result.match_type && (
-                    <span className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                    <span className={`text-sm px-2 py-1 rounded ${
+                      result.match_type === 'exact' 
+                        ? 'bg-green-100 text-green-800'
+                        : result.match_type === 'partial'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-blue-100 text-blue-800'
+                    }`}>
                       {result.match_type}
                     </span>
                   )}
@@ -173,16 +261,18 @@ export default function SearchClient() {
                   <button
                     type="button"
                     onClick={() => speakWord(result.word)}
-                    className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm"
+                    className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm transition-colors"
                     title="Uitspraak afspelen"
+                    aria-label={`Spreek ${result.word} uit`}
                   >
                     🔊 {result.word}
                   </button>
                   <button
                     type="button"
                     onClick={() => speakWord(result.meaning)}
-                    className="flex items-center gap-2 text-gray-600 hover:text-gray-700 text-sm"
+                    className="flex items-center gap-2 text-gray-600 hover:text-gray-700 text-sm transition-colors"
                     title="Betekenis uitspreken"
+                    aria-label={`Spreek betekenis van ${result.word} uit`}
                   >
                     🔊 Betekenis
                   </button>
@@ -197,7 +287,7 @@ export default function SearchClient() {
             ))}
           </div>
         </div>
-      ) : (
+      ) : !isLoading && !error && searchQuery.trim() === '' ? (
         <div className="text-center py-12">
           <p className="text-gray-500 text-lg">
             Zoek naar straattaal woorden
@@ -206,7 +296,7 @@ export default function SearchClient() {
             Probeer woorden zoals 'skeer', 'breezy', of 'chillen'
           </p>
         </div>
-      )}
+      ) : null}
     </>
   );
 }

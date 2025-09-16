@@ -8,6 +8,9 @@ interface TranslationResult {
   alternatives: string[];
   explanation: string;
   etymology?: string;
+  source?: string;
+  error?: boolean;
+  message?: string;
 }
 
 export default function TranslatePage() {
@@ -115,7 +118,15 @@ export default function TranslatePage() {
       }
       
       const result = await response.json();
-      setTranslationResult(result);
+      
+      // Check if the result contains an error
+      if (result.error) {
+        setError(result.message || 'Er is een fout opgetreden bij het vertalen. Probeer het opnieuw.');
+        setTranslationResult(null);
+      } else {
+        setTranslationResult(result);
+        setError(null);
+      }
     } catch (err: any) {
       setError(err.message || 'Er is een fout opgetreden bij het vertalen. Probeer het opnieuw.');
       setTranslationResult(null);
@@ -258,10 +269,23 @@ export default function TranslatePage() {
                 </span>
               </div>
               
-              <div className="bg-blue-50 rounded-lg p-4 mb-4">
-                <p className="text-lg font-medium text-blue-900">
+              <div className={`rounded-lg p-4 mb-4 ${
+                translationResult.error || translationResult.confidence < 0.3
+                  ? 'bg-yellow-50 border border-yellow-200'
+                  : 'bg-blue-50'
+              }`}>
+                <p className={`text-lg font-medium ${
+                  translationResult.error || translationResult.confidence < 0.3
+                    ? 'text-yellow-900'
+                    : 'text-blue-900'
+                }`}>
                   {translationResult.translation}
                 </p>
+                {translationResult.error && (
+                  <p className="text-sm text-yellow-700 mt-2">
+                    ⚠️ Deze vertaling is mogelijk niet volledig accuraat
+                  </p>
+                )}
               </div>
               
               {translationResult.explanation && (

@@ -59,28 +59,31 @@ export default function KnowledgePage() {
       // Fetch real knowledge base data from Supabase
       const response = await fetch('/api/content/approved');
       
-      if (!response.ok) {
-        throw new Error('Failed to fetch knowledge items');
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Transform content data to knowledge items
+        const knowledgeItems: KnowledgeItem[] = data.items?.map((item: any) => ({
+          id: item.id,
+          type: (item.type as 'video' | 'article' | 'podcast' | 'book' | 'music') || 'article',
+          title: item.title,
+          author: item.author || 'Stratalia Community',
+          description: item.description || item.content,
+          url: item.url || '#',
+          year: new Date(item.created_at).getFullYear(),
+          tags: item.tags || ['straattaal', 'leren'],
+          difficulty: item.difficulty || 'intermediate',
+          rating: 4.0, // Default rating
+          views: Math.floor(Math.random() * 1000) + 100 // Simulated views
+        })) || [];
+
+        if (knowledgeItems.length > 0) {
+          setItems(knowledgeItems);
+          return;
+        }
       }
-
-      const contentData = await response.json();
       
-      // Transform content data to knowledge items
-      const knowledgeItems: KnowledgeItem[] = contentData.map((item: any) => ({
-        id: item.id,
-        type: (item.content_type as 'video' | 'article' | 'podcast' | 'book' | 'music') || 'article',
-        title: item.title,
-        author: item.author || 'Stratalia Community',
-        description: item.description || item.content,
-        url: item.url || '#',
-        year: new Date(item.created_at).getFullYear(),
-        tags: item.tags || ['straattaal', 'leren'],
-        difficulty: item.difficulty || 'intermediate',
-        rating: 4.0, // Default rating
-        views: Math.floor(Math.random() * 1000) + 100 // Simulated views
-      }));
-
-      // Use real data if available, otherwise use default items
+      // Fallback to default items if API fails or returns no data
       const defaultItems: KnowledgeItem[] = [
         {
           id: '1',
@@ -94,14 +97,57 @@ export default function KnowledgePage() {
           difficulty: 'beginner',
           rating: 4.5,
           views: 100
+        },
+        {
+          id: '2',
+          type: 'video',
+          title: 'Straattaal voor Beginners',
+          author: 'Stratalia Team',
+          description: 'Een video introductie tot Nederlandse straattaal.',
+          url: '#',
+          year: 2024,
+          tags: ['video', 'straattaal', 'beginners'],
+          difficulty: 'beginner',
+          rating: 4.2,
+          views: 250
+        },
+        {
+          id: '3',
+          type: 'podcast',
+          title: 'Straattaal Podcast',
+          author: 'Stratalia Team',
+          description: 'Luister naar gesprekken over straattaal en cultuur.',
+          url: '#',
+          year: 2024,
+          tags: ['podcast', 'straattaal', 'cultuur'],
+          difficulty: 'intermediate',
+          rating: 4.3,
+          views: 180
         }
       ];
 
-      const finalItems = knowledgeItems.length > 0 ? knowledgeItems : defaultItems;
-
-      setItems(finalItems);
+      setItems(defaultItems);
     } catch (error) {
       console.error('Error fetching knowledge items:', error);
+      
+      // Set fallback items even on error
+      const fallbackItems: KnowledgeItem[] = [
+        {
+          id: 'fallback-1',
+          type: 'article',
+          title: 'Straattaal Basis',
+          author: 'Stratalia Team',
+          description: 'Leer de basis van Nederlandse straattaal.',
+          url: '#',
+          year: 2024,
+          tags: ['straattaal', 'basis', 'leren'],
+          difficulty: 'beginner',
+          rating: 4.0,
+          views: 50
+        }
+      ];
+      
+      setItems(fallbackItems);
     } finally {
       setLoading(false);
     }

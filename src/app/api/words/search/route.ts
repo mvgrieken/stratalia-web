@@ -25,17 +25,19 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
   // Use the WordService for business logic
   const results = await wordService.searchWords(query.trim(), limit);
 
-  // If no results found, return helpful message
-  if (results.length === 0) {
-    return createSuccessResponse({
-      results: [],
-      message: `Geen resultaten gevonden voor "${query}". Probeer een ander woord.`,
-      suggestions: ['skeer', 'breezy', 'flexen']
-    });
-  }
+  // Always return consistent response format
+  const responseData = {
+    results: results,
+    message: results.length === 0 
+      ? `Geen resultaten gevonden voor "${query}". Probeer een ander woord.`
+      : `Gevonden ${results.length} resultaat${results.length !== 1 ? 'en' : ''} voor "${query}"`,
+    suggestions: results.length === 0 
+      ? ['skeer', 'breezy', 'flexen', 'chill', 'dope', 'lit']
+      : [],
+    total: results.length,
+    source: results.length > 0 && results[0]?.match_type === 'fallback' ? 'fallback' : 'database'
+  };
 
-  logger.info(`Search completed successfully: resultCount=results.length`);
-  return createSuccessResponse(results, 200, { 
-    source: results[0]?.match_type === 'fallback' ? 'fallback' : 'database' 
-  });
+  logger.info(`Search completed successfully: resultCount=${results.length}, source=${responseData.source}`);
+  return createSuccessResponse(responseData, 200);
 });

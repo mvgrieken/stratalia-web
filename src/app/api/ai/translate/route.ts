@@ -54,15 +54,17 @@ export async function POST(request: NextRequest) {
     const normalized = normalizeError(error);
     logger.error('Error in AI translation', normalized);
     
-    // Return a helpful fallback response
+    // Return a helpful fallback response with better error handling
     return NextResponse.json({
       translation: cleanText,
       confidence: 0.1,
-      alternatives: ['Vertaling niet beschikbaar'],
-      explanation: 'De vertaalservice is tijdelijk niet beschikbaar. Probeer het later opnieuw.',
-      etymology: '',
-      source: 'error-fallback'
-    });
+      alternatives: ['Vertaling niet beschikbaar', 'Probeer een ander woord', 'Controleer de spelling'],
+      explanation: 'De vertaalservice is tijdelijk niet beschikbaar. We proberen een alternatieve vertaling te vinden.',
+      etymology: 'Deze vertaling kon niet worden verwerkt door de AI-service.',
+      source: 'error-fallback',
+      error: true,
+      message: 'Vertaling niet beschikbaar - probeer het later opnieuw'
+    }, { status: 200 }); // Return 200 to avoid frontend error handling
   }
 }
 
@@ -205,7 +207,7 @@ async function generateFallbackTranslation(
     });
     translation = translatedWords.join(' ');
     explanation = 'Deze vertaling gebruikt moderne straattaal uit onze database.';
-    etymology = 'straattaal ontwikkelt zich continu en wordt beïnvloed door verschillende culturen en media.';
+    etymology = 'Straattaal ontwikkelt zich continu en wordt beïnvloed door verschillende culturen en media.';
   } else {
     // Translate slang to formal Dutch
     const translatedWords = wordsToTranslate.map(word => {
@@ -229,16 +231,29 @@ async function generateFallbackTranslation(
     alternatives.push(translation + ' (database match)');
     alternatives.push(translation + ' (verified translation)');
     confidence = 0.8;
+    
+    // Add specific explanation for recognized words
+    const firstWord = wordsToTranslate[0]?.replace(/[.,!?]/g, '');
+    if (firstWord && STRAATTAAL_TO_NL[firstWord]) {
+      explanation = `"${firstWord}" betekent ${STRAATTAAL_TO_NL[firstWord]}`;
+    } else if (firstWord && NL_TO_STRAATTAAL[firstWord]) {
+      explanation = `"${firstWord}" kan in straattaal worden uitgedrukt als "${NL_TO_STRAATTAAL[firstWord]}"`;
+    }
   } else {
-    alternatives.push(translation + ' (fallback)');
-    alternatives.push(translation + ' (contextual)');
-    confidence = 0.3;
+    // No recognized words - provide helpful alternatives
+    alternatives.push(translation + ' (geen exacte match gevonden)');
+    alternatives.push('Probeer een ander woord');
+    alternatives.push('Controleer de spelling');
+    confidence = 0.2;
+    explanation = `We hebben geen exacte vertaling gevonden voor "${text}". Probeer een ander woord of controleer de spelling.`;
+    etymology = 'Niet alle woorden zijn beschikbaar in onze vertaaldatabase.';
   }
 
-  // Add specific explanation for recognized words
-  const firstWord = wordsToTranslate[0]?.replace(/[.,!?]/g, '');
-  if (firstWord && STRAATTAAL_TO_NL[firstWord]) {
-    explanation = `"${firstWord}" betekent ${STRAATTAAL_TO_NL[firstWord]}`;
+  // Ensure we always have a meaningful translation
+  if (translation === text && confidence < 0.5) {
+    translation = direction === 'to_slang' 
+      ? `[Geen straattaal equivalent gevonden voor "${text}"]`
+      : `[Geen formele vertaling gevonden voor "${text}"]`;
   }
 
   console.log(`✅ Translation completed with confidence: ${confidence}`);

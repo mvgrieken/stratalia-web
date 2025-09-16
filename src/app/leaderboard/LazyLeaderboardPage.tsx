@@ -4,24 +4,22 @@ import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 
 interface LeaderboardEntry {
+  rank: number;
   user_id: string;
-  display_name: string;
-  avatar_url?: string;
+  full_name: string;
   total_points: number;
-  level: number;
+  current_level: number;
   current_streak: number;
   longest_streak: number;
-  rank: number;
-  badges_count: number;
-  quiz_completed: number;
-  words_learned: number;
+  avatar_url?: string;
 }
 
 interface LeaderboardData {
   leaderboard: LeaderboardEntry[];
   user_rank?: LeaderboardEntry;
   total_users: number;
-  period: 'daily' | 'weekly' | 'monthly' | 'all_time';
+  period: string;
+  source?: string;
 }
 
 export default function LazyLeaderboardPage() {
@@ -39,11 +37,28 @@ export default function LazyLeaderboardPage() {
         const data = await response.json();
         setLeaderboardData(data);
       } else {
-        setError('Fout bij het laden van de leaderboard');
+        const errorData = await response.json().catch(() => ({}));
+        setError(errorData.message || 'Fout bij het laden van de leaderboard');
+        
+        // Set fallback data so the page is still usable
+        setLeaderboardData({
+          leaderboard: [],
+          total_users: 0,
+          period: selectedPeriod,
+          source: 'error-fallback'
+        });
       }
     } catch (err) {
       console.error('Error fetching leaderboard:', err);
       setError('Fout bij het laden van de leaderboard');
+      
+      // Set fallback data so the page is still usable
+      setLeaderboardData({
+        leaderboard: [],
+        total_users: 0,
+        period: selectedPeriod,
+        source: 'error-fallback'
+      });
     } finally {
       setLoading(false);
     }
@@ -163,9 +178,9 @@ export default function LazyLeaderboardPage() {
                   {getRankIcon(leaderboardData.user_rank.rank)}
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold">{leaderboardData.user_rank.display_name}</h3>
+                  <h3 className="text-lg font-semibold">{leaderboardData.user_rank.full_name}</h3>
                   <p className="text-blue-100">
-                    {leaderboardData.user_rank.total_points} punten • Level {leaderboardData.user_rank.level}
+                    {leaderboardData.user_rank.total_points} punten • Level {leaderboardData.user_rank.current_level}
                   </p>
                 </div>
               </div>
@@ -207,7 +222,7 @@ export default function LazyLeaderboardPage() {
                       {entry.avatar_url ? (
                         <Image
                           src={entry.avatar_url}
-                          alt={entry.display_name}
+                          alt={entry.full_name}
                           width={48}
                           height={48}
                           className="rounded-full"
@@ -215,7 +230,7 @@ export default function LazyLeaderboardPage() {
                       ) : (
                         <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
                           <span className="text-gray-600 font-semibold">
-                            {entry.display_name.charAt(0).toUpperCase()}
+                            {entry.full_name.charAt(0).toUpperCase()}
                           </span>
                         </div>
                       )}
@@ -224,14 +239,14 @@ export default function LazyLeaderboardPage() {
                     {/* User Info */}
                     <div className="flex-1 min-w-0">
                       <h3 className="text-lg font-semibold text-gray-900 truncate">
-                        {entry.display_name}
+                        {entry.full_name}
                       </h3>
                       <div className="flex items-center space-x-4 mt-1">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getLevelColor(entry.level)}`}>
-                          Level {entry.level}
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getLevelColor(entry.current_level)}`}>
+                          Level {entry.current_level}
                         </span>
                         <span className="text-sm text-gray-500">
-                          {entry.quiz_completed} quizzen • {entry.words_learned} woorden
+                          {entry.current_streak} dagen streak
                         </span>
                       </div>
                     </div>
@@ -254,7 +269,7 @@ export default function LazyLeaderboardPage() {
                     <div>
                       <p className="text-sm text-gray-500">Badges</p>
                       <p className="text-lg font-semibold text-gray-900">
-                        {entry.badges_count}
+                        {Math.floor(entry.current_level / 2)}
                       </p>
                     </div>
                   </div>
