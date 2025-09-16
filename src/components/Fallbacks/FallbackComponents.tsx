@@ -164,7 +164,7 @@ export const CardSkeletonFallback: React.FC<{
   </div>
 );
 
-export default {
+const FallbackComponents = {
   LoadingFallback,
   ErrorFallback,
   EmptyFallback,
@@ -174,3 +174,5 @@ export default {
   SkeletonFallback,
   CardSkeletonFallback,
 };
+
+export default FallbackComponents;

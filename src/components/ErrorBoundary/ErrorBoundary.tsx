@@ -10,7 +10,7 @@ import { monitoringService } from '@/lib/monitoring';
 interface ErrorBoundaryProps {
   children: ReactNode;
   fallback?: ReactNode;
-  onError?: (error: Error, errorInfo: ErrorInfo) => void;
+  onError?: (_error: Error, _errorInfo: ErrorInfo) => void;
   resetOnPropsChange?: boolean;
   resetKeys?: Array<string | number>;
   level?: 'page' | 'component' | 'feature';
@@ -138,7 +138,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   };
 
   render() {
-    const { hasError, error, errorInfo, errorId, retryCount } = this.state;
+    const { hasError } = this.state;
     const { children, fallback, level = 'component' } = this.props;
 
     if (hasError) {

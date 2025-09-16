@@ -3,7 +3,7 @@ import { NextRequest } from 'next/server';
 import { GET, POST } from '@/app/api/quiz/route';
 import { quizService } from '@/services/QuizService';
 import { applyRateLimit } from '@/middleware/rateLimiter';
-import { logger } from '@/lib/logger';
+// import { logger } from '@/lib/logger';
 
 // Mock dependencies
 vi.mock('@/services/QuizService');

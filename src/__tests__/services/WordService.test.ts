@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { WordService } from '@/services/WordService';
 import { mockDataService } from '@/lib/mock-data';
-import { cacheService } from '@/lib/cache';
-import { logger } from '@/lib/logger';
+// import { cacheService } from '@/lib/cache';
+// import { logger } from '@/lib/logger';
 
 // Mock dependencies
 vi.mock('@/lib/mock-data');

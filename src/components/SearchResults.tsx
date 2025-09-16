@@ -23,7 +23,7 @@ interface SearchResultsProps {
   loading: boolean;
   error: string | null;
   query: string;
-  onWordClick?: (word: string) => void;
+  onWordClick?: (_word: string) => void;
   onRetry?: () => void;
 }
 
