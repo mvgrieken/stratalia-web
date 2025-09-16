@@ -44,7 +44,7 @@ class MigrationService {
 
       logger.info('Migrations table initialized successfully');
     } catch (error) {
-      logger.error('Migration initialization failed', error);
+      logger.error('Migration initialization failed', error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   }
@@ -68,7 +68,7 @@ class MigrationService {
 
       return data?.map(m => m.id) || [];
     } catch (error) {
-      logger.error('Get executed migrations failed', error);
+      logger.error('Get executed migrations failed', error instanceof Error ? error : new Error(String(error)));
       return [];
     }
   }
@@ -83,9 +83,7 @@ class MigrationService {
       const supabase = getSupabaseServiceClient();
       
       // Execute the migration SQL
-      const { error: sqlError } = await supabase.rpc('exec_sql', {
-        sql: migration.up
-      });
+      const { error: sqlError } = await supabase.rpc('exec_sql', { sql: migration.up });
 
       if (sqlError) {
         logger.error(`Migration ${migration.name} failed`, sqlError);
@@ -108,7 +106,7 @@ class MigrationService {
 
       logger.info(`Migration ${migration.name} executed successfully`);
     } catch (error) {
-      logger.error(`Migration execution failed: ${migration.name}`, error);
+      logger.error(`Migration execution failed: ${migration.name}`, error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   }
@@ -123,9 +121,7 @@ class MigrationService {
       const supabase = getSupabaseServiceClient();
       
       // Execute the rollback SQL
-      const { error: sqlError } = await supabase.rpc('exec_sql', {
-        sql: migration.down
-      });
+      const { error: sqlError } = await supabase.rpc('exec_sql', { sql: migration.down });
 
       if (sqlError) {
         logger.error(`Migration rollback ${migration.name} failed`, sqlError);
@@ -145,7 +141,7 @@ class MigrationService {
 
       logger.info(`Migration ${migration.name} rolled back successfully`);
     } catch (error) {
-      logger.error(`Migration rollback failed: ${migration.name}`, error);
+      logger.error(`Migration rollback failed: ${migration.name}`, error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   }
@@ -175,7 +171,7 @@ class MigrationService {
 
       logger.info('All migrations completed successfully');
     } catch (error) {
-      logger.error('Migration run failed', error);
+      logger.error('Migration run failed', error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   }

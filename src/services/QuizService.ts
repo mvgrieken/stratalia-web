@@ -47,14 +47,14 @@ class QuizService {
     difficulty?: 'easy' | 'medium' | 'hard',
     limit: number = 5
   ): Promise<QuizQuestion[]> {
-    logger.info('Getting quiz questions', { difficulty, limit });
+    logger.info(`Getting quiz questions: difficulty=undefined, limit=undefined`);
 
     // Check cache first
     const cacheKey = cacheService.generateKey('quiz', { difficulty, limit });
     const cachedResult = cacheService.get<QuizQuestion[]>(cacheKey);
     
     if (cachedResult) {
-      logger.info('Quiz questions from cache', { count: cachedResult.length });
+      logger.info(`Quiz questions from cache: count=cachedResult.length`);
       return cachedResult;
     }
 
@@ -86,11 +86,11 @@ class QuizService {
         // Cache for 10 minutes
         cacheService.set(cacheKey, results, 10 * 60 * 1000);
         
-        logger.info('Quiz questions from database', { count: results.length });
+        logger.info(`Quiz questions from database: count=results.length`);
         return results;
       }
     } catch (dbError) {
-      logger.warn('Database quiz questions failed, using fallback', { error: dbError });
+      logger.warn(`Database quiz questions failed, using fallback: error=${dbError}`);
     }
 
     // Fallback to mock data
@@ -107,7 +107,7 @@ class QuizService {
     // Cache fallback for shorter time (2 minutes)
     cacheService.set(cacheKey, results, 2 * 60 * 1000);
 
-    logger.info('Quiz questions from fallback', { count: results.length });
+    logger.info(`Quiz questions from fallback: count=results.length`);
     return results;
   }
 
@@ -119,11 +119,7 @@ class QuizService {
     answers: Record<string, string>,
     timeTaken: number
   ): QuizResult {
-    logger.info('Calculating quiz result', { 
-      questionCount: questions.length, 
-      answerCount: Object.keys(answers).length,
-      timeTaken 
-    });
+    logger.info(`Calculating quiz result: questionCount=questions.length, answerCount=Object.keys(answers).length, timeTaken=undefined`);
 
     let score = 0;
     const correctAnswers: string[] = [];
@@ -160,11 +156,7 @@ class QuizService {
       wrongAnswers
     };
 
-    logger.info('Quiz result calculated', { 
-      score, 
-      percentage, 
-      difficulty 
-    });
+    logger.info(`Quiz result calculated: score=undefined, percentage=undefined, difficulty=undefined`);
 
     return result;
   }
@@ -205,7 +197,7 @@ class QuizService {
     
     if (cachedResult) {
       logger.info('Quiz stats from cache');
-      return cachedResult;
+      return cachedResult as { totalQuestions: number; questionsByDifficulty: Record<string, number>; averageScore?: number };
     }
 
     // Try database first
@@ -229,11 +221,11 @@ class QuizService {
         // Cache for 30 minutes
         cacheService.set(cacheKey, stats, 30 * 60 * 1000);
         
-        logger.info('Quiz stats from database', stats);
+        logger.info(`Quiz stats from database: ${JSON.stringify(stats)}`);
         return stats;
       }
     } catch (dbError) {
-      logger.warn('Database quiz stats failed, using fallback', { error: dbError });
+      logger.warn(`Database quiz stats failed, using fallback: error=${dbError}`);
     }
 
     // Fallback to mock data
@@ -249,7 +241,7 @@ class QuizService {
     // Cache fallback for 5 minutes
     cacheService.set(cacheKey, stats, 5 * 60 * 1000);
 
-    logger.info('Quiz stats from fallback', stats);
+    logger.info(`Quiz stats from fallback: ${JSON.stringify(stats)}`);
     return stats;
   }
 
@@ -261,7 +253,7 @@ class QuizService {
     result: QuizResult,
     questions: QuizQuestion[]
   ): Promise<void> {
-    logger.info('Saving quiz result', { userId, score: result.score });
+    logger.info(`Saving quiz result: userId=undefined, score=result.score`);
 
     try {
       const supabase = getSupabaseClient();
@@ -292,9 +284,9 @@ class QuizService {
         throw error;
       }
 
-      logger.info('Quiz result saved successfully', { userId });
+      logger.info(`Quiz result saved successfully: userId=undefined`);
     } catch (error) {
-      logger.error('Save quiz result failed', error);
+      logger.error('Save quiz result failed', error instanceof Error ? error : new Error(String(error)));
       // Don't throw - this shouldn't break the quiz experience
     }
   }
@@ -303,7 +295,7 @@ class QuizService {
    * Get user's quiz history
    */
   async getUserQuizHistory(userId: string, limit: number = 10): Promise<QuizResult[]> {
-    logger.info('Getting user quiz history', { userId, limit });
+    logger.info(`Getting user quiz history: userId=undefined, limit=undefined`);
 
     try {
       const supabase = getSupabaseClient();
@@ -330,10 +322,10 @@ class QuizService {
         wrongAnswers: []
       })) || [];
 
-      logger.info('Quiz history retrieved', { userId, count: history.length });
+      logger.info(`Quiz history retrieved: userId=undefined, count=history.length`);
       return history;
     } catch (error) {
-      logger.error('Get quiz history failed', error);
+      logger.error('Get quiz history failed', error instanceof Error ? error : new Error(String(error)));
       return [];
     }
   }

@@ -7,7 +7,7 @@ import React, { memo, useCallback, useMemo } from 'react';
 import WordCard from './WordCard';
 import { LoadingSpinner } from './LoadingSpinner';
 import { ErrorMessage } from './ErrorMessage';
-import { EmptyState } from './EmptyState';
+import EmptyState from './EmptyState';
 
 interface SearchResult {
   id: string;
@@ -96,12 +96,7 @@ const SearchResults = memo<SearchResultsProps>(({
     return (
       <EmptyState
         title="Geen resultaten gevonden"
-        message={`Geen woorden gevonden voor "${query}". Probeer een ander zoekterm.`}
-        suggestions={[
-          'Controleer de spelling',
-          'Probeer een kortere zoekterm',
-          'Gebruik synoniemen'
-        ]}
+        description={`Geen woorden gevonden voor "${query}". Probeer een ander zoekterm.`}
       />
     );
   }

@@ -20,7 +20,7 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
     throw Errors.VALIDATION_ERROR;
   }
 
-  logger.info('Search request', { query: query.trim(), limit });
+  logger.info(`Search request: query=query.trim(), limit=undefined`);
 
   // Use the WordService for business logic
   const results = await wordService.searchWords(query.trim(), limit);
@@ -34,7 +34,7 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
     });
   }
 
-  logger.info('Search completed successfully', { resultCount: results.length });
+  logger.info(`Search completed successfully: resultCount=results.length`);
   return createSuccessResponse(results, 200, { 
     source: results[0]?.match_type === 'fallback' ? 'fallback' : 'database' 
   });

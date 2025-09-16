@@ -7,7 +7,9 @@ import { wordRepository } from '@/repositories/WordRepository';
 import { mockDataService } from '@/lib/mock-data';
 import { cacheService } from '@/lib/cache';
 import { logger } from '@/lib/logger';
+import { getSupabaseClient } from '@/lib/supabase-client';
 import { AppError, Errors } from '@/lib/errors';
+import { BaseService } from './BaseService';
 
 export interface Word {
   id: string;
@@ -33,72 +35,73 @@ export interface DailyWordResponse {
   date: string;
 }
 
-class WordService {
+class WordService extends BaseService {
+  constructor() {
+    super('WordService', {
+      timeout: 15000, // 15 seconds for word operations
+      retries: 2,
+      retryDelay: 500,
+    });
+  }
   /**
    * Search for words in the database
    */
   async searchWords(query: string, limit: number = 10): Promise<SearchResult[]> {
-    if (!query || query.trim().length === 0) {
-      throw new AppError(
-        Errors.VALIDATION_ERROR.code,
-        'Search query is required',
-        Errors.VALIDATION_ERROR.statusCode
-      );
-    }
-
-    const searchQuery = query.trim().toLowerCase();
+    return this.handleRequest(
+      async () => {
+        this.validateRequired({ query }, ['query']);
+        const searchQuery = this.sanitizeInput(query).toLowerCase();
     
-    // Check cache first
-    const cacheKey = cacheService.generateKey('search', { query: searchQuery, limit });
-    const cachedResult = cacheService.get<SearchResult[]>(cacheKey);
-    
-    if (cachedResult) {
-      logger.info('Search result from cache', { query: searchQuery, resultCount: cachedResult.length });
-      return cachedResult;
-    }
+        // Check cache first
+        const cacheKey = cacheService.generateKey('search', { query: searchQuery, limit });
+        const cachedResult = cacheService.get<SearchResult[]>(cacheKey);
+        
+        if (cachedResult) {
+          return cachedResult;
+        }
 
-    logger.info('Searching words', { query: searchQuery, limit });
+        // Try database search first
+        try {
+          const words = await wordRepository.search({ query: searchQuery, limit });
+          
+          if (words && words.length > 0) {
+            const results = words.map(word => ({
+              id: word.id,
+              word: word.word,
+              meaning: word.definition || word.meaning || '',
+              example: word.example || '',
+              match_type: word.word.toLowerCase() === searchQuery ? 'exact' as const : 'partial' as const,
+              similarity_score: word.word.toLowerCase() === searchQuery ? 1.0 : 0.8
+            }));
 
-    // Try database search first
-    try {
-      const words = await wordRepository.search({ query: searchQuery, limit });
-      
-      if (words && words.length > 0) {
-        const results = words.map(word => ({
+            // Cache the result for 5 minutes
+            cacheService.set(cacheKey, results, 5 * 60 * 1000);
+            
+            return results;
+          }
+        } catch (dbError) {
+          logger.warn(`Database search failed, using fallback: error=${dbError}`);
+        }
+
+        // Fallback to mock data
+        const mockWords = mockDataService.searchWords(searchQuery, limit);
+        const results = mockWords.map(word => ({
           id: word.id,
           word: word.word,
-          meaning: word.definition || word.meaning || '',
-          example: word.example || '',
+          meaning: word.meaning,
+          example: word.example,
           match_type: word.word.toLowerCase() === searchQuery ? 'exact' as const : 'partial' as const,
           similarity_score: word.word.toLowerCase() === searchQuery ? 1.0 : 0.8
         }));
 
-        // Cache the result for 5 minutes
-        cacheService.set(cacheKey, results, 5 * 60 * 1000);
-        
-        logger.info('Database search successful', { resultCount: results.length });
+        // Cache fallback results for shorter time (1 minute)
+        cacheService.set(cacheKey, results, 1 * 60 * 1000);
+
         return results;
-      }
-    } catch (dbError) {
-      logger.warn('Database search failed, using fallback', { error: dbError });
-    }
-
-    // Fallback to mock data
-    const mockWords = mockDataService.searchWords(searchQuery, limit);
-    const results = mockWords.map(word => ({
-      id: word.id,
-      word: word.word,
-      meaning: word.meaning,
-      example: word.example,
-      match_type: word.word.toLowerCase() === searchQuery ? 'exact' as const : 'partial' as const,
-      similarity_score: word.word.toLowerCase() === searchQuery ? 1.0 : 0.8
-    }));
-
-    // Cache fallback results for shorter time (1 minute)
-    cacheService.set(cacheKey, results, 1 * 60 * 1000);
-
-    logger.info('Fallback search successful', { resultCount: results.length });
-    return results;
+      },
+      'searchWords',
+      { query, limit }
+    );
   }
 
   /**
@@ -128,7 +131,7 @@ class WordService {
         .single();
 
       if (!dailyError && dailyWord?.words) {
-        const word = dailyWord.words;
+        const word = Array.isArray(dailyWord.words) ? dailyWord.words[0] : dailyWord.words;
         logger.info('Daily word found in database');
         return {
           word: {
@@ -163,7 +166,7 @@ class WordService {
         };
       }
     } catch (dbError) {
-      logger.warn('Database daily word fetch failed, using fallback', { error: dbError });
+      logger.warn(`Database daily word fetch failed, using fallback: error=${dbError}`);
     }
 
     // Fallback to mock data
@@ -195,7 +198,7 @@ class WordService {
       );
     }
 
-    logger.info('Fetching word by ID', { id });
+    logger.info(`Fetching word by ID: id=undefined`);
 
     // Try database first
     try {
@@ -208,7 +211,7 @@ class WordService {
         .single();
 
       if (!error && word) {
-        logger.info('Word found in database', { id });
+        logger.info(`Word found in database: id=undefined`);
         return {
           id: word.id,
           word: word.word,
@@ -217,13 +220,13 @@ class WordService {
         };
       }
     } catch (dbError) {
-      logger.warn('Database word fetch failed, trying fallback', { error: dbError });
+      logger.warn(`Database word fetch failed, trying fallback: error=${dbError}`);
     }
 
     // Fallback to mock data
     const mockWord = mockDataService.getWordById(id);
     if (mockWord) {
-      logger.info('Word found in fallback data', { id });
+      logger.info(`Word found in fallback data: id=undefined`);
       return {
         id: mockWord.id,
         word: mockWord.word,
@@ -234,7 +237,7 @@ class WordService {
       };
     }
 
-    logger.warn('Word not found', { id });
+    logger.warn(`Word not found: id=undefined`);
     return null;
   }
 
@@ -242,7 +245,7 @@ class WordService {
    * Get all words with pagination
    */
   async getAllWords(page: number = 1, limit: number = 20): Promise<{ words: Word[]; total: number }> {
-    logger.info('Fetching all words', { page, limit });
+    logger.info(`Fetching all words: page=undefined, limit=undefined`);
 
     // Try database first
     try {
@@ -267,11 +270,11 @@ class WordService {
           example: word.example || '',
         }));
 
-        logger.info('Words fetched from database', { count: result.length, total: count });
+        logger.info(`Words fetched from database: count=result.length, total=count`);
         return { words: result, total: count || 0 };
       }
     } catch (dbError) {
-      logger.warn('Database words fetch failed, using fallback', { error: dbError });
+      logger.warn(`Database words fetch failed, using fallback: error=${dbError}`);
     }
 
     // Fallback to mock data
@@ -287,7 +290,7 @@ class WordService {
       difficulty: word.difficulty,
     }));
 
-    logger.info('Words fetched from fallback', { count: words.length, total: allMockWords.length });
+    logger.info(`Words fetched from fallback: count=words.length, total=allMockWords.length`);
     return { words, total: allMockWords.length };
   }
 }

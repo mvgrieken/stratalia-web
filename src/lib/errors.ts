@@ -19,8 +19,14 @@ export function normalizeError(error: unknown): Error {
 }
 
 export enum ErrorCode {
-  // Only include errors that are actually used
   VALIDATION_ERROR = 'VALIDATION_ERROR',
+  UNAUTHORIZED = 'UNAUTHORIZED',
+  FORBIDDEN = 'FORBIDDEN',
+  NOT_FOUND = 'NOT_FOUND',
+  INTERNAL_ERROR = 'INTERNAL_ERROR',
+  DATABASE_ERROR = 'DATABASE_ERROR',
+  CONFIGURATION_ERROR = 'CONFIGURATION_ERROR',
+  MISSING_REQUIRED_FIELD = 'MISSING_REQUIRED_FIELD',
 }
 
 export interface ApiError {
@@ -86,12 +92,7 @@ export function createErrorResponse(
   const timestamp = new Date().toISOString();
   
   if (error instanceof AppError) {
-    logger.error(`API Error: ${error.message}`, error, {
-      code: error.code,
-      statusCode: error.statusCode,
-      field: error.field,
-      requestId,
-    });
+    logger.error(`API Error: ${error.message}`, error);
 
     return NextResponse.json(
       {
@@ -114,7 +115,7 @@ export function createErrorResponse(
   }
 
   // Handle unexpected errors
-  logger.error('Unexpected error', error, { requestId });
+  logger.error('Unexpected error', error);
   
   return NextResponse.json(
     {
@@ -195,7 +196,7 @@ export function withErrorHandling<T extends any[], R>(
         throw error;
       }
       
-      logger.error('Unhandled error in async function', error as Error, { requestId });
+      logger.error('Unhandled error in async function', error as Error);
       throw new AppError(
         ErrorCode.INTERNAL_ERROR,
         'An unexpected error occurred',

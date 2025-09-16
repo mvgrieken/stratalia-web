@@ -38,10 +38,7 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
     });
   }
 
-  logger.info('Quiz questions retrieved successfully', { 
-    count: questions.length, 
-    difficulty: difficulty || 'mixed' 
-  });
+  logger.info(`Quiz questions retrieved successfully: count=${questions.length}, difficulty=${difficulty || 'mixed'}`);
 
   return createSuccessResponse({
     questions,

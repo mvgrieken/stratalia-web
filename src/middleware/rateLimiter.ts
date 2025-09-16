@@ -68,7 +68,7 @@ class RateLimiter {
     const now = Date.now();
     let cleaned = 0;
 
-    for (const [key, entry] of this.requests.entries()) {
+    for (const [key, entry] of Array.from(this.requests.entries())) {
       if (now > entry.resetTime) {
         this.requests.delete(key);
         cleaned++;
@@ -85,7 +85,7 @@ class RateLimiter {
     const now = Date.now();
     let activeEntries = 0;
 
-    for (const entry of this.requests.values()) {
+    for (const entry of Array.from(this.requests.values())) {
       if (now <= entry.resetTime) {
         activeEntries++;
       }
@@ -146,7 +146,7 @@ export function withRateLimit(
 ) {
   return function rateLimitMiddleware(
     request: NextRequest,
-    handler: (request: NextRequest) => Promise<NextResponse>
+    handler: (_request: NextRequest) => Promise<NextResponse>
   ): Promise<NextResponse> {
     const limiter = customLimiter || rateLimiters[limiterType];
     const identifier = getClientIdentifier(request);
@@ -178,12 +178,7 @@ export function withRateLimit(
       
       if (!allowed) {
         res.headers.set('Retry-After', Math.ceil((resetTime - Date.now()) / 1000).toString());
-        logger.warn('Rate limit exceeded', { 
-          identifier, 
-          limiterType, 
-          remaining, 
-          resetTime: new Date(resetTime).toISOString() 
-        });
+        logger.warn(`Rate limit exceeded: identifier=${identifier}, limiterType=${limiterType}, remaining=${remaining}, resetTime=${new Date(resetTime).toISOString()}`);
       }
 
       return res;
@@ -222,12 +217,7 @@ export function applyRateLimit(
     response.headers.set('X-RateLimit-Reset', new Date(resetTime).toISOString());
     response.headers.set('Retry-After', Math.ceil((resetTime - Date.now()) / 1000).toString());
 
-    logger.warn('Rate limit exceeded', { 
-      identifier, 
-      limiterType, 
-      remaining, 
-      resetTime: new Date(resetTime).toISOString() 
-    });
+    logger.warn(`Rate limit exceeded: identifier=${identifier}, limiterType=${limiterType}, remaining=${remaining}, resetTime=${new Date(resetTime).toISOString()}`);
 
     return { allowed: false, response };
   }

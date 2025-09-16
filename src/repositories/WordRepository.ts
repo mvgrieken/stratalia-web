@@ -42,7 +42,7 @@ class WordRepository {
   async search(params: WordSearchParams): Promise<WordEntity[]> {
     const { query, limit = 10, offset = 0 } = params;
     
-    logger.info('Searching words in database', { query, limit, offset });
+    logger.info("Searching words in database");
 
     try {
       const supabase = getSupabaseClient();
@@ -59,10 +59,10 @@ class WordRepository {
         throw error;
       }
 
-      logger.info('Database search successful', { resultCount: data?.length || 0 });
+      logger.info("Database search successful");
       return data || [];
     } catch (error) {
-      logger.error('Word search failed', error);
+      logger.error('Word search failed', error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   }
@@ -71,7 +71,7 @@ class WordRepository {
    * Get word by ID
    */
   async findById(id: string): Promise<WordEntity | null> {
-    logger.info('Finding word by ID', { id });
+    logger.info("Finding word by ID");
 
     try {
       const supabase = getSupabaseClient();
@@ -85,17 +85,17 @@ class WordRepository {
       if (error) {
         if (error.code === 'PGRST116') {
           // No rows returned
-          logger.info('Word not found', { id });
+          logger.info("Word not found");
           return null;
         }
         logger.error('Database findById error', error);
         throw error;
       }
 
-      logger.info('Word found by ID', { id });
+      logger.info("Word found by ID");
       return data;
     } catch (error) {
-      logger.error('Word findById failed', error);
+      logger.error('Word findById failed', error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   }
@@ -115,7 +115,7 @@ class WordRepository {
 
     const offset = (page - 1) * limit;
     
-    logger.info('Finding all words', { page, limit, category, difficulty, orderBy, orderDirection });
+    logger.info("Finding all words");
 
     try {
       const supabase = getSupabaseClient();
@@ -143,10 +143,10 @@ class WordRepository {
         throw error;
       }
 
-      logger.info('Words found', { resultCount: data?.length || 0, total: count || 0 });
+      logger.info("Words found");
       return { words: data || [], total: count || 0 };
     } catch (error) {
-      logger.error('Word findAll failed', error);
+      logger.error('Word findAll failed', error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   }
@@ -171,7 +171,7 @@ class WordRepository {
       }
 
       if (!data || data.length === 0) {
-        logger.info('No words found for random selection');
+        logger.info("No words found for random selection");
         return null;
       }
 
@@ -179,10 +179,10 @@ class WordRepository {
       const randomIndex = Math.floor(Math.random() * data.length);
       const randomWord = data[randomIndex];
 
-      logger.info('Random word found', { id: randomWord.id });
+      logger.info("Random word found: id=" + randomWord.id);
       return randomWord;
     } catch (error) {
-      logger.error('Word findRandom failed', error);
+      logger.error('Word findRandom failed', error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   }
@@ -193,7 +193,7 @@ class WordRepository {
   async findDailyWord(date?: string): Promise<WordEntity | null> {
     const targetDate = date || new Date().toISOString().split('T')[0];
     
-    logger.info('Finding daily word', { date: targetDate });
+    logger.info("Finding daily word: date=" + targetDate);
 
     try {
       const supabase = getSupabaseClient();
@@ -219,15 +219,15 @@ class WordRepository {
         .single();
 
       if (!dailyError && dailyWord?.words) {
-        logger.info('Daily word found', { id: dailyWord.words.id });
-        return dailyWord.words;
+        logger.info("Daily word found");
+        return dailyWord.words as unknown as WordEntity;
       }
 
       // If no specific daily word, get a random word
       logger.info('No specific daily word, getting random word');
       return await this.findRandom();
     } catch (error) {
-      logger.error('Word findDailyWord failed', error);
+      logger.error('Word findDailyWord failed', error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   }
@@ -236,7 +236,7 @@ class WordRepository {
    * Create new word
    */
   async create(wordData: Omit<WordEntity, 'id' | 'created_at' | 'updated_at'>): Promise<WordEntity> {
-    logger.info('Creating new word', { word: wordData.word });
+    logger.info("Creating new word");
 
     try {
       const supabase = getSupabaseClient();
@@ -252,10 +252,10 @@ class WordRepository {
         throw error;
       }
 
-      logger.info('Word created successfully', { id: data.id });
+      logger.info("Word created successfully");
       return data;
     } catch (error) {
-      logger.error('Word create failed', error);
+      logger.error('Word create failed', error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   }
@@ -264,7 +264,7 @@ class WordRepository {
    * Update word
    */
   async update(id: string, wordData: Partial<Omit<WordEntity, 'id' | 'created_at' | 'updated_at'>>): Promise<WordEntity> {
-    logger.info('Updating word', { id });
+    logger.info("Updating word");
 
     try {
       const supabase = getSupabaseClient();
@@ -281,10 +281,10 @@ class WordRepository {
         throw error;
       }
 
-      logger.info('Word updated successfully', { id });
+      logger.info("Word updated successfully");
       return data;
     } catch (error) {
-      logger.error('Word update failed', error);
+      logger.error('Word update failed', error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   }
@@ -293,7 +293,7 @@ class WordRepository {
    * Delete word
    */
   async delete(id: string): Promise<boolean> {
-    logger.info('Deleting word', { id });
+    logger.info("Deleting word");
 
     try {
       const supabase = getSupabaseClient();
@@ -308,10 +308,10 @@ class WordRepository {
         throw error;
       }
 
-      logger.info('Word deleted successfully', { id });
+      logger.info("Word deleted successfully");
       return true;
     } catch (error) {
-      logger.error('Word delete failed', error);
+      logger.error('Word delete failed', error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   }
@@ -341,10 +341,10 @@ class WordRepository {
         counts[category] = (counts[category] || 0) + 1;
       });
 
-      logger.info('Word count by category retrieved', { categories: Object.keys(counts).length });
+      logger.info("Word count by category retrieved");
       return counts;
     } catch (error) {
-      logger.error('Word getCountByCategory failed', error);
+      logger.error('Word getCountByCategory failed', error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   }

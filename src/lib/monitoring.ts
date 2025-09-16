@@ -54,7 +54,7 @@ class MonitoringService {
       this.metrics = this.metrics.slice(-this.maxMetrics);
     }
 
-    logger.debug('Performance metric recorded', fullMetric);
+    logger.debug(`Performance metric recorded: ${JSON.stringify(fullMetric)}`);
   }
 
   /**
@@ -73,12 +73,7 @@ class MonitoringService {
       this.errors = this.errors.slice(-this.maxErrors);
     }
 
-    logger.error('Error recorded', new Error(error.message), {
-      stack: error.stack,
-      userId: error.userId,
-      url: error.url,
-      tags: error.tags
-    });
+    logger.error(`Error recorded: ${error.message}`, new Error(error.message));
   }
 
   /**
@@ -97,7 +92,7 @@ class MonitoringService {
       this.userActions = this.userActions.slice(-this.maxUserActions);
     }
 
-    logger.info('User action recorded', fullAction);
+    logger.info(`User action recorded: ${JSON.stringify(fullAction)}`);
   }
 
   /**
@@ -204,12 +199,7 @@ class MonitoringService {
     this.errors = this.errors.filter(e => new Date(e.timestamp) > cutoff);
     this.userActions = this.userActions.filter(a => new Date(a.timestamp) > cutoff);
 
-    logger.info('Old monitoring data cleared', { 
-      cutoff: cutoff.toISOString(),
-      metricsRemaining: this.metrics.length,
-      errorsRemaining: this.errors.length,
-      actionsRemaining: this.userActions.length
-    });
+    logger.info(`Old monitoring data cleared: cutoff=${cutoff.toISOString()}, metricsRemaining=${this.metrics.length}, errorsRemaining=${this.errors.length}, actionsRemaining=${this.userActions.length}`);
   }
 }
 
@@ -229,12 +219,12 @@ export const performance = {
     tags?: Record<string, string>
   ): T {
     return ((..._args: any[]) => {
-      const start = performance.now();
-      const result = fn(...args);
+      const start = Date.now();
+      const result = fn(..._args);
       
       if (result instanceof Promise) {
         return result.finally(() => {
-          const duration = performance.now() - start;
+          const duration = Date.now() - start;
           monitoringService.recordMetric({
             name: metricName,
             value: duration,
@@ -243,7 +233,7 @@ export const performance = {
           });
         });
       } else {
-        const duration = performance.now() - start;
+        const duration = Date.now() - start;
         monitoringService.recordMetric({
           name: metricName,
           value: duration,
@@ -263,10 +253,10 @@ export const performance = {
     metricName: string,
     tags?: Record<string, string>
   ): Promise<T> {
-    const start = performance.now();
+    const start = Date.now();
     try {
       const result = await fn();
-      const duration = performance.now() - start;
+      const duration = Date.now() - start;
       monitoringService.recordMetric({
         name: metricName,
         value: duration,
@@ -275,7 +265,7 @@ export const performance = {
       });
       return result;
     } catch (error) {
-      const duration = performance.now() - start;
+      const duration = Date.now() - start;
       monitoringService.recordMetric({
         name: `${metricName}.error`,
         value: duration,

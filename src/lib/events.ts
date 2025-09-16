@@ -91,17 +91,17 @@ class EventBus {
    * Emit an event
    */
   async emit<T extends BaseEvent>(event: T): Promise<void> {
-    logger.info('Event emitted', { type: event.type, userId: event.userId });
+    logger.info(`Event emitted: type=${event.type}, userId=${event.userId}`);
 
     // Apply middleware
     let processedEvent = event;
     for (const middleware of this.middleware) {
       const result = middleware(processedEvent);
       if (result === null) {
-        logger.info('Event filtered by middleware', { type: event.type });
+        logger.info(`Event filtered by middleware: type=${event.type}`);
         return;
       }
-      processedEvent = result;
+      processedEvent = result as T;
     }
 
     // Get handlers for this event type
@@ -112,10 +112,7 @@ class EventBus {
       try {
         await handler(processedEvent);
       } catch (error) {
-        logger.error('Event handler failed', error, { 
-          eventType: event.type, 
-          eventId: event.id 
-        });
+        logger.error(`Event handler failed: eventType=${event.type}, eventId=${event.id}`, error instanceof Error ? error : new Error(String(error)));
       }
     });
 
@@ -125,7 +122,7 @@ class EventBus {
   /**
    * Add middleware to process events
    */
-  use(middleware: (event: BaseEvent) => BaseEvent | null): void {
+  use(middleware: (_event: BaseEvent) => BaseEvent | null): void {
     this.middleware.push(middleware);
   }
 
@@ -136,7 +133,7 @@ class EventBus {
     const eventTypes = Array.from(this.handlers.keys());
     const handlerCounts: Record<string, number> = {};
     
-    for (const [eventType, handlers] of this.handlers.entries()) {
+    for (const [eventType, handlers] of Array.from(this.handlers.entries())) {
       handlerCounts[eventType] = handlers.length;
     }
 
@@ -192,11 +189,7 @@ export class GamificationHandlers {
    * Handle quiz completion
    */
   static async handleQuizCompleted(_event: QuizCompletedEvent): Promise<void> {
-    logger.info('Processing quiz completion', { 
-      userId: _event.userId, 
-      score: _event.data.score,
-      percentage: _event.data.percentage 
-    });
+    logger.info(`Processing quiz completion: userId=${_event.userId}, score=${_event.data.score}, percentage=${_event.data.percentage}`);
 
     // Calculate points based on performance
     const basePoints = 10;
@@ -214,40 +207,27 @@ export class GamificationHandlers {
 
     // Update user streak if this is a daily quiz
     // This would integrate with a user service
-    logger.info('Quiz completion processed', { 
-      userId: _event.userId, 
-      pointsEarned: totalPoints 
-    });
+    logger.info(`Quiz completion processed: userId=${_event.userId}, pointsEarned=${totalPoints}`);
   }
 
   /**
    * Handle word learning
    */
   static async handleWordLearned(_event: WordLearnedEvent): Promise<void> {
-    logger.info('Processing word learned', { 
-      userId: _event.userId, 
-      word: _event.data.word 
-    });
+    logger.info(`Processing word learned: userId=${_event.userId}, word=${_event.data.word}`);
 
     // Award points for learning a new word
     const points = 2;
     
     // This would integrate with a user service to update points
-    logger.info('Word learned processed', { 
-      userId: _event.userId, 
-      word: _event.data.word,
-      pointsEarned: points 
-    });
+    logger.info(`Word learned processed: userId=${_event.userId}, word=${_event.data.word}, pointsEarned=${points}`);
   }
 
   /**
    * Handle streak updates
    */
   static async handleStreakUpdated(_event: StreakEvent): Promise<void> {
-    logger.info('Processing streak update', { 
-      userId: _event.userId, 
-      currentStreak: _event.data.currentStreak 
-    });
+    logger.info(`Processing streak update: userId=${_event.userId}, currentStreak=${_event.data.currentStreak}`);
 
     // Award bonus points for streaks
     if (_event.data.action === 'increased' && _event.data.currentStreak % 7 === 0) {
@@ -261,29 +241,20 @@ export class GamificationHandlers {
       }));
     }
 
-    logger.info('Streak update processed', { 
-      userId: _event.userId, 
-      streak: _event.data.currentStreak 
-    });
+    logger.info(`Streak update processed: userId=${_event.userId}, streak=${_event.data.currentStreak}`);
   }
 
   /**
    * Handle level up
    */
   static async handleLevelUp(_event: LevelUpEvent): Promise<void> {
-    logger.info('Processing level up', { 
-      userId: _event.userId, 
-      newLevel: _event.data.newLevel 
-    });
+    logger.info(`Processing level up: userId=${_event.userId}, newLevel=${_event.data.newLevel}`);
 
     // This would integrate with notification service
     // Send congratulations notification
     // Unlock new features/achievements
     
-    logger.info('Level up processed', { 
-      userId: _event.userId, 
-      newLevel: _event.data.newLevel 
-    });
+    logger.info(`Level up processed: userId=${_event.userId}, newLevel=${_event.data.newLevel}`);
   }
 }
 
@@ -295,10 +266,6 @@ eventBus.on('level.up', GamificationHandlers.handleLevelUp);
 
 // Add logging middleware
 eventBus.use((event) => {
-  logger.debug('Event processed', { 
-    type: event.type, 
-    id: event.id, 
-    userId: event.userId 
-  });
+  logger.debug(`Event processed: type=${event.type}, id=${event.id}, userId=${event.userId}`);
   return event;
 });

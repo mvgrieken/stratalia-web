@@ -25,14 +25,14 @@ class SupabaseClientFactory {
     }
 
     if (!isSupabaseConfigured()) {
-      logger.warn('Supabase not configured, using fallback mode', { type });
+      logger.warn(`Supabase not configured, using fallback mode: type=${type}`);
       return this.createFallbackClient();
     }
 
     const client = this.createClient(type);
     this.clients.set(cacheKey, client);
     
-    logger.debug('Created new Supabase client', { type, url: config.supabase.url });
+    logger.debug(`Created new Supabase client: type=undefined, url=config.supabase.url`);
     return client;
   }
 
