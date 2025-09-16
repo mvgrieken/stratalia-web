@@ -133,7 +133,17 @@ const STRAATTAAL_TO_NL: Record<string, string> = {
   'fml': 'fuck my life, verpest mijn leven',
   'yolo': 'you only live once, je leeft maar één keer',
   'fomo': 'fear of missing out, angst om iets te missen',
-  'jomo': 'joy of missing out, plezier van iets missen'
+  'jomo': 'joy of missing out, plezier van iets missen',
+  'waggi': 'auto, wagen',
+  'bro': 'vriend, maat',
+  'sick': 'geweldig, cool',
+  'chillen': 'ontspannen, relaxen',
+  'flex': 'opscheppen, pronken',
+  'vibe check': 'sfeer controleren',
+  'slay': 'geweldig presteren',
+  'periodt': 'punt uit, einde discussie',
+  'bet': 'zeker, waar',
+  'stan': 'fan zijn van, steunen'
 };
 
 const NL_TO_STRAATTAAL: Record<string, string> = {

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { ApiErrorHandler } from '@/components/ApiErrorHandler';
+import Navigation from '@/components/Navigation';
 
 interface WordSearchResult {
   id: string;
@@ -173,6 +174,7 @@ export default function SearchClient() {
 
   return (
     <>
+      <Navigation />
       <form onSubmit={handleSearch} className="mb-8">
         <div className="flex gap-4 mb-4">
           <div className="flex-1 relative">

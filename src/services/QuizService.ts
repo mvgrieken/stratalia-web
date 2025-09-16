@@ -107,7 +107,7 @@ class QuizService {
     // Cache fallback for shorter time (2 minutes)
     cacheService.set(cacheKey, results, 2 * 60 * 1000);
 
-    logger.info(`Quiz questions from fallback: count=results.length`);
+    logger.info(`Quiz questions from fallback: count=${results.length}`);
     return results;
   }
 
