@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { config, isSupabaseConfigured } from '@/lib/config';
+import { normalizeError } from '@/lib/errors';
+import { logger } from '@/lib/logger';
 
 interface TranslationRequest {
   text: string;
@@ -47,7 +49,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(translation);
 
   } catch (error) {
-    console.error('Error in AI translation:', error);
+    const normalized = normalizeError(error);
+    logger.error('Error in AI translation', normalized);
     
     // Return a helpful fallback response
     return NextResponse.json({

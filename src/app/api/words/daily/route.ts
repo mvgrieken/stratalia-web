@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { config, isSupabaseConfigured } from '@/lib/config';
+import { normalizeError } from '@/lib/errors';
+import { logger } from '@/lib/logger';
 
 // Comprehensive fallback words for daily word feature
 const FALLBACK_WORDS = [
@@ -141,7 +143,8 @@ export async function GET() {
     return response;
 
   } catch (error) {
-    console.error('❌ [DAILY-API] Unexpected error:', error);
+    const normalized = normalizeError(error);
+    logger.error('❌ [DAILY-API] Unexpected error', normalized);
     
     // Even on error, return a fallback word
     const emergencyWord = FALLBACK_WORDS[0];

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { config, isSupabaseConfigured } from '@/lib/config';
-
+import { logger } from '@/lib/logger';
 interface KnowledgeItem {
   id: string;
   title: string;
@@ -18,7 +18,6 @@ interface KnowledgeItem {
   duration?: number;
   word_count?: number;
 }
-
 // Comprehensive fallback knowledge content
 const FALLBACK_KNOWLEDGE: KnowledgeItem[] = [
   {
@@ -107,41 +106,33 @@ const FALLBACK_KNOWLEDGE: KnowledgeItem[] = [
     word_count: 500
   }
 ];
-
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type') || 'all';
     const difficulty = searchParams.get('difficulty') || 'all';
     const limit = parseInt(searchParams.get('limit') || '50');
-
-    console.log(`📚 Fetching knowledge items - Type: ${type}, Difficulty: ${difficulty}, Limit: ${limit}`);
-
+    logger.info(`📚 Fetching knowledge items - Type: ${type}, Difficulty: ${difficulty}, Limit: ${limit}`);
     // Try database first if Supabase is configured
     if (isSupabaseConfigured()) {
       try {
         const supabase = createClient(config.supabase.url, config.supabase.anonKey);
-
         // Build query
         let query = supabase
           .from('knowledge_items')
           .select('*')
           .eq('is_active', true)
           .limit(limit);
-
         // Apply filters
         if (type !== 'all') {
           query = query.eq('type', type);
         }
-
         if (difficulty !== 'all') {
           query = query.eq('difficulty', difficulty);
         }
-
         const { data: items, error } = await query;
-
         if (!error && items && items.length > 0) {
-          console.log(`✅ Found ${items.length} knowledge items from database`);
+          logger.info(`✅ Found ${items.length} knowledge items from database`);
           return NextResponse.json({
             items,
             total: items.length,
@@ -149,35 +140,28 @@ export async function GET(request: NextRequest) {
           });
         }
       } catch (dbError) {
-        console.log('Database knowledge items failed, using fallback');
+        logger.info('Database knowledge items failed, using fallback');
       }
     }
-
     // Fallback: Use hardcoded knowledge items
     let filteredItems = FALLBACK_KNOWLEDGE;
-
     // Apply filters to fallback data
     if (type !== 'all') {
       filteredItems = filteredItems.filter(item => item.type === type);
     }
-
     if (difficulty !== 'all') {
       filteredItems = filteredItems.filter(item => item.difficulty === difficulty);
     }
-
     // Limit results
     const limitedItems = filteredItems.slice(0, limit);
-
-    console.log(`✅ Using ${limitedItems.length} fallback knowledge items`);
+    logger.info(`✅ Using ${limitedItems.length} fallback knowledge items`);
     return NextResponse.json({
       items: limitedItems,
       total: limitedItems.length,
       source: 'fallback'
     });
-
   } catch (error) {
-    console.error('💥 Error in knowledge items API:', error);
-    
+    logger.error('💥 Error in knowledge items API:', error);
     // Return emergency fallback
     const emergencyItems = FALLBACK_KNOWLEDGE.slice(0, 3);
     return NextResponse.json({

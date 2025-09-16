@@ -1,12 +1,12 @@
 import { NextRequest } from 'next/server';
 import { monitoringService } from '@/lib/monitoring';
-import { createSuccessResponse, createErrorResponse, withErrorHandling, Errors, AppError } from '@/lib/errors';
+import { createSuccessResponse, createErrorResponse, withErrorHandling, Errors, AppError, normalizeError } from '@/lib/errors';
 import { applyRateLimit } from '@/middleware/rateLimiter';
 import { logger } from '@/lib/logger';
 
-export const GET = withErrorHandling(async (request: NextRequest) => {
+export const GET = withErrorHandling(async (_request: NextRequest) => {
   // Apply strict rate limiting for admin operations
-  const rateLimitCheck = applyRateLimit(request, 'auth');
+  const rateLimitCheck = applyRateLimit(_request, 'auth');
   if (!rateLimitCheck.allowed) {
     return rateLimitCheck.response!;
   }
@@ -72,14 +72,15 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
         );
     }
   } catch (error) {
-    logger.error('Monitoring data request failed', error instanceof Error ? error : new Error(String(error)));
-    return createErrorResponse(error instanceof Error ? error : new Error(String(error)));
+    const normalized = normalizeError(error);
+    logger.error('Monitoring data request failed', normalized);
+    return createErrorResponse(normalized);
   }
 });
 
-export const DELETE = withErrorHandling(async (request: NextRequest) => {
+export const DELETE = withErrorHandling(async (_request: NextRequest) => {
   // Apply strict rate limiting for admin operations
-  const rateLimitCheck = applyRateLimit(request, 'auth');
+  const rateLimitCheck = applyRateLimit(_request, 'auth');
   if (!rateLimitCheck.allowed) {
     return rateLimitCheck.response!;
   }

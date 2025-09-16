@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { normalizeError } from '@/lib/errors';
+import { logger } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,7 +18,7 @@ export async function POST(request: NextRequest) {
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
     
     if (!supabaseUrl || !supabaseServiceKey) {
-      console.error('❌ Supabase environment variables are missing!');
+      logger.error('❌ Supabase environment variables are missing!');
       return NextResponse.json({
         error: 'Server configuration error'
       }, { status: 500 });
@@ -31,7 +33,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (authError) {
-      console.error('❌ Authentication error:', authError);
+      logger.error('❌ Authentication error', authError);
       return NextResponse.json({
         error: 'Invalid credentials',
         details: authError.message
@@ -46,7 +48,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (profileError) {
-      console.error('❌ Profile fetch error:', profileError);
+      logger.error('❌ Profile fetch error', profileError);
       // Create profile if it doesn't exist
       const { data: newProfile, error: createError } = await supabase
         .from('profiles')
@@ -60,7 +62,7 @@ export async function POST(request: NextRequest) {
         .single();
 
       if (createError) {
-        console.error('❌ Profile creation error:', createError);
+        logger.error('❌ Profile creation error', createError);
         return NextResponse.json({
           error: 'Profile creation failed',
           details: createError.message
@@ -89,7 +91,8 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('💥 Error in login API:', error);
+    const normalized = normalizeError(error);
+    logger.error('💥 Error in login API', normalized);
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'

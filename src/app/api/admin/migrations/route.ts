@@ -1,12 +1,12 @@
 import { NextRequest } from 'next/server';
 import { migrationService, migrations } from '@/lib/migrations';
-import { createSuccessResponse, createErrorResponse, withErrorHandling, Errors, AppError } from '@/lib/errors';
+import { createSuccessResponse, createErrorResponse, withErrorHandling, Errors, AppError, normalizeError } from '@/lib/errors';
 import { applyRateLimit } from '@/middleware/rateLimiter';
 import { logger } from '@/lib/logger';
 
-export const POST = withErrorHandling(async (request: NextRequest) => {
+export const POST = withErrorHandling(async (_request: NextRequest) => {
   // Apply strict rate limiting for admin operations
-  const rateLimitCheck = applyRateLimit(request, 'auth');
+  const rateLimitCheck = applyRateLimit(_request, 'auth');
   if (!rateLimitCheck.allowed) {
     return rateLimitCheck.response!;
   }
@@ -56,7 +56,8 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
         );
     }
   } catch (error) {
-    logger.error('Migration operation failed', error instanceof Error ? error : new Error(String(error)));
-    return createErrorResponse(error instanceof Error ? error : new Error(String(error)));
+    const normalized = normalizeError(error);
+    logger.error('Migration operation failed', normalized);
+    return createErrorResponse(normalized);
   }
 });

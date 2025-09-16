@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { config, isSupabaseConfigured } from '@/lib/config';
-
+import { logger } from '@/lib/logger';
 type LeaderboardItem = {
   id: string;
   full_name: string;
@@ -10,7 +10,6 @@ type LeaderboardItem = {
   current_streak: number;
   longest_streak: number;
 };
-
 type FormattedLeaderboardItem = {
   rank: number;
   user_id: string;
@@ -21,7 +20,6 @@ type FormattedLeaderboardItem = {
   longest_streak: number;
   avatar_url?: string;
 };
-
 // Enhanced mock leaderboard data
 const MOCK_LEADERBOARD: FormattedLeaderboardItem[] = [
   {
@@ -125,20 +123,16 @@ const MOCK_LEADERBOARD: FormattedLeaderboardItem[] = [
     avatar_url: '/avatars/maya.jpg'
   }
 ];
-
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const period = searchParams.get('period') || 'all'; // all, week, month
     const limit = parseInt(searchParams.get('limit') || '10');
-
-    console.log(`🏆 Fetching leaderboard - Period: ${period}, Limit: ${limit}`);
-
+    logger.info(`🏆 Fetching leaderboard - Period: ${period}, Limit: ${limit}`);
     // Try database first if Supabase is configured
     if (isSupabaseConfigured()) {
       try {
         const supabase = createClient(config.supabase.url, config.supabase.anonKey);
-
     // Build date filter based on period
     let dateFilter = '';
     if (period === 'week') {
@@ -146,27 +140,21 @@ export async function GET(request: NextRequest) {
     } else if (period === 'month') {
       dateFilter = "AND last_activity_date >= CURRENT_DATE - INTERVAL '30 days'";
     }
-
     // Get leaderboard data
     const { data: leaderboard, error } = await supabase
       .rpc('get_leaderboard', {
         period_filter: dateFilter,
         limit_count: limit
       });
-
     if (error) {
-      console.error('❌ Error fetching leaderboard:', error);
-      
+      logger.error('❌ Error fetching leaderboard:', error);
       // Fallback: simple query without RPC - use RPC to avoid RLS issues
       const { data: fallbackData, error: fallbackError } = await supabase
         .rpc('get_simple_leaderboard', { limit_count: limit });
-
       if (fallbackError) {
-        console.log('❌ RPC fallback failed, using mock data for demo');
-        
+        logger.info('❌ RPC fallback failed, using mock data for demo');
         // Use enhanced mock data
         const limitedMockData = MOCK_LEADERBOARD.slice(0, limit);
-
         return NextResponse.json({
           period,
           total_users: limitedMockData.length,
@@ -174,7 +162,6 @@ export async function GET(request: NextRequest) {
           source: 'mock'
         });
       }
-
       const formattedLeaderboard: FormattedLeaderboardItem[] = fallbackData?.map((item: LeaderboardItem, index: number) => ({
         rank: index + 1,
         user_id: item.id || `user_${index}`,
@@ -184,38 +171,32 @@ export async function GET(request: NextRequest) {
         current_streak: item.current_streak || 0,
         longest_streak: item.longest_streak || 0
       })) || [];
-
       return NextResponse.json({
         period,
         total_users: formattedLeaderboard.length,
         leaderboard: formattedLeaderboard
       });
     }
-
         return NextResponse.json({
           period,
           total_users: leaderboard?.length || 0,
           leaderboard: leaderboard || []
         });
       } catch (dbError) {
-        console.log('Database connection failed, using mock data');
+        logger.info('Database connection failed, using mock data');
       }
     }
-
     // Fallback: Use mock data
     const limitedMockData = MOCK_LEADERBOARD.slice(0, limit);
-
-    console.log(`✅ Using ${limitedMockData.length} mock leaderboard entries`);
+    logger.info(`✅ Using ${limitedMockData.length} mock leaderboard entries`);
     return NextResponse.json({
       period,
       total_users: limitedMockData.length,
       leaderboard: limitedMockData,
       source: 'mock'
     });
-
   } catch (error) {
-    console.error('💥 Error in leaderboard API:', error);
-    
+    logger.error('💥 Error in leaderboard API:', error);
     // Return emergency fallback
     const emergencyData = MOCK_LEADERBOARD.slice(0, 5);
     return NextResponse.json({

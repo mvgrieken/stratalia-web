@@ -230,7 +230,7 @@ export const performance = {
   ): T {
     return ((..._args: any[]) => {
       const start = performance.now();
-      const result = fn(..._args);
+      const result = fn(...args);
       
       if (result instanceof Promise) {
         return result.finally(() => {

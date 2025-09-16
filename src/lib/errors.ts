@@ -5,6 +5,19 @@
 import { NextResponse } from 'next/server';
 import { logger } from './logger';
 
+/**
+ * Normalize unknown error to Error instance
+ */
+export function normalizeError(error: unknown): Error {
+  if (error instanceof Error) return error;
+  if (typeof error === "string") return new Error(error);
+  try {
+    return new Error(JSON.stringify(error));
+  } catch {
+    return new Error("Unknown error");
+  }
+}
+
 export enum ErrorCode {
   // Only include errors that are actually used
   VALIDATION_ERROR = 'VALIDATION_ERROR',

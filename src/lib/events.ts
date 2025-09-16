@@ -125,7 +125,7 @@ class EventBus {
   /**
    * Add middleware to process events
    */
-  use(middleware: (_event: BaseEvent) => BaseEvent | null): void {
+  use(middleware: (event: BaseEvent) => BaseEvent | null): void {
     this.middleware.push(middleware);
   }
 
