@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import QuizQuestionComponent from '@/components/Quiz/QuizQuestion';
 import QuizResult from '@/components/Quiz/QuizResult';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { ErrorMessage } from '@/components/ErrorMessage';
-import { useApi } from '@/hooks/useApi';
 import Navigation from '@/components/Navigation';
 
 interface QuizQuestion {
@@ -25,22 +24,34 @@ export default function LazyQuizPage() {
   const [startTime, setStartTime] = useState<number>(0);
   const [, setQuestionStartTime] = useState<number>(0);
 
-  // Use the new useApi hook for data fetching
-  const { data: quizData, loading, error, execute: fetchQuiz } = useApi<{questions: QuizQuestion[]}>(
-    () => fetch('/api/quiz?difficulty=medium&limit=5').then(res => res.json())
-  );
-
-  const questions = useMemo(() => quizData?.questions || [], [quizData]);
-
-  useEffect(() => {
-    fetchQuiz();
-  }, [fetchQuiz]);
+  const [questions, setQuestions] = useState<QuizQuestion[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchQuizQuestions = useCallback(async () => {
-    await fetchQuiz();
-    setStartTime(Date.now());
-    setQuestionStartTime(Date.now());
-  }, [fetchQuiz]);
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch('/api/quiz?difficulty=medium&limit=5');
+      if (response.ok) {
+        const data = await response.json();
+        setQuestions(data.data?.questions || []);
+        setStartTime(Date.now());
+        setQuestionStartTime(Date.now());
+      } else {
+        setError('Kon quiz vragen niet laden');
+      }
+    } catch (err) {
+      console.error('Error fetching quiz questions:', err);
+      setError('Er is een fout opgetreden bij het laden van de quiz');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchQuizQuestions();
+  }, [fetchQuizQuestions]);
 
   const handleAnswerSelect = useCallback((answer: string) => {
     setSelectedAnswer(answer);
