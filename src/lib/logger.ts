@@ -3,15 +3,10 @@
  * Replaces console.log statements with structured logging
  */
 
-enum LogLevel {
-  DEBUG = 0,
-  INFO = 1,
-  WARN = 2,
-  ERROR = 3,
-}
+// LogLevel enum removed as it's not used
 
 interface LogEntry {
-  level: LogLevel;
+  level: number;
   message: string;
   timestamp: string;
   context?: Record<string, any>;
@@ -19,15 +14,15 @@ interface LogEntry {
 }
 
 class Logger {
-  private level: LogLevel;
+  private level: number;
   private isDevelopment: boolean;
 
   constructor() {
-    this.level = process.env.NODE_ENV === 'development' ? LogLevel.DEBUG : LogLevel.INFO;
+    this.level = process.env.NODE_ENV === 'development' ? 0 : 1;
     this.isDevelopment = process.env.NODE_ENV === 'development';
   }
 
-  private log(level: LogLevel, message: string, context?: Record<string, any>, error?: Error) {
+  private log(level: number, message: string, context?: Record<string, any>, error?: Error) {
     if (level < this.level) return;
 
     const entry: LogEntry = {
@@ -61,19 +56,19 @@ class Logger {
   }
 
   debug(message: string, context?: Record<string, any>) {
-    this.log(LogLevel.DEBUG, message, context);
+    this.log(0, message, context);
   }
 
   info(message: string, context?: Record<string, any>) {
-    this.log(LogLevel.INFO, message, context);
+    this.log(1, message, context);
   }
 
   warn(message: string, context?: Record<string, any>) {
-    this.log(LogLevel.WARN, message, context);
+    this.log(2, message, context);
   }
 
   error(message: string, error?: Error, context?: Record<string, any>) {
-    this.log(LogLevel.ERROR, message, context, error);
+    this.log(3, message, context, error);
   }
 }
 

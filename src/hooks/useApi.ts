@@ -8,8 +8,8 @@ interface UseApiState<T> {
 
 interface UseApiOptions {
   immediate?: boolean;
-  onSuccess?: (_data: any) => void;
-  onError?: (_error: string) => void;
+  onSuccess?: (data: any) => void;
+  onError?: (error: string) => void;
 }
 
 export function useApi<T>(

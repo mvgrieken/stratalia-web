@@ -6,26 +6,8 @@ import { NextResponse } from 'next/server';
 import { logger } from './logger';
 
 export enum ErrorCode {
-  // Authentication errors
-  UNAUTHORIZED = 'UNAUTHORIZED',
-  FORBIDDEN = 'FORBIDDEN',
-  INVALID_CREDENTIALS = 'INVALID_CREDENTIALS',
-  
-  // Validation errors
+  // Only include errors that are actually used
   VALIDATION_ERROR = 'VALIDATION_ERROR',
-  MISSING_REQUIRED_FIELD = 'MISSING_REQUIRED_FIELD',
-  INVALID_INPUT = 'INVALID_INPUT',
-  
-  // Resource errors
-  NOT_FOUND = 'NOT_FOUND',
-  CONFLICT = 'CONFLICT',
-  RATE_LIMITED = 'RATE_LIMITED',
-  
-  // System errors
-  INTERNAL_ERROR = 'INTERNAL_ERROR',
-  DATABASE_ERROR = 'DATABASE_ERROR',
-  EXTERNAL_SERVICE_ERROR = 'EXTERNAL_SERVICE_ERROR',
-  CONFIGURATION_ERROR = 'CONFIGURATION_ERROR',
 }
 
 export interface ApiError {
@@ -189,12 +171,12 @@ export function validateRequired<T extends Record<string, any>>(
  * Async error handler wrapper
  */
 export function withErrorHandling<T extends any[], R>(
-  fn: (..._args: T) => Promise<R>,
+  fn: (...args: T) => Promise<R>,
   requestId?: string
 ) {
-  return async (..._args: T): Promise<R> => {
+  return async (...args: T): Promise<R> => {
     try {
-      return await fn(..._args);
+      return await fn(...args);
     } catch (error) {
       if (error instanceof AppError) {
         throw error;
