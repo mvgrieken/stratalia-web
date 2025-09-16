@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
+import { normalizeError } from '@/lib/errors';
 // POST /api/admin/content/batch - Batch approve/reject content
 export async function POST(request: NextRequest) {
   try {
@@ -40,7 +41,8 @@ export async function POST(request: NextRequest) {
       .in('id', ids)
       .select();
     if (error) {
-      logger.error('❌ Error batch updating content:', error);
+      const normalized = normalizeError(error);
+    logger.error('❌ Error batch updating content:', normalized);
       return NextResponse.json({
         error: 'Database unavailable',
         details: error.message
@@ -61,7 +63,8 @@ export async function POST(request: NextRequest) {
       items: content
     });
   } catch (error) {
-    logger.error('💥 Error in batch content API:', error);
+    const normalized = normalizeError(error);
+    logger.error('💥 Error in batch content API:', normalized);
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'

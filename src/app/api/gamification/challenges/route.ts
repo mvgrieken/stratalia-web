@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
+import { normalizeError } from '@/lib/errors';
 type ChallengeProgress = {
   progress: number;
   completed_at: string | null;
@@ -69,7 +70,8 @@ export async function GET(request: NextRequest) {
       total_challenges: challengesWithProgress.length
     });
   } catch (error) {
-    logger.error('💥 Error in challenges API:', error);
+    const normalized = normalizeError(error);
+    logger.error('💥 Error in challenges API:', normalized);
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'
@@ -148,7 +150,8 @@ export async function POST(request: NextRequest) {
       points_awarded: completed ? challenge.reward_points : 0
     });
   } catch (error) {
-    logger.error('💥 Error in challenge update API:', error);
+    const normalized = normalizeError(error);
+    logger.error('💥 Error in challenge update API:', normalized);
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'

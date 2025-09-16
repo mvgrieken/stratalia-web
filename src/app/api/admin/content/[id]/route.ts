@@ -41,7 +41,8 @@ export async function PUT(
       .select()
       .single();
     if (error) {
-      logger.error('❌ Error updating content:', error);
+      const normalized = normalizeError(error);
+    logger.error('❌ Error updating content:', normalized);
       return NextResponse.json({
         error: 'Database unavailable',
         details: error.message
@@ -94,7 +95,8 @@ export async function DELETE(
       .delete()
       .eq('id', id);
     if (error) {
-      logger.error('❌ Error deleting content:', error);
+      const normalized = normalizeError(error);
+    logger.error('❌ Error deleting content:', normalized);
       return NextResponse.json({
         error: 'Database unavailable',
         details: error.message
@@ -103,7 +105,8 @@ export async function DELETE(
     logger.info(`✅ Content ${id} deleted`);
     return NextResponse.json({ success: true });
   } catch (error) {
-    logger.error('💥 Error in content delete API:', error);
+    const normalized = normalizeError(error);
+    logger.error('💥 Error in content delete API', normalized);
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'

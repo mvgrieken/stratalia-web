@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
+import { normalizeError } from '@/lib/errors';
 // GET /api/admin/content - Haal alle content updates op
 export async function GET(request: NextRequest) {
   try {
@@ -30,7 +31,8 @@ export async function GET(request: NextRequest) {
     }
     const { data: content, error } = await query;
     if (error) {
-      logger.error('❌ Error fetching content updates:', error);
+      const normalized = normalizeError(error);
+    logger.error('❌ Error fetching content updates:', normalized);
       return NextResponse.json({
         error: 'Database unavailable',
         details: error.message
@@ -39,7 +41,8 @@ export async function GET(request: NextRequest) {
     logger.info(`✅ Found ${content?.length || 0} content updates`);
     return NextResponse.json(content || []);
   } catch (error) {
-    logger.error('💥 Error in content API:', error);
+    const normalized = normalizeError(error);
+    logger.error('💥 Error in content API:', normalized);
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'
@@ -79,7 +82,8 @@ export async function POST(request: NextRequest) {
       .select()
       .single();
     if (error) {
-      logger.error('❌ Error adding content:', error);
+      const normalized = normalizeError(error);
+    logger.error('❌ Error adding content:', normalized);
       return NextResponse.json({
         error: 'Database unavailable',
         details: error.message
@@ -88,7 +92,8 @@ export async function POST(request: NextRequest) {
     logger.info(`✅ Content added with ID: ${content.id}`);
     return NextResponse.json(content, { status: 201 });
   } catch (error) {
-    logger.error('💥 Error in content POST API:', error);
+    const normalized = normalizeError(error);
+    logger.error('💥 Error in content POST API:', normalized);
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'

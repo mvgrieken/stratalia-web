@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
+import { normalizeError } from '@/lib/errors';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 export async function GET(_request: NextRequest) {
@@ -13,7 +14,8 @@ export async function GET(_request: NextRequest) {
       .select('*')
       .order('created_at', { ascending: false });
     if (error) {
-      logger.error('❌ Error fetching words:', error);
+      const normalized = normalizeError(error);
+    logger.error('❌ Error fetching words:', normalized);
       return NextResponse.json(
         { error: 'Failed to fetch words' },
         { status: 500 }
@@ -25,7 +27,8 @@ export async function GET(_request: NextRequest) {
       total: words?.length || 0
     });
   } catch (error) {
-    logger.error('❌ Error in admin words API:', error);
+    const normalized = normalizeError(error);
+    logger.error('❌ Error in admin words API:', normalized);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -56,7 +59,8 @@ export async function POST(request: NextRequest) {
       .select()
       .single();
     if (error) {
-      logger.error('❌ Error creating word:', error);
+      const normalized = normalizeError(error);
+    logger.error('❌ Error creating word:', normalized);
       return NextResponse.json(
         { error: 'Failed to create word' },
         { status: 500 }
@@ -68,7 +72,8 @@ export async function POST(request: NextRequest) {
       message: 'Word created successfully'
     });
   } catch (error) {
-    logger.error('❌ Error in admin words POST API:', error);
+    const normalized = normalizeError(error);
+    logger.error('❌ Error in admin words POST API:', normalized);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

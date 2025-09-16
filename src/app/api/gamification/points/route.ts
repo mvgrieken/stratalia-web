@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
+import { normalizeError } from '@/lib/errors';
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -26,7 +27,8 @@ export async function GET(request: NextRequest) {
       .eq('user_id', userId)
       .single();
     if (error) {
-      logger.error('❌ Error fetching user points:', error);
+      const normalized = normalizeError(error);
+    logger.error('❌ Error fetching user points:', normalized);
       return NextResponse.json({
         error: 'Failed to fetch user points',
         details: error.message
@@ -34,7 +36,8 @@ export async function GET(request: NextRequest) {
     }
     return NextResponse.json(userPoints);
   } catch (error) {
-    logger.error('💥 Error in points API:', error);
+    const normalized = normalizeError(error);
+    logger.error('💥 Error in points API:', normalized);
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'
@@ -103,7 +106,8 @@ export async function POST(request: NextRequest) {
       action_type
     });
   } catch (error) {
-    logger.error('💥 Error in points update API:', error);
+    const normalized = normalizeError(error);
+    logger.error('💥 Error in points update API:', normalized);
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'

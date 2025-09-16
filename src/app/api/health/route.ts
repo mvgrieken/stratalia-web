@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
+import { normalizeError } from '@/lib/errors';
 
 export async function GET() {
   const startTime = Date.now();
@@ -27,7 +28,8 @@ export async function GET() {
       .limit(1);
 
     if (error) {
-      logger.error('Health check failed: Database connection error', error);
+      const normalized = normalizeError(error);
+    logger.error('Health check failed: Database connection error', normalized);
       return NextResponse.json({
         status: 'error',
         message: 'Database connection failed',
@@ -56,7 +58,8 @@ export async function GET() {
 
   } catch (error) {
     const duration = Date.now() - startTime;
-    logger.error('Health check failed: Unexpected error', error);
+    const normalized = normalizeError(error);
+    logger.error('Health check failed: Unexpected error', normalized);
     
     return NextResponse.json({
       status: 'error',

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
+import { normalizeError } from '@/lib/errors';
 interface CommunitySubmission {
   word: string;
   definition: string;
@@ -47,7 +48,8 @@ export async function POST(request: NextRequest) {
       .select()
       .single();
     if (error) {
-      logger.error('❌ Error inserting community submission:', error);
+      const normalized = normalizeError(error);
+    logger.error('❌ Error inserting community submission:', normalized);
       return NextResponse.json({
         error: 'Failed to submit word',
         details: error.message
@@ -60,7 +62,8 @@ export async function POST(request: NextRequest) {
       submission_id: data.id
     });
   } catch (error) {
-    logger.error('💥 Error in community submission API:', error);
+    const normalized = normalizeError(error);
+    logger.error('💥 Error in community submission API:', normalized);
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'
@@ -91,7 +94,8 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false })
       .limit(limit);
     if (error) {
-      logger.error('❌ Error fetching community submissions:', error);
+      const normalized = normalizeError(error);
+    logger.error('❌ Error fetching community submissions:', normalized);
       return NextResponse.json({
         error: 'Database unavailable',
         details: error.message
@@ -100,7 +104,8 @@ export async function GET(request: NextRequest) {
     logger.info(`✅ Found ${submissions?.length || 0} community submissions`);
     return NextResponse.json(submissions || []);
   } catch (error) {
-    logger.error('💥 Error in community submissions API:', error);
+    const normalized = normalizeError(error);
+    logger.error('💥 Error in community submissions API:', normalized);
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'

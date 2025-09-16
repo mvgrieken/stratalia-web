@@ -108,7 +108,8 @@ export const DELETE = withErrorHandling(async (_request: NextRequest) => {
       olderThanHours
     });
   } catch (error) {
-    logger.error('Failed to clear monitoring data', error);
+    const normalized = normalizeError(error);
+    logger.error('Failed to clear monitoring data', normalized);
     return createErrorResponse(error as Error);
   }
 });

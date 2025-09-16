@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
+import { normalizeError } from '@/lib/errors';
 export async function GET(request: NextRequest) {
   try {
     // Get session from Authorization header
@@ -39,7 +40,8 @@ export async function GET(request: NextRequest) {
       }
     });
   } catch (error) {
-    logger.error('Error in /api/auth/me:', error);
+    const normalized = normalizeError(error);
+    logger.error('Error in /api/auth/me:', normalized);
     return NextResponse.json({ user: null });
   }
 }

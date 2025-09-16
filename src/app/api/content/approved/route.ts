@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { config, isSupabaseConfigured } from '@/lib/config';
 import { logger } from '@/lib/logger';
+import { normalizeError } from '@/lib/errors';
 interface KnowledgeItem {
   id: string;
   title: string;
@@ -161,7 +162,8 @@ export async function GET(request: NextRequest) {
       source: 'fallback'
     });
   } catch (error) {
-    logger.error('💥 Error in knowledge items API:', error);
+    const normalized = normalizeError(error);
+    logger.error('💥 Error in knowledge items API:', normalized);
     // Return emergency fallback
     const emergencyItems = FALLBACK_KNOWLEDGE.slice(0, 3);
     return NextResponse.json({

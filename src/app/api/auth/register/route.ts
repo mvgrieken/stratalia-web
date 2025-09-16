@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
+import { normalizeError } from '@/lib/errors';
 export async function POST(request: NextRequest) {
   try {
     const { email, password, full_name } = await request.json();
@@ -94,7 +95,8 @@ export async function POST(request: NextRequest) {
       }
     });
   } catch (error) {
-    logger.error('💥 Error in registration API:', error);
+    const normalized = normalizeError(error);
+    logger.error('💥 Error in registration API:', normalized);
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'

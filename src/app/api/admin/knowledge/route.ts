@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
+import { normalizeError } from '@/lib/errors';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 export async function GET(_request: NextRequest) {
@@ -13,7 +14,8 @@ export async function GET(_request: NextRequest) {
       .select('*')
       .order('created_at', { ascending: false });
     if (error) {
-      logger.error('❌ Error fetching knowledge items:', error);
+      const normalized = normalizeError(error);
+    logger.error('❌ Error fetching knowledge items:', normalized);
       return NextResponse.json(
         { error: 'Failed to fetch knowledge items' },
         { status: 500 }
@@ -25,7 +27,8 @@ export async function GET(_request: NextRequest) {
       total: items?.length || 0
     });
   } catch (error) {
-    logger.error('❌ Error in admin knowledge API:', error);
+    const normalized = normalizeError(error);
+    logger.error('❌ Error in admin knowledge API:', normalized);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -57,7 +60,8 @@ export async function POST(request: NextRequest) {
       .select()
       .single();
     if (error) {
-      logger.error('❌ Error creating knowledge item:', error);
+      const normalized = normalizeError(error);
+    logger.error('❌ Error creating knowledge item:', normalized);
       return NextResponse.json(
         { error: 'Failed to create knowledge item' },
         { status: 500 }
@@ -69,7 +73,8 @@ export async function POST(request: NextRequest) {
       message: 'Knowledge item created successfully'
     });
   } catch (error) {
-    logger.error('❌ Error in admin knowledge POST API:', error);
+    const normalized = normalizeError(error);
+    logger.error('❌ Error in admin knowledge POST API:', normalized);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

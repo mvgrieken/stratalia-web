@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
+import { normalizeError } from '@/lib/errors';
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -34,7 +35,8 @@ export async function GET(request: NextRequest) {
     }
     const { data: notifications, error } = await query;
     if (error) {
-      logger.error('❌ Error fetching notifications:', error);
+      const normalized = normalizeError(error);
+    logger.error('❌ Error fetching notifications:', normalized);
       return NextResponse.json({
         error: 'Failed to fetch notifications',
         details: error.message
@@ -55,7 +57,8 @@ export async function GET(request: NextRequest) {
       total_count: notifications?.length || 0
     });
   } catch (error) {
-    logger.error('💥 Error in notifications API:', error);
+    const normalized = normalizeError(error);
+    logger.error('💥 Error in notifications API:', normalized);
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'
@@ -93,7 +96,8 @@ export async function POST(request: NextRequest) {
       .select()
       .single();
     if (error) {
-      logger.error('❌ Error creating notification:', error);
+      const normalized = normalizeError(error);
+    logger.error('❌ Error creating notification:', normalized);
       return NextResponse.json({
         error: 'Failed to create notification',
         details: error.message
@@ -104,7 +108,8 @@ export async function POST(request: NextRequest) {
       notification
     });
   } catch (error) {
-    logger.error('💥 Error in notification creation API:', error);
+    const normalized = normalizeError(error);
+    logger.error('💥 Error in notification creation API:', normalized);
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'
@@ -138,7 +143,8 @@ export async function PUT(request: NextRequest) {
       .select()
       .single();
     if (error) {
-      logger.error('❌ Error marking notification as read:', error);
+      const normalized = normalizeError(error);
+    logger.error('❌ Error marking notification as read:', normalized);
       return NextResponse.json({
         error: 'Failed to mark notification as read',
         details: error.message
@@ -149,7 +155,8 @@ export async function PUT(request: NextRequest) {
       notification
     });
   } catch (error) {
-    logger.error('💥 Error in notification read API:', error);
+    const normalized = normalizeError(error);
+    logger.error('💥 Error in notification read API:', normalized);
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
+import { normalizeError } from '@/lib/errors';
 interface LearningRequest {
   user_id?: string;
   word_id: string;
@@ -27,7 +28,8 @@ export async function POST(request: NextRequest) {
     const learningResponse = await calculateAdaptiveLearning(body);
     return NextResponse.json(learningResponse);
   } catch (error) {
-    logger.error('Error in adaptive learning:', error);
+    const normalized = normalizeError(error);
+    logger.error('Error in adaptive learning:', normalized);
     return NextResponse.json({ error: 'Learning analysis failed' }, { status: 500 });
   }
 }
@@ -92,7 +94,8 @@ async function generateRecommendedWords(masteryScore: number, difficulty: string
       .eq('is_active', true)
       .limit(10);
     if (error) {
-      logger.error('❌ Error fetching recommended words:', error);
+      const normalized = normalizeError(error);
+    logger.error('❌ Error fetching recommended words:', normalized);
       return [];
     }
     if (!words || words.length === 0) {
@@ -109,7 +112,8 @@ async function generateRecommendedWords(masteryScore: number, difficulty: string
       return wordList.slice(0, 10);
     }
   } catch (error) {
-    logger.error('❌ Error in generateRecommendedWords:', error);
+    const normalized = normalizeError(error);
+    logger.error('❌ Error in generateRecommendedWords:', normalized);
     return [];
   }
 }

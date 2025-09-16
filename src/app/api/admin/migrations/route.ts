@@ -12,7 +12,7 @@ export const POST = withErrorHandling(async (_request: NextRequest) => {
   }
 
   // Check if user is admin (in production, implement proper auth)
-  const authHeader = request.headers.get('authorization');
+  const authHeader = _request.headers.get('authorization');
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     throw new AppError(
       Errors.UNAUTHORIZED.code,
@@ -21,9 +21,9 @@ export const POST = withErrorHandling(async (_request: NextRequest) => {
     );
   }
 
-  const { action } = await request.json();
+  const { action } = await _request.json();
 
-  logger.info('Migration request', { action });
+  logger.info(`Migration request: ${action}`);
 
   try {
     switch (action) {
