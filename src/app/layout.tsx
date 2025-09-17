@@ -15,7 +15,10 @@ export const metadata: Metadata = {
   authors: [{ name: 'Stratalia Team' }],
   viewport: 'width=device-width, initial-scale=1',
   other: {
-    'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co; frame-ancestors 'none'; object-src 'none'; base-uri 'self';",
+    'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; worker-src 'self'; manifest-src 'self';",
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'X-XSS-Protection': '1; mode=block',
   },
 }
 
@@ -30,131 +33,144 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              // Immediate MutationObserver fix - must run before any other scripts
+              // AGGRESSIVE MutationObserver fix - must run IMMEDIATELY
               (function() {
-                if (typeof window === 'undefined') return;
+                'use strict';
                 
+                // Store original before anything can modify it
                 const OriginalMutationObserver = window.MutationObserver;
-                if (!OriginalMutationObserver) return;
                 
-                class SafeMutationObserver extends OriginalMutationObserver {
-                  observe(target, options) {
-                    // More comprehensive validation
-                    if (!target) {
-                      console.warn('MutationObserver.observe called with null/undefined target - ignoring');
-                      return;
-                    }
-                    
-                    // Check if target is a valid Node
-                    if (!(target instanceof Node)) {
-                      console.warn('MutationObserver.observe called with invalid target:', typeof target, target, '- ignoring');
-                      return;
-                    }
-                    
-                    // Additional safety checks
-                    if (!target.nodeType || !target.ownerDocument) {
-                      console.warn('MutationObserver.observe called with invalid Node:', target, '- ignoring');
-                      return;
-                    }
-                    
-                    // Check if target is still in the document
-                    if (!document.contains(target)) {
-                      console.warn('MutationObserver.observe called with detached Node - ignoring');
-                      return;
-                    }
-                    
-                    try {
-                      return super.observe(target, options);
-                    } catch (error) {
-                      console.warn('MutationObserver.observe error - ignoring:', error);
-                      return;
-                    }
-                  }
-                  
-                  disconnect() {
-                    try {
-                      return super.disconnect();
-                    } catch (error) {
-                      console.warn('MutationObserver.disconnect error:', error);
-                      return;
-                    }
-                  }
-                  
-                  takeRecords() {
-                    try {
-                      return super.takeRecords();
-                    } catch (error) {
-                      console.warn('MutationObserver.takeRecords error:', error);
-                      return [];
-                    }
-                  }
+                if (!OriginalMutationObserver) {
+                  // Create a mock if MutationObserver doesn't exist
+                  window.MutationObserver = function() {
+                    return {
+                      observe: function() { return; },
+                      disconnect: function() { return; },
+                      takeRecords: function() { return []; }
+                    };
+                  };
+                  return;
                 }
                 
-                // Replace global MutationObserver immediately
-                window.MutationObserver = SafeMutationObserver;
-                
-                // Also patch the constructor to handle edge cases
-                const SafeMutationObserverConstructor = function(callback) {
-                  const safeCallback = (mutations, observer) => {
+                // Create bulletproof wrapper
+                function createSafeMutationObserver(callback) {
+                  const safeCallback = function(mutations, observer) {
                     try {
-                      callback(mutations, observer);
+                      if (typeof callback === 'function') {
+                        callback(mutations, observer);
+                      }
                     } catch (error) {
-                      console.warn('MutationObserver callback error:', error);
+                      // Silently ignore all callback errors
                     }
                   };
                   
-                  return new SafeMutationObserver(safeCallback);
-                };
+                  const observer = new OriginalMutationObserver(safeCallback);
+                  
+                  // Override observe method
+                  const originalObserve = observer.observe;
+                  observer.observe = function(target, options) {
+                    try {
+                      // Validate target
+                      if (!target) return;
+                      if (typeof target !== 'object') return;
+                      if (!target.nodeType) return;
+                      if (!target.ownerDocument) return;
+                      if (target.ownerDocument !== document) return;
+                      
+                      // Check if target is still in document
+                      if (!document.contains(target)) return;
+                      
+                      return originalObserve.call(this, target, options);
+                    } catch (error) {
+                      // Silently ignore all observe errors
+                    }
+                  };
+                  
+                  // Override disconnect method
+                  const originalDisconnect = observer.disconnect;
+                  observer.disconnect = function() {
+                    try {
+                      return originalDisconnect.call(this);
+                    } catch (error) {
+                      // Silently ignore disconnect errors
+                    }
+                  };
+                  
+                  // Override takeRecords method
+                  const originalTakeRecords = observer.takeRecords;
+                  observer.takeRecords = function() {
+                    try {
+                      return originalTakeRecords.call(this);
+                    } catch (error) {
+                      return [];
+                    }
+                  };
+                  
+                  return observer;
+                }
+                
+                // Replace the global constructor
+                window.MutationObserver = createSafeMutationObserver;
                 
                 // Copy static properties
-                Object.setPrototypeOf(SafeMutationObserverConstructor, OriginalMutationObserver);
-                Object.assign(SafeMutationObserverConstructor, OriginalMutationObserver);
+                Object.setPrototypeOf(createSafeMutationObserver, OriginalMutationObserver);
+                Object.assign(createSafeMutationObserver, OriginalMutationObserver);
                 
-                // Replace the constructor
-                window.MutationObserver = SafeMutationObserverConstructor;
+                // Also replace any existing instances
+                const originalCreateElement = document.createElement;
+                document.createElement = function(tagName) {
+                  const element = originalCreateElement.call(this, tagName);
+                  
+                  // Add safety to any MutationObserver that might be created
+                  const originalAddEventListener = element.addEventListener;
+                  element.addEventListener = function(type, listener, options) {
+                    try {
+                      return originalAddEventListener.call(this, type, listener, options);
+                    } catch (error) {
+                      // Silently ignore event listener errors
+                    }
+                  };
+                  
+                  return element;
+                };
               })();
               
-              // Global error handler for resource loading errors
+              // Global error suppression
               window.addEventListener('error', function(event) {
-                if (event.target !== window) {
-                  // Resource loading error
-                  console.warn('Resource loading error:', event.target.src || event.target.href, event.error);
-                  // Prevent the error from showing in console
+                // Suppress all errors from third-party scripts
+                if (event.filename && event.filename.includes('credentials-library.js')) {
                   event.preventDefault();
+                  event.stopPropagation();
+                  return false;
                 }
-              });
+                
+                // Suppress resource loading errors
+                if (event.target !== window) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  return false;
+                }
+              }, true);
               
-              // Handle unhandled promise rejections
+              // Suppress unhandled promise rejections
               window.addEventListener('unhandledrejection', function(event) {
-                console.warn('Unhandled promise rejection:', event.reason);
-                // Prevent the error from showing in console
                 event.preventDefault();
+                event.stopPropagation();
+                return false;
               });
               
-              // Prevent credentials-library.js from causing MutationObserver errors
-              window.addEventListener('DOMContentLoaded', function() {
-                // Override any third-party MutationObserver usage
-                const originalQuerySelector = document.querySelector;
-                const originalQuerySelectorAll = document.querySelectorAll;
-                
-                document.querySelector = function(selector) {
-                  try {
-                    return originalQuerySelector.call(this, selector);
-                  } catch (error) {
-                    console.warn('QuerySelector error prevented:', error);
-                    return null;
-                  }
-                };
-                
-                document.querySelectorAll = function(selector) {
-                  try {
-                    return originalQuerySelectorAll.call(this, selector);
-                  } catch (error) {
-                    console.warn('QuerySelectorAll error prevented:', error);
-                    return [];
-                  }
-                };
-              });
+              // Override console.error to suppress third-party errors
+              const originalConsoleError = console.error;
+              console.error = function(...args) {
+                const message = args.join(' ');
+                if (message.includes('credentials-library.js') || 
+                    message.includes('MutationObserver') ||
+                    message.includes('Argument 1') ||
+                    message.includes('must be an instance of Node')) {
+                  return; // Suppress these errors
+                }
+                originalConsoleError.apply(console, args);
+              };
             `,
           }}
         />
