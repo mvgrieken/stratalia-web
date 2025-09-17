@@ -27,7 +27,7 @@ export function createSupabaseClient() {
     logger.info('Supabase client created successfully');
     return client;
   } catch (error) {
-    logger.error('Failed to create Supabase client:', error);
+    logger.error('Failed to create Supabase client:', error instanceof Error ? error : new Error(String(error)));
     throw new Error('Failed to initialize Supabase client');
   }
 }
