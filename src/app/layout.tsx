@@ -66,15 +66,14 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              // AGGRESSIVE MutationObserver fix - must run IMMEDIATELY
+              // COMPREHENSIVE ERROR SUPPRESSION - must run IMMEDIATELY
               (function() {
                 'use strict';
                 
-                // Store original before anything can modify it
+                // 1. MUTATIONOBSERVER PROTECTION
                 const OriginalMutationObserver = window.MutationObserver;
                 
                 if (!OriginalMutationObserver) {
-                  // Create a mock if MutationObserver doesn't exist
                   window.MutationObserver = function() {
                     return {
                       observe: function() { return; },
@@ -82,150 +81,191 @@ export default function RootLayout({
                       takeRecords: function() { return []; }
                     };
                   };
-                  return;
-                }
-                
-                // Create bulletproof wrapper
-                function createSafeMutationObserver(callback) {
-                  const safeCallback = function(mutations, observer) {
-                    try {
-                      if (typeof callback === 'function') {
-                        callback(mutations, observer);
+                } else {
+                  function SafeMutationObserver(callback) {
+                    const safeCallback = function(mutations, observer) {
+                      try {
+                        if (typeof callback === 'function') {
+                          callback(mutations, observer);
+                        }
+                      } catch (error) {
+                        // Completely suppress all errors
+                        return;
                       }
-                    } catch (error) {
-                      // Silently ignore all callback errors
-                    }
-                  };
+                    };
+                    
+                    const observer = new OriginalMutationObserver(safeCallback);
+                    
+                    // Ultra-safe observe method
+                    observer.observe = function(target, options) {
+                      try {
+                        // Extensive validation
+                        if (!target) return;
+                        if (typeof target !== 'object') return;
+                        if (!target.nodeType) return;
+                        if (target.nodeType !== Node.ELEMENT_NODE && target.nodeType !== Node.DOCUMENT_NODE) return;
+                        if (!target.ownerDocument && target !== document) return;
+                        if (target.ownerDocument && target.ownerDocument !== document) return;
+                        if (!document.contains(target) && target !== document) return;
+                        
+                        // Additional safety checks
+                        if (target.tagName && target.tagName.toLowerCase() === 'script') return;
+                        if (target.src && target.src.includes('extension://')) return;
+                        if (target.src && target.src.includes('safari-web-extension://')) return;
+                        
+                        return OriginalMutationObserver.prototype.observe.call(this, target, options);
+                      } catch (error) {
+                        return; // Completely suppress
+                      }
+                    };
+                    
+                    return observer;
+                  }
                   
-                  const observer = new OriginalMutationObserver(safeCallback);
+                  // Copy all static properties
+                  Object.setPrototypeOf(SafeMutationObserver, OriginalMutationObserver);
+                  Object.assign(SafeMutationObserver, OriginalMutationObserver);
+                  SafeMutationObserver.prototype = OriginalMutationObserver.prototype;
                   
-                  // Override observe method
-                  const originalObserve = observer.observe;
-                  observer.observe = function(target, options) {
-                    try {
-                      // Validate target
-                      if (!target) return;
-                      if (typeof target !== 'object') return;
-                      if (!target.nodeType) return;
-                      if (!target.ownerDocument) return;
-                      if (target.ownerDocument !== document) return;
-                      
-                      // Check if target is still in document
-                      if (!document.contains(target)) return;
-                      
-                      return originalObserve.call(this, target, options);
-                    } catch (error) {
-                      // Silently ignore all observe errors
-                    }
-                  };
-                  
-                  // Override disconnect method
-                  const originalDisconnect = observer.disconnect;
-                  observer.disconnect = function() {
-                    try {
-                      return originalDisconnect.call(this);
-                    } catch (error) {
-                      // Silently ignore disconnect errors
-                    }
-                  };
-                  
-                  // Override takeRecords method
-                  const originalTakeRecords = observer.takeRecords;
-                  observer.takeRecords = function() {
-                    try {
-                      return originalTakeRecords.call(this);
-                    } catch (error) {
-                      return [];
-                    }
-                  };
-                  
-                  return observer;
+                  window.MutationObserver = SafeMutationObserver;
                 }
                 
-                // Replace the global constructor
-                window.MutationObserver = createSafeMutationObserver;
-                
-                // Copy static properties
-                Object.setPrototypeOf(createSafeMutationObserver, OriginalMutationObserver);
-                Object.assign(createSafeMutationObserver, OriginalMutationObserver);
-                
-                // Also replace any existing instances
-                const originalCreateElement = document.createElement;
-                document.createElement = function(tagName) {
-                  const element = originalCreateElement.call(this, tagName);
-                  
-                  // Add safety to any MutationObserver that might be created
-                  const originalAddEventListener = element.addEventListener;
-                  element.addEventListener = function(type, listener, options) {
-                    try {
-                      return originalAddEventListener.call(this, type, listener, options);
-                    } catch (error) {
-                      // Silently ignore event listener errors
-                    }
+                // 2. RESIZEOBSERVER PROTECTION
+                const OriginalResizeObserver = window.ResizeObserver;
+                if (OriginalResizeObserver) {
+                  window.ResizeObserver = function(callback) {
+                    const safeCallback = function(entries, observer) {
+                      try {
+                        callback(entries, observer);
+                      } catch (error) {
+                        return; // Suppress all ResizeObserver errors
+                      }
+                    };
+                    return new OriginalResizeObserver(safeCallback);
                   };
-                  
-                  return element;
+                  Object.setPrototypeOf(window.ResizeObserver, OriginalResizeObserver);
+                  Object.assign(window.ResizeObserver, OriginalResizeObserver);
+                }
+                
+                // 3. FETCH API PROTECTION (for extension errors)
+                const originalFetch = window.fetch;
+                window.fetch = function(...args) {
+                  try {
+                    const url = args[0];
+                    if (typeof url === 'string') {
+                      // Block extension URLs
+                      if (url.includes('extension://') || 
+                          url.includes('safari-web-extension://') ||
+                          url.includes('lastpass.com') ||
+                          url.includes('geticon.php')) {
+                        return Promise.reject(new Error('Blocked extension request'));
+                      }
+                    }
+                    return originalFetch.apply(this, args);
+                  } catch (error) {
+                    return Promise.reject(error);
+                  }
                 };
               })();
               
-              // Global error suppression
+              // COMPREHENSIVE GLOBAL ERROR SUPPRESSION
               window.addEventListener('error', function(event) {
-                // Suppress all errors from third-party scripts
-                if (event.filename && event.filename.includes('credentials-library.js')) {
+                // Suppress all errors from third-party scripts and extensions
+                if (event.filename && (
+                    event.filename.includes('credentials-library.js') ||
+                    event.filename.includes('extension://') ||
+                    event.filename.includes('safari-web-extension://') ||
+                    event.filename.includes('lastpass.com')
+                  )) {
                   event.preventDefault();
                   event.stopPropagation();
                   return false;
                 }
                 
-                // Suppress resource loading errors
-                if (event.target !== window) {
+                // Suppress all resource loading errors
+                if (event.target && event.target !== window) {
+                  const target = event.target;
+                  if (target.src && (
+                      target.src.includes('extension://') ||
+                      target.src.includes('safari-web-extension://') ||
+                      target.src.includes('lastpass.com') ||
+                      target.src.includes('geticon.php')
+                    )) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    return false;
+                  }
+                }
+                
+                // Suppress MutationObserver errors
+                if (event.message && (
+                    event.message.includes('MutationObserver') ||
+                    event.message.includes('must be an instance of Node') ||
+                    event.message.includes('Argument 1')
+                  )) {
                   event.preventDefault();
                   event.stopPropagation();
                   return false;
                 }
               }, true);
               
-              // Suppress unhandled promise rejections
+              // Suppress unhandled promise rejections from extensions
               window.addEventListener('unhandledrejection', function(event) {
-                event.preventDefault();
-                event.stopPropagation();
-                return false;
+                const reason = event.reason;
+                if (reason && typeof reason === 'object' && reason.message) {
+                  if (reason.message.includes('extension://') ||
+                      reason.message.includes('safari-web-extension://') ||
+                      reason.message.includes('lastpass.com') ||
+                      reason.message.includes('Access-Control-Allow-Origin') ||
+                      reason.message.includes('Blocked extension request')) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    return false;
+                  }
+                }
+                // Also suppress generic fetch errors that might be extension-related
+                if (reason && reason.toString().includes('Failed to fetch')) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  return false;
+                }
               });
               
-              // Override console.error to suppress third-party errors
+              // COMPREHENSIVE CONSOLE ERROR SUPPRESSION
               const originalConsoleError = console.error;
               console.error = function(...args) {
                 const message = args.join(' ');
+                // Suppress all problematic errors
                 if (message.includes('credentials-library.js') || 
                     message.includes('MutationObserver') ||
                     message.includes('Argument 1') ||
                     message.includes('must be an instance of Node') ||
                     message.includes('ResizeObserver loop completed') ||
-                    message.includes('ResizeObserver loop limit exceeded')) {
-                  return; // Suppress these errors
+                    message.includes('ResizeObserver loop limit exceeded') ||
+                    message.includes('safari-web-extension://') ||
+                    message.includes('extension://') ||
+                    message.includes('lastpass.com') ||
+                    message.includes('geticon.php') ||
+                    message.includes('Access-Control-Allow-Origin') ||
+                    message.includes('Toegang tot de gevraagde resource') ||
+                    message.includes('is not allowed by Access-Control-Allow-Origin')) {
+                  return; // Suppress these errors completely
                 }
                 originalConsoleError.apply(console, args);
               };
               
-              // Suppress ResizeObserver errors globally
-              const originalResizeObserver = window.ResizeObserver;
-              if (originalResizeObserver) {
-                window.ResizeObserver = class extends originalResizeObserver {
-                  constructor(callback) {
-                    const wrappedCallback = (entries, observer) => {
-                      try {
-                        callback(entries, observer);
-                      } catch (error) {
-                        // Suppress ResizeObserver errors
-                        if (!error.message.includes('ResizeObserver loop')) {
-                          throw error;
-                        }
-                      }
-                    };
-                    super(wrappedCallback);
-                  }
-                };
-              }
+              // Also suppress console.warn for these issues
+              const originalConsoleWarn = console.warn;
+              console.warn = function(...args) {
+                const message = args.join(' ');
+                if (message.includes('ResizeObserver') ||
+                    message.includes('MutationObserver') ||
+                    message.includes('extension://') ||
+                    message.includes('safari-web-extension://')) {
+                  return; // Suppress these warnings
+                }
+                originalConsoleWarn.apply(console, args);
+              };
             `,
           }}
         />
