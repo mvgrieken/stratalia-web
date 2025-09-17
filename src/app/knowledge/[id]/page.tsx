@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Navigation from '@/components/Navigation';
+import DetailNavigation from './DetailNavigation';
+import NotFoundState from './NotFoundState';
 
 interface KnowledgeItem {
   id: string;
@@ -198,19 +200,7 @@ Straattaal blijft evolueren en nieuwe woorden worden constant toegevoegd. Het is
       <>
         <Navigation />
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-center max-w-md mx-auto">
-            <div className="text-6xl mb-4">😕</div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Item niet gevonden</h1>
-            <p className="text-gray-600 mb-6">
-              {error || 'Het gevraagde item kon niet worden gevonden.'}
-            </p>
-            <button
-              onClick={() => router.push('/knowledge')}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
-            >
-              Terug naar Kennisbank
-            </button>
-          </div>
+          <NotFoundState error={error} />
         </div>
       </>
     );
@@ -223,29 +213,13 @@ Straattaal blijft evolueren en nieuwe woorden worden constant toegevoegd. Het is
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-4xl mx-auto">
             {/* Breadcrumb */}
-            <nav className="mb-6">
-              <ol className="flex items-center space-x-2 text-sm text-gray-500">
-                <li>
-                  <button
-                    onClick={() => router.push('/')}
-                    className="hover:text-blue-600"
-                  >
-                    Home
-                  </button>
-                </li>
-                <li>/</li>
-                <li>
-                  <button
-                    onClick={() => router.push('/knowledge')}
-                    className="hover:text-blue-600"
-                  >
-                    Kennisbank
-                  </button>
-                </li>
-                <li>/</li>
-                <li className="text-gray-900">{item.title}</li>
-              </ol>
-            </nav>
+            <DetailNavigation 
+              onBackToKnowledge={() => router.push('/knowledge')}
+              onGoHome={() => router.push('/')}
+            />
+            <div className="text-sm text-gray-500 mb-6">
+              <span className="text-gray-900">{item.title}</span>
+            </div>
 
             {/* Article Header */}
             <div className="bg-white rounded-lg shadow-lg p-8 mb-8">

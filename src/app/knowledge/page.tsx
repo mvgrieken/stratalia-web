@@ -1,6 +1,7 @@
 import Navigation from '@/components/Navigation';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import KnowledgeClient from './KnowledgeClient';
+import ErrorState from './ErrorState';
 
 interface KnowledgeItem {
   id: string;
@@ -112,17 +113,7 @@ export default async function KnowledgePage() {
       <>
         <Navigation />
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-center">
-            <div className="text-red-500 text-6xl mb-4">⚠️</div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Fout bij laden</h1>
-            <p className="text-gray-600 mb-4">{error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-            >
-              Opnieuw proberen
-            </button>
-          </div>
+        <ErrorState error={error} />
         </div>
       </>
     );
