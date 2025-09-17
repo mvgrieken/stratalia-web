@@ -1,11 +1,10 @@
-'use client';
-
-import { useState, useEffect, useCallback } from 'react';
 import Navigation from '@/components/Navigation';
+import { getSupabaseClient } from '@/lib/supabase-client';
+import KnowledgeClient from './KnowledgeClient';
 
 interface KnowledgeItem {
   id: string;
-  type: 'article' | 'video' | 'podcast' | 'infographic';
+  type: 'article' | 'video' | 'podcast' | 'infographic' | 'book' | 'music';
   title: string;
   content: string;
   author: string;
@@ -20,79 +19,43 @@ interface KnowledgeItem {
   word_count?: number;
 }
 
-export default function KnowledgePage() {
-  const [items, setItems] = useState<KnowledgeItem[]>([]);
-  const [filteredItems, setFilteredItems] = useState<KnowledgeItem[]>([]);
-  const [selectedType, setSelectedType] = useState<string>('all');
-  const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [loading, setLoading] = useState(true);
+export default async function KnowledgePage() {
+  let items: KnowledgeItem[] = [];
+  let error: string | null = null;
 
-  useEffect(() => {
-    fetchKnowledgeItems();
-  }, []);
+  try {
+    // Fetch knowledge items directly from Supabase
+    const supabase = getSupabaseClient();
+    
+    const { data: knowledgeItems, error: dbError } = await supabase
+      .from('knowledge_items')
+      .select('*')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
 
-  const filterItems = useCallback(() => {
-    let filtered = items;
-
-    if (selectedType !== 'all') {
-      filtered = filtered.filter(item => item.type === selectedType);
-    }
-
-    if (selectedDifficulty !== 'all') {
-      filtered = filtered.filter(item => item.difficulty === selectedDifficulty);
-    }
-
-    if (searchQuery) {
-      filtered = filtered.filter(item => 
-        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-      );
-    }
-
-    setFilteredItems(filtered);
-  }, [items, selectedType, selectedDifficulty, searchQuery]);
-
-  useEffect(() => {
-    filterItems();
-  }, [filterItems]);
-
-  const fetchKnowledgeItems = async () => {
-    try {
-      // Fetch real knowledge base data from Supabase
-      const response = await fetch('/api/content/approved');
-      
-      if (response.ok) {
-        const data = await response.json();
-        
-        // Transform content data to knowledge items
-        const knowledgeItems: KnowledgeItem[] = data.items?.map((item: any) => ({
-          id: item.id,
-          type: item.type || 'article',
-          title: item.title,
-          content: item.content,
-          author: item.author || 'Stratalia Community',
-          category: item.category || 'algemeen',
-          tags: item.tags || ['straattaal', 'leren'],
-          difficulty: item.difficulty || 'intermediate',
-          created_at: item.created_at,
-          updated_at: item.updated_at,
-          is_active: item.is_active !== false,
-          thumbnail_url: item.thumbnail_url,
-          duration: item.duration,
-          word_count: item.word_count
-        })) || [];
-
-        if (knowledgeItems.length > 0) {
-          setItems(knowledgeItems);
-          return;
-        }
-      }
-      
-      // Fallback to default items if API fails or returns no data
-      const defaultItems: KnowledgeItem[] = [
+    if (dbError) {
+      console.error('Database error:', dbError);
+      error = 'Er is een fout opgetreden bij het laden van de kennisbank.';
+    } else if (knowledgeItems && knowledgeItems.length > 0) {
+      items = knowledgeItems.map((item: any) => ({
+        id: item.id,
+        type: item.type || 'article',
+        title: item.title,
+        content: item.content,
+        author: item.author || 'Stratalia Community',
+        category: item.category || 'algemeen',
+        tags: item.tags || ['straattaal', 'leren'],
+        difficulty: item.difficulty || 'intermediate',
+        created_at: item.created_at,
+        updated_at: item.updated_at,
+        is_active: item.is_active !== false,
+        thumbnail_url: item.thumbnail_url,
+        duration: item.duration,
+        word_count: item.word_count
+      }));
+    } else {
+      // Fallback to default items if database is empty
+      items = [
         {
           id: '0b012f34-1c42-4aea-8eae-b0165d4c0712',
           type: 'article',
@@ -114,7 +77,7 @@ export default function KnowledgePage() {
           content: 'Een video introductie tot Nederlandse straattaal. Leer de basiswoorden en hoe je ze kunt gebruiken.',
           author: 'Stratalia Team',
           category: 'video',
-          tags: ['video', 'straattaal', 'beginners'],
+          tags: ['video', 'beginners', 'introductie'],
           difficulty: 'beginner',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
@@ -129,240 +92,46 @@ export default function KnowledgePage() {
           content: 'Luister naar gesprekken over straattaal en cultuur. Experts delen hun kennis over de evolutie van straattaal.',
           author: 'Stratalia Team',
           category: 'podcast',
-          tags: ['podcast', 'straattaal', 'cultuur'],
+          tags: ['podcast', 'cultuur', 'experts'],
           difficulty: 'intermediate',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           is_active: true,
-          duration: 1800
+          duration: 1800,
+          thumbnail_url: '/images/podcast-cover.jpg'
         }
       ];
-
-      setItems(defaultItems);
-    } catch (error) {
-      console.error('Error fetching knowledge items:', error);
-      
-      // Set fallback items even on error
-      const fallbackItems: KnowledgeItem[] = [
-        {
-          id: 'fallback-1',
-          type: 'article',
-          title: 'Straattaal Basis',
-          content: 'Leer de basis van Nederlandse straattaal. Een introductie tot de meest gebruikte woorden en uitdrukkingen.',
-          author: 'Stratalia Team',
-          category: 'basis',
-          tags: ['straattaal', 'basis', 'leren'],
-          difficulty: 'beginner',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          is_active: true,
-          word_count: 100
-        }
-      ];
-      
-      setItems(fallbackItems);
-    } finally {
-      setLoading(false);
     }
-  };
+  } catch (err) {
+    console.error('Error fetching knowledge items:', err);
+    error = 'Er is een fout opgetreden bij het laden van de kennisbank.';
+  }
 
-
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'article': return '📄';
-      case 'video': return '🎥';
-      case 'podcast': return '🎧';
-      case 'book': return '📚';
-      case 'music': return '🎵';
-      default: return '📄';
-    }
-  };
-
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'beginner': return 'bg-green-100 text-green-800';
-      case 'intermediate': return 'bg-yellow-100 text-yellow-800';
-      case 'advanced': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getTypeCount = (type: string) => {
-    return items.filter(item => item.type === type).length;
-  };
-
-  if (loading) {
+  if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Kennisbank wordt geladen...</p>
+      <>
+        <Navigation />
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-red-500 text-6xl mb-4">⚠️</div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Fout bij laden</h1>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+            >
+              Opnieuw proberen
+            </button>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
     <>
       <Navigation />
-      <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">Kennisbank</h1>
-
-          {/* Search and Filters */}
-          <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-            <div className="flex flex-col md:flex-row gap-4 mb-6">
-              <div className="flex-1">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Zoek in de kennisbank..."
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-wrap gap-4">
-              {/* Type Filter */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
-                <select
-                  value={selectedType}
-                  onChange={(e) => setSelectedType(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="all">Alle types ({items.length})</option>
-                  <option value="article">📄 Artikelen ({getTypeCount('article')})</option>
-                  <option value="video">🎥 Video's ({getTypeCount('video')})</option>
-                  <option value="podcast">🎧 Podcasts ({getTypeCount('podcast')})</option>
-                  <option value="book">📚 Boeken ({getTypeCount('book')})</option>
-                  <option value="music">🎵 Muziek ({getTypeCount('music')})</option>
-                </select>
-              </div>
-
-              {/* Difficulty Filter */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Niveau</label>
-                <select
-                  value={selectedDifficulty}
-                  onChange={(e) => setSelectedDifficulty(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="all">Alle niveaus</option>
-                  <option value="beginner">Beginner</option>
-                  <option value="intermediate">Gemiddeld</option>
-                  <option value="advanced">Gevorderd</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Results */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredItems.map((item) => (
-              <div key={item.id} className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-                <div className="p-6">
-                  <div className="flex items-center mb-3">
-                    <span className="text-2xl mr-2">{getTypeIcon(item.type)}</span>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(item.difficulty)}`}>
-                      {item.difficulty}
-                    </span>
-                  </div>
-
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
-                    {item.title}
-                  </h3>
-
-                  <p className="text-sm text-gray-600 mb-3 line-clamp-3">
-                    {item.content}
-                  </p>
-
-                  <div className="flex items-center text-sm text-gray-500 mb-3">
-                    <span>👤 {item.author}</span>
-                    <span className="ml-4">📅 {new Date(item.created_at).getFullYear()}</span>
-                    {item.duration && <span className="ml-4">⏱️ {Math.floor(item.duration / 60)} min</span>}
-                  </div>
-
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center">
-                      <span className="text-sm text-gray-600">
-                        {item.word_count ? `${item.word_count} woorden` : 'Artikel'}
-                      </span>
-                    </div>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      item.difficulty === 'beginner' ? 'bg-green-100 text-green-800' :
-                      item.difficulty === 'intermediate' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-red-100 text-red-800'
-                    }`}>
-                      {item.difficulty}
-                    </span>
-                  </div>
-
-                  <div className="flex flex-wrap gap-1 mb-4">
-                    {item.tags.slice(0, 3).map((tag, index) => (
-                      <span
-                        key={index}
-                        className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full"
-                      >
-                        #{tag}
-                      </span>
-                    ))}
-                  </div>
-
-                  <button
-                    className="block w-full bg-blue-600 text-white text-center py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                    onClick={() => {
-                      window.location.href = `/knowledge/${item.id}`;
-                    }}
-                  >
-                    Bekijk
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {filteredItems.length === 0 && (
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">🔍</div>
-              <p className="text-gray-500 text-lg">Geen resultaten gevonden</p>
-              <p className="text-gray-400 text-sm mt-2">
-                Probeer andere filters of zoektermen
-              </p>
-            </div>
-          )}
-
-          {/* Quick Stats */}
-          <div className="mt-8 bg-white rounded-lg shadow-lg p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Kennisbank Statistieken</h3>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">{items.length}</div>
-                <div className="text-sm text-gray-600">Totaal Items</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">{getTypeCount('article')}</div>
-                <div className="text-sm text-gray-600">Artikelen</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600">{getTypeCount('video')}</div>
-                <div className="text-sm text-gray-600">Video's</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-orange-600">{getTypeCount('podcast')}</div>
-                <div className="text-sm text-gray-600">Podcasts</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-red-600">{getTypeCount('book')}</div>
-                <div className="text-sm text-gray-600">Boeken</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+      <KnowledgeClient initialItems={items} />
     </>
   );
 }
