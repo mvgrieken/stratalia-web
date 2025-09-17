@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
       return createSuccessResponse({
         results: [],
         message: 'Voer een zoekterm in',
-        suggestions: ['skeer', 'breezy', 'flexen', 'chill', 'dope', 'lit'],
+        suggestions: ['skeer', 'breezy', 'flexen', 'chill', 'dope', 'lit', 'waggi', 'bro', 'sick'],
         total: 0,
         source: 'fallback'
       }, 200);
@@ -29,13 +29,9 @@ export async function GET(request: NextRequest) {
 
     logger.info(`Search request: query=${query.trim()}, limit=${limit}`);
 
-    // Use the WordService for business logic with fallback
+    // Always use mock data for now to ensure reliability
     let results;
     try {
-      results = await wordService.searchWords(query.trim(), limit);
-    } catch (serviceError) {
-      logger.warn(`WordService failed, using direct fallback: ${serviceError}`);
-      // Direct fallback to mock data if service fails
       const { mockDataService } = await import('@/lib/mock-data');
       const mockWords = mockDataService.searchWords(query.trim().toLowerCase(), limit);
       results = mockWords.map(word => ({
@@ -46,6 +42,11 @@ export async function GET(request: NextRequest) {
         match_type: word.word.toLowerCase() === query.trim().toLowerCase() ? 'exact' as const : 'partial' as const,
         similarity_score: word.word.toLowerCase() === query.trim().toLowerCase() ? 1.0 : 0.8
       }));
+      
+      logger.info(`Search using mock data: found ${results.length} results`);
+    } catch (fallbackError) {
+      logger.error('Even mock data failed:', fallbackError);
+      results = [];
     }
 
     // Always return consistent response format
@@ -55,10 +56,10 @@ export async function GET(request: NextRequest) {
         ? `Geen resultaten gevonden voor "${query}". Probeer een ander woord.`
         : `Gevonden ${results.length} resultaat${results.length !== 1 ? 'en' : ''} voor "${query}"`,
       suggestions: results.length === 0 
-        ? ['skeer', 'breezy', 'flexen', 'chill', 'dope', 'lit']
+        ? ['skeer', 'breezy', 'flexen', 'chill', 'dope', 'lit', 'waggi', 'bro', 'sick']
         : [],
       total: results.length,
-      source: results.length > 0 && results[0]?.match_type === 'fallback' ? 'fallback' : 'database'
+      source: 'fallback'
     };
 
     logger.info(`Search completed successfully: resultCount=${results.length}, source=${responseData.source}`);
@@ -75,7 +76,7 @@ export async function GET(request: NextRequest) {
     return createSuccessResponse({
       results: [],
       message: `Zoeken mislukt voor "${query}". Probeer het opnieuw.`,
-      suggestions: ['skeer', 'breezy', 'flexen', 'chill', 'dope', 'lit'],
+      suggestions: ['skeer', 'breezy', 'flexen', 'chill', 'dope', 'lit', 'waggi', 'bro', 'sick'],
       total: 0,
       source: 'fallback'
     }, 200);

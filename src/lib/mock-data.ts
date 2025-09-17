@@ -426,7 +426,7 @@ class MockDataService {
       updated_at: new Date().toISOString(),
       is_active: true,
       duration: 1800, // 30 minutes
-      audio_url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav', // Placeholder audio URL
+      audio_url: 'https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Kangaroo_MusiQue_-_The_Neverwritten_Role_Playing_Game.mp3', // Working audio URL
       thumbnail_url: 'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&h=300&fit=crop'
     },
     {
@@ -442,7 +442,7 @@ class MockDataService {
       updated_at: new Date().toISOString(),
       is_active: true,
       duration: 300, // 5 minutes
-      video_url: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4', // Placeholder video URL
+      video_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', // Working video URL
       thumbnail_url: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop'
     },
     {
