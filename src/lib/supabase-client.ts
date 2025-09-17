@@ -5,6 +5,9 @@
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { config, isSupabaseConfigured } from './config';
+
+// Re-export for backward compatibility
+export { isSupabaseConfigured };
 import { logger } from './logger';
 
 export type SupabaseClientType = 'anon' | 'service';

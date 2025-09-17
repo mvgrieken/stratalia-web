@@ -198,3 +198,45 @@ export {
   getReverseTranslationMap,
   findTranslation
 } from '@/data/translations';
+
+// Backward compatibility - create mockDataService object
+export const mockDataService = {
+  // Words
+  searchWords,
+  getWordById,
+  getWordsByCategory,
+  getWordsByDifficulty,
+  getRandomWords,
+  getWordOfTheDay,
+  getWords,
+  
+  // Quiz
+  getQuizQuestions,
+  getQuizQuestionById,
+  getRandomQuizQuestion,
+  getQuizQuestionsByWord,
+  getQuizQuestionsByDifficulty,
+  getQuizStats,
+  
+  // Knowledge
+  getKnowledgeItems,
+  getKnowledgeItemById,
+  searchKnowledgeItems,
+  getKnowledgeItemsByCategory,
+  getKnowledgeItemsByType,
+  getKnowledgeItemsByDifficulty,
+  getKnowledgeStats,
+  getRandomKnowledgeItems,
+  
+  // Leaderboard
+  getLeaderboardUsers,
+  getLeaderboardUserById,
+  getLeaderboardUserByRank,
+  getTopUsers,
+  getLeaderboardStats,
+  
+  // Translations
+  getTranslationMap,
+  getReverseTranslationMap,
+  findTranslation
+};

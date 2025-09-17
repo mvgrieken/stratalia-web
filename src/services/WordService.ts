@@ -302,3 +302,7 @@ class WordService extends BaseService {
 
 // Singleton instance
 export const wordService = new WordService();
+
+// Backward compatibility exports
+export { WordService };
+export default wordService;

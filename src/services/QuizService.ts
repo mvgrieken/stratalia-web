@@ -333,3 +333,7 @@ class QuizService {
 
 // Singleton instance
 export const quizService = new QuizService();
+
+// Backward compatibility exports
+export { QuizService };
+export default quizService;
