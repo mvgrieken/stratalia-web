@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { wordService } from '@/services/WordService';
-import { createSuccessResponse, withErrorHandling, Errors } from '@/lib/errors';
+import { createSuccessResponse } from '@/lib/errors';
 import { applyRateLimit } from '@/middleware/rateLimiter';
 import { logger } from '@/lib/logger';
 

@@ -150,7 +150,8 @@ export async function GET(
     }, { status: 404 });
 
   } catch (error) {
-    logger.error('Error in content API:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    logger.error('Error in content API:', error instanceof Error ? error : new Error(errorMessage));
     return NextResponse.json({
       success: false,
       error: 'Internal server error'
