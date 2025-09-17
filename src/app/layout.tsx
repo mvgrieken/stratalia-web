@@ -14,6 +14,15 @@ export const metadata: Metadata = {
   keywords: 'straattaal, nederlands, vertalen, quiz, community',
   authors: [{ name: 'Stratalia Team' }],
   viewport: 'width=device-width, initial-scale=1',
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', sizes: 'any' }
+    ],
+    apple: [
+      { url: '/favicon.svg', type: 'image/svg+xml' }
+    ]
+  },
   other: {
     'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; worker-src 'self'; manifest-src 'self';",
     'X-Content-Type-Options': 'nosniff',

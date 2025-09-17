@@ -1,0 +1,28 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle with gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B5CF6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7C3AED;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F3F4F6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Main background circle -->
+  <circle cx="16" cy="16" r="15" fill="url(#bgGradient)" stroke="#7C3AED" stroke-width="1"/>
+  
+  <!-- Letter "S" for Stratalia - simplified -->
+  <path d="M10 8 C10 6, 12 6, 14 6 C16 6, 16 8, 16 10 C16 12, 14 12, 12 12 L8 12 C6 12, 6 14, 8 14 L12 14 C14 14, 16 14, 16 16 C16 18, 14 18, 12 18 C10 18, 10 16, 10 14 C10 12, 12 12, 14 12 L18 12 C20 12, 20 10, 18 10 L14 10 C12 10, 10 10, 10 8 Z" 
+        fill="url(#textGradient)" 
+        stroke="none"/>
+  
+  <!-- Small accent dots representing knowledge/learning -->
+  <circle cx="22" cy="10" r="1.5" fill="#FCD34D" opacity="0.8"/>
+  <circle cx="24" cy="14" r="1" fill="#F59E0B" opacity="0.6"/>
+  <circle cx="20" cy="18" r="1.2" fill="#FCD34D" opacity="0.7"/>
+  <circle cx="8" cy="22" r="1" fill="#F59E0B" opacity="0.5"/>
+  <circle cx="12" cy="24" r="0.8" fill="#FCD34D" opacity="0.6"/>
+</svg>
