@@ -77,16 +77,16 @@ export default function HomePage() {
           </div>
 
           <div className="bg-white rounded-lg shadow-md p-6 text-center">
-            <div className="text-4xl mb-4">🤖</div>
-            <h3 className="text-xl font-semibold mb-2">straattaal Zoeken</h3>
+            <div className="text-4xl mb-4">📖</div>
+            <h3 className="text-xl font-semibold mb-2">Woordenboek</h3>
             <p className="mb-4 text-gray-600">
-              Zoek straattaalwoorden en vind hun betekenis
+              Blader door onze straattaal woordenlijst
             </p>
             <Link
-              href="/translate"
+              href="/search"
               className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 inline-block"
             >
-              Zoeken
+              Bekijk Woordenboek
             </Link>
           </div>
 

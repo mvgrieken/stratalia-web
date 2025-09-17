@@ -53,135 +53,293 @@ export default function KnowledgeDetailPage() {
           }
         }
 
-        // Fallback to mock data (using real database IDs)
+        // Fallback to mock data (synchronized with knowledge page fallback)
         const mockItems = [
           {
-            id: 'fa845e60-d3c6-4136-bdf2-ebe750c2f1f7',
-            title: 'Straattaal in Social Media',
-            content: `Straattaal in Nederland heeft een rijke geschiedenis die teruggaat tot de jaren 80. Het ontstond in multiculturele wijken waar verschillende talen en culturen samenkwamen.
+            id: '0b012f34-1c42-4aea-8eae-b0165d4c0712',
+            title: 'Welkom bij Stratalia',
+            content: `Leer meer over Nederlandse straattaal en hoe je het kunt gebruiken. Deze kennisbank bevat artikelen, video's en podcasts over straattaal.
 
-## De Oorsprong
+## Wat is Straattaal?
 
-In de jaren 80 begon straattaal zich te ontwikkelen in steden zoals Amsterdam, Rotterdam en Den Haag. Jongeren uit verschillende culturen creëerden een nieuwe manier van communiceren die hun identiteit weerspiegelde.
+Straattaal is een informele variant van het Nederlands die vooral wordt gebruikt door jongeren in stedelijke gebieden. Het is een dynamische taal die voortdurend evolueert en elementen bevat uit verschillende culturen en talen.
 
-## Belangrijke Invloeden
+## Waarom Straattaal Leren?
 
-- **Surinaams-Nederlands**: Veel woorden komen uit het Sranan Tongo
-- **Engels**: Populaire muziek en films brachten Engelse termen
-- **Arabisch**: Woorden uit het Marokkaans-Arabisch
-- **Turks**: Invloeden uit de Turkse gemeenschap
+- **Identiteit**: Uitdrukken van je persoonlijkheid
+- **Groepsvorming**: Bij een community horen
+- **Creativiteit**: Nieuwe manieren van communiceren
+- **Culturele diversiteit**: Verschillende achtergronden verbinden
 
-## Moderne Ontwikkeling
+## Hoe Gebruik Je Deze Kennisbank?
 
-Vandaag de dag is straattaal een integraal onderdeel van de Nederlandse jeugdcultuur. Het wordt gebruikt in:
-- Sociale media
-- Muziek en entertainment
-- Dagelijks gesprek
-- Online gaming
+1. **Blader door artikelen** voor diepgaande informatie
+2. **Bekijk video's** voor visuele uitleg
+3. **Luister naar podcasts** voor gesprekken over straattaal
+4. **Gebruik de zoekfunctie** om specifieke woorden te vinden
 
-## De Toekomst
+## Tips voor Beginners
 
-Straattaal blijft evolueren en nieuwe woorden worden constant toegevoegd. Het is een levende taal die de diversiteit van de Nederlandse samenleving weerspiegelt.`,
+- Start met veelgebruikte woorden zoals "skeer", "chill", "dope"
+- Luister naar Nederlandse rap en hip-hop
+- Praat met vrienden die straattaal gebruiken
+- Wees niet bang om fouten te maken - straattaal is altijd in ontwikkeling!`,
             type: 'article' as const,
             difficulty: 'beginner' as const,
-            category: 'geschiedenis',
-            tags: ['geschiedenis', 'cultuur', 'jeugd'],
+            category: 'introductie',
+            tags: ['introductie', 'straattaal', 'leren'],
             author: 'Stratalia Team',
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
             is_active: true,
-            word_count: 150
+            word_count: 50
+          },
+          {
+            id: '1614551a-e197-42ff-ac1d-b7573f5cfd7f',
+            title: 'Straattaal voor Beginners',
+            content: `Een video introductie tot Nederlandse straattaal. Leer de basiswoorden en hoe je ze kunt gebruiken.
+
+## Video Inhoud
+
+Deze video behandelt:
+- Basis straattaalwoorden
+- Hoe je ze correct uitspreekt
+- Wanneer je ze kunt gebruiken
+- Veelgemaakte fouten
+
+## Belangrijke Woorden
+
+**Skeer** - Arm zijn, weinig geld hebben
+**Chill** - Ontspannen, kalm
+**Dope** - Geweldig, cool
+**Lit** - Fantastisch, geweldig
+**Fire** - Geweldig, fantastisch
+
+## Tips
+
+- Luister goed naar de uitspraak
+- Oefen met vrienden
+- Wees respectvol in je gebruik
+- Begrijp de context voordat je woorden gebruikt`,
+            type: 'video' as const,
+            difficulty: 'beginner' as const,
+            category: 'video',
+            tags: ['video', 'beginners', 'introductie'],
+            author: 'Stratalia Team',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            is_active: true,
+            duration: 300,
+            thumbnail_url: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop'
+          },
+          {
+            id: '6dd5b2b4-2c9c-48dc-b632-01d70de074a2',
+            title: 'Straattaal Podcast',
+            content: `Luister naar gesprekken over straattaal en cultuur. Experts delen hun kennis over de evolutie van straattaal.
+
+## Podcast Inhoud
+
+In deze aflevering:
+- Geschiedenis van Nederlandse straattaal
+- Invloeden uit verschillende culturen
+- Hoe straattaal evolueert
+- Toekomst van straattaal
+
+## Gasten
+
+- **Dr. Taalwetenschap** - Expert in Nederlandse straattaal
+- **Rapper Lil Kleine** - Praktijkervaring met straattaal
+- **Leraar Nederlands** - Onderwijs perspectief
+
+## Belangrijke Thema's
+
+- Multiculturele invloeden
+- Generatieverschillen
+- Sociale media impact
+- Taal en identiteit`,
+            type: 'podcast' as const,
+            difficulty: 'intermediate' as const,
+            category: 'podcast',
+            tags: ['podcast', 'cultuur', 'experts'],
+            author: 'Stratalia Team',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            is_active: true,
+            duration: 1800,
+            thumbnail_url: 'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&h=300&fit=crop'
+          },
+          {
+            id: 'fa845e60-d3c6-4136-bdf2-ebe750c2f1f7',
+            title: 'Straattaal in Social Media',
+            content: `Ontdek hoe straattaal wordt gebruikt op sociale media platforms en wat de invloed is op de Nederlandse jeugdcultuur.
+
+## Social Media Platforms
+
+### Instagram
+- **Stories**: Korte berichten met straattaal
+- **Captions**: Beschrijvingen met populaire woorden
+- **Comments**: Reacties in straattaal
+
+### TikTok
+- **Videos**: Creatieve content met straattaal
+- **Hashtags**: Trending woorden en uitdrukkingen
+- **Challenges**: Viral trends met straattaal
+
+### Snapchat
+- **Snaps**: Dagelijkse communicatie
+- **Streaks**: Vriendschappen onderhouden
+- **Filters**: Visuele expressie
+
+## Populaire Woorden Online
+
+- **Vibe** - Sfeer, energie
+- **Mood** - Stemming, gevoel
+- **Goals** - Doelen, aspiraties
+- **Flex** - Opscheppen, pronken
+- **No cap** - Geen grap, serieus
+
+## Impact op Taal
+
+Straattaal op sociale media:
+- Verspreidt zich sneller
+- Bereikt meer mensen
+- Evolueert constant
+- Beïnvloedt mainstream taal`,
+            type: 'article' as const,
+            difficulty: 'intermediate' as const,
+            category: 'sociale-media',
+            tags: ['sociale-media', 'jeugd', 'cultuur'],
+            author: 'Stratalia Team',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            is_active: true,
+            word_count: 120,
+            thumbnail_url: 'https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=400&h=300&fit=crop'
           },
           {
             id: 'd2c07aa3-aac1-4392-8234-9edb2601437a',
-            title: 'Podcast: Straattaal in de Muziek',
-            content: `Ontdek de meest populaire straattaalwoorden van dit moment:
+            title: 'Top 10 Straattaalwoorden',
+            content: `De meest populaire straattaalwoorden van dit moment. Van "skeer" tot "flexen" - leer de woorden die iedereen gebruikt.
 
 ## 1. Skeer
 **Betekenis**: Arm zijn, weinig geld hebben
 **Voorbeeld**: "Ik ben helemaal skeer deze maand."
+**Gebruik**: Wanneer je weinig geld hebt
 
 ## 2. Breezy
 **Betekenis**: Cool, relaxed
 **Voorbeeld**: "Die nieuwe sneakers zijn echt breezy."
+**Gebruik**: Om iets cools te beschrijven
 
 ## 3. Flexen
 **Betekenis**: Opscheppen, pronken
 **Voorbeeld**: "Hij flexte met zijn nieuwe auto."
+**Gebruik**: Wanneer iemand opschept
 
 ## 4. Chill
 **Betekenis**: Ontspannen, kalm
 **Voorbeeld**: "Laten we gewoon chillen vandaag."
+**Gebruik**: Om ontspanning aan te duiden
 
 ## 5. Dope
 **Betekenis**: Geweldig, cool
 **Voorbeeld**: "Die nieuwe track is echt dope."
+**Gebruik**: Om iets geweldigs te beschrijven
 
 ## 6. Lit
 **Betekenis**: Fantastisch, geweldig
 **Voorbeeld**: "Het feest was echt lit gisteren."
+**Gebruik**: Voor geweldige ervaringen
 
 ## 7. Fire
 **Betekenis**: Geweldig, fantastisch
 **Voorbeeld**: "Die nieuwe sneakers zijn fire."
+**Gebruik**: Vergelijkbaar met "lit"
 
 ## 8. Vibe
 **Betekenis**: Sfeer, energie
 **Voorbeeld**: "Ik hou van de vibe hier."
+**Gebruik**: Om sfeer te beschrijven
 
 ## 9. Mood
 **Betekenis**: Stemming, gevoel
 **Voorbeeld**: "Dit is echt mijn mood vandaag."
+**Gebruik**: Om je gevoel uit te drukken
 
 ## 10. Goals
 **Betekenis**: Doelen, aspiraties
-**Voorbeeld**: "Jullie relatie is echt goals."`,
-            type: 'infographic' as const,
+**Voorbeeld**: "Jullie relatie is echt goals."
+**Gebruik**: Om iets te bewonderen`,
+            type: 'article' as const,
             difficulty: 'beginner' as const,
             category: 'woordenlijst',
-            tags: ['top 10', 'populair', 'woorden'],
+            tags: ['top-10', 'populair', 'woorden'],
             author: 'Stratalia Team',
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
             is_active: true,
-            word_count: 75
+            word_count: 75,
+            thumbnail_url: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop'
           },
           {
             id: '6454db1f-8518-4bec-b693-043f9372e18a',
-            title: 'Wat is Straattaal?',
-            content: `Straattaal is een informele variant van het Nederlands die vooral wordt gebruikt door jongeren in stedelijke gebieden. Het is een dynamische taal die voortdurend evolueert en elementen bevat uit verschillende culturen en talen.
+            title: 'Straattaal Geschiedenis',
+            content: `Een diepgaande analyse van de geschiedenis van Nederlandse straattaal. Van de jaren 80 tot nu.
 
-## Definitie
+## De Oorsprong (Jaren 80)
 
-Straattaal is niet alleen een verzameling woorden, maar een complete communicatievorm die:
-- Identiteit uitdrukt
-- Groepsvorming bevordert
-- Creativiteit stimuleert
-- Culturele diversiteit weerspiegelt
+Straattaal ontstond in multiculturele wijken van grote steden:
+- **Amsterdam**: Bijlmer, Zuidoost
+- **Rotterdam**: Afrikaanderwijk, Delfshaven
+- **Den Haag**: Schilderswijk, Transvaal
 
-## Kenmerken
+## Belangrijke Invloeden
 
-- **Dynamisch**: Nieuwe woorden worden constant toegevoegd
-- **Multicultureel**: Invloeden uit verschillende talen
-- **Creatief**: Woorden worden op nieuwe manieren gebruikt
-- **Generatiegebonden**: Vooral populair bij jongeren
+### Surinaams-Nederlands
+- **Sranan Tongo**: Basis voor veel woorden
+- **Voorbeelden**: "brada" (broer), "sisa" (zus)
 
-## Waarom Straattaal?
+### Engels
+- **Hip-hop cultuur**: Muziek en lifestyle
+- **Voorbeelden**: "chill", "dope", "fire"
 
-Straattaal helpt jongeren om:
-- Hun identiteit te vormen
-- Bij een groep te horen
-- Creatief te communiceren
-- Hun culturele achtergrond te uiten`,
+### Arabisch
+- **Marokkaans-Arabisch**: Woorden uit de Maghreb
+- **Voorbeelden**: "wallah" (echt waar), "habibi" (liefje)
+
+### Turks
+- **Turkse gemeenschap**: Invloeden uit Anatolië
+- **Voorbeelden**: "lan" (hey), "abi" (broer)
+
+## Moderne Ontwikkeling (2000-heden)
+
+### Sociale Media Impact
+- **Snapchat**: Nieuwe woorden verspreiden
+- **Instagram**: Visuele straattaal
+- **TikTok**: Viral trends
+
+### Muziek Invloed
+- **Nederlandse rap**: Lil Kleine, Boef, Sevn Alias
+- **Hip-hop**: Internationale invloeden
+- **Pop**: Mainstream acceptatie
+
+## Toekomst van Straattaal
+
+Straattaal blijft evolueren:
+- Nieuwe woorden worden constant toegevoegd
+- Internationale invloeden blijven groeien
+- Technologie beïnvloedt taalontwikkeling
+- Generatieverschillen blijven bestaan`,
             type: 'article' as const,
-            difficulty: 'beginner' as const,
-            category: 'basis',
-            tags: ['basis', 'introductie', 'definitie'],
-            author: 'Stratalia Team',
+            difficulty: 'advanced' as const,
+            category: 'geschiedenis',
+            tags: ['geschiedenis', 'onderzoek', 'academisch'],
+            author: 'Dr. Taalwetenschap',
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
             is_active: true,
-            word_count: 150
+            word_count: 200,
+            thumbnail_url: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=300&fit=crop'
           }
         ];
 
