@@ -10,7 +10,7 @@ import { logger } from '@/lib/logger';
 /**
  * Check if Supabase is properly configured
  */
-export function isSupabaseConfigured(): boolean {
+export function isSupabaseConfiguredHelper(): boolean {
   return isSupabaseConfigured();
 }
 

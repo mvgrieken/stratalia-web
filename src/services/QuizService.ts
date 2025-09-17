@@ -3,7 +3,7 @@
  */
 
 import { getSupabaseClient } from '@/lib/supabase-client';
-import { mockDataService } from '@/lib/mock-data';
+import { getQuizQuestions } from '@/lib/mock-data';
 import { cacheService } from '@/lib/cache';
 import { logger } from '@/lib/logger';
 
@@ -94,7 +94,7 @@ class QuizService {
     }
 
     // Fallback to mock data
-    const mockQuestions = mockDataService.getQuizQuestions(difficulty, limit);
+      const mockQuestions = getQuizQuestions(difficulty, limit);
     const results = mockQuestions.map(q => ({
       id: q.id,
       word: q.word,

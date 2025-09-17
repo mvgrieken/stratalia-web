@@ -3,7 +3,7 @@ import { createSuccessResponse } from '@/lib/errors';
 import { applyRateLimit } from '@/middleware/rateLimiter';
 import { logger } from '@/lib/logger';
 import { cacheService, cacheKeys, CACHE_TTL } from '@/lib/cache-service';
-import type { SearchResult, SearchResponse } from '@/types/api';
+import type { SearchResult } from '@/types/api';
 
 export async function GET(request: NextRequest) {
   try {

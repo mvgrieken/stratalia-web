@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import type { SearchResult, TranslationResponse } from '@/types/api';
+import type { SearchResult } from '@/types/api';
 
 export interface TranslateResult {
   original_text: string;
