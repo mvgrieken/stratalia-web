@@ -45,10 +45,10 @@ export default function KnowledgeDetailPage() {
           }
         }
 
-        // Fallback to mock data
+        // Fallback to mock data (using real database IDs)
         const mockItems = [
           {
-            id: 'knowledge-1',
+            id: '1614551a-e197-42ff-ac1d-b7573f5cfd7f',
             title: 'De Geschiedenis van Nederlandse Straattaal',
             content: `Straattaal in Nederland heeft een rijke geschiedenis die teruggaat tot de jaren 80. Het ontstond in multiculturele wijken waar verschillende talen en culturen samenkwamen.
 
@@ -85,7 +85,7 @@ Straattaal blijft evolueren en nieuwe woorden worden constant toegevoegd. Het is
             word_count: 150
           },
           {
-            id: 'knowledge-2',
+            id: '6dd5b2b4-2c9c-48dc-b632-01d70de074a2',
             title: 'Top 10 Meest Gebruikte Straattaalwoorden',
             content: `Ontdek de meest populaire straattaalwoorden van dit moment:
 

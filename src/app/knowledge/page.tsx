@@ -94,7 +94,7 @@ export default function KnowledgePage() {
       // Fallback to default items if API fails or returns no data
       const defaultItems: KnowledgeItem[] = [
         {
-          id: '1',
+          id: '0b012f34-1c42-4aea-8eae-b0165d4c0712',
           type: 'article',
           title: 'Welkom bij Stratalia',
           content: 'Leer meer over Nederlandse straattaal en hoe je het kunt gebruiken. Deze kennisbank bevat artikelen, video\'s en podcasts over straattaal.',
@@ -108,7 +108,7 @@ export default function KnowledgePage() {
           word_count: 50
         },
         {
-          id: '2',
+          id: '1614551a-e197-42ff-ac1d-b7573f5cfd7f',
           type: 'video',
           title: 'Straattaal voor Beginners',
           content: 'Een video introductie tot Nederlandse straattaal. Leer de basiswoorden en hoe je ze kunt gebruiken.',
@@ -123,7 +123,7 @@ export default function KnowledgePage() {
           thumbnail_url: '/images/straattaal-video.jpg'
         },
         {
-          id: '3',
+          id: '6dd5b2b4-2c9c-48dc-b632-01d70de074a2',
           type: 'podcast',
           title: 'Straattaal Podcast',
           content: 'Luister naar gesprekken over straattaal en cultuur. Experts delen hun kennis over de evolutie van straattaal.',
