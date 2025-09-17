@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    logger.error('Error in refresh knowledge API:', errorMessage);
+    logger.error('Error in refresh knowledge API:', error instanceof Error ? error : new Error(errorMessage));
     return NextResponse.json({ 
       error: 'Internal server error',
       details: errorMessage
