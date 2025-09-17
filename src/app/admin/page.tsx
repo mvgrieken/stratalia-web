@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import Navigation from '@/components/Navigation';
 
 export default function AdminPage() {
@@ -116,27 +117,27 @@ export default function AdminPage() {
                   Snelle Acties
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <a
+                  <Link
                     href="/knowledge"
                     className="p-4 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
                   >
                     <h3 className="font-medium text-blue-900">Kennisbank</h3>
                     <p className="text-sm text-blue-700">Bekijk alle content</p>
-                  </a>
-                  <a
+                  </Link>
+                  <Link
                     href="/search"
                     className="p-4 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors"
                   >
                     <h3 className="font-medium text-green-900">Zoeken</h3>
                     <p className="text-sm text-green-700">Test zoekfunctionaliteit</p>
-                  </a>
-                  <a
+                  </Link>
+                  <Link
                     href="/translate"
                     className="p-4 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors"
                   >
                     <h3 className="font-medium text-purple-900">Vertaler</h3>
                     <p className="text-sm text-purple-700">Test AI vertaler</p>
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>

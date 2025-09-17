@@ -118,7 +118,7 @@ export function useLazyLoading<T>(
     return () => {
       cancelled = true;
     };
-  }, deps);
+  }, [importFunc, ...deps]);
 
   return { Component, loading, error };
 }

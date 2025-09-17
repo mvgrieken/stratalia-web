@@ -1,5 +1,4 @@
 import { NextRequest } from 'next/server';
-import { wordService } from '@/services/WordService';
 import { createSuccessResponse } from '@/lib/errors';
 import { applyRateLimit } from '@/middleware/rateLimiter';
 import { logger } from '@/lib/logger';
@@ -30,7 +29,14 @@ export async function GET(request: NextRequest) {
     logger.info(`Search request: query=${query.trim()}, limit=${limit}`);
 
     // Always use mock data for now to ensure reliability
-    let results;
+    let results: Array<{
+      id: string;
+      word: string;
+      meaning: string;
+      example: string;
+      match_type: 'exact' | 'partial';
+      similarity_score: number;
+    }>;
     try {
       const { mockDataService } = await import('@/lib/mock-data');
       const mockWords = mockDataService.searchWords(query.trim().toLowerCase(), limit);
@@ -45,7 +51,7 @@ export async function GET(request: NextRequest) {
       
       logger.info(`Search using mock data: found ${results.length} results`);
     } catch (fallbackError) {
-      logger.error('Even mock data failed:', fallbackError);
+      logger.error('Even mock data failed:', fallbackError instanceof Error ? fallbackError : new Error(String(fallbackError)));
       results = [];
     }
 
