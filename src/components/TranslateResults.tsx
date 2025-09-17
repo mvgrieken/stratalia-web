@@ -4,7 +4,7 @@ import React from 'react';
 import { TranslateResult } from '@/hooks/useSearchAndTranslate';
 
 interface TranslateResultsProps {
-  translateResult: TranslateResult;
+  translateResult: TranslateResult | null;
   query: string;
   hasSearchResults: boolean;
 }
