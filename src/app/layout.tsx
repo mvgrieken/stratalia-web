@@ -41,9 +41,104 @@ export default function RootLayout({
   return (
     <html lang="nl">
       <head>
+        <meta name="robots" content="noindex, nofollow" />
+        <meta httpEquiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; frame-ancestors 'none';" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
+              // IMMEDIATE ERROR SUPPRESSION - BEFORE ANYTHING ELSE
+              (function() {
+                'use strict';
+                
+                // IMMEDIATE CONSOLE SUPPRESSION
+                const _originalError = console.error;
+                const _originalWarn = console.warn;
+                
+                console.error = function() {
+                  const msg = Array.prototype.join.call(arguments, ' ');
+                  if (msg.includes('MutationObserver') || 
+                      msg.includes('ResizeObserver') ||
+                      msg.includes('credentials-library') ||
+                      msg.includes('extension://') ||
+                      msg.includes('safari-web-extension') ||
+                      msg.includes('lastpass') ||
+                      msg.includes('Argument 1') ||
+                      msg.includes('must be an instance of Node') ||
+                      msg.includes('Toegang tot de gevraagde resource')) {
+                    return;
+                  }
+                  _originalError.apply(console, arguments);
+                };
+                
+                console.warn = function() {
+                  const msg = Array.prototype.join.call(arguments, ' ');
+                  if (msg.includes('ResizeObserver') || 
+                      msg.includes('MutationObserver') ||
+                      msg.includes('extension://')) {
+                    return;
+                  }
+                  _originalWarn.apply(console, arguments);
+                };
+                
+                // IMMEDIATE MUTATION OBSERVER OVERRIDE
+                if (window.MutationObserver) {
+                  const _OriginalMO = window.MutationObserver;
+                  window.MutationObserver = function(callback) {
+                    const safeCallback = function() {
+                      try {
+                        if (typeof callback === 'function') {
+                          callback.apply(this, arguments);
+                        }
+                      } catch (e) { /* suppress all */ }
+                    };
+                    
+                    const observer = new _OriginalMO(safeCallback);
+                    const _originalObserve = observer.observe;
+                    
+                    observer.observe = function(target, options) {
+                      try {
+                        if (!target || !target.nodeType || !document.contains(target)) {
+                          return;
+                        }
+                        return _originalObserve.call(this, target, options);
+                      } catch (e) { 
+                        return;
+                      }
+                    };
+                    
+                    return observer;
+                  };
+                }
+                
+                // IMMEDIATE GLOBAL ERROR SUPPRESSION
+                window.addEventListener('error', function(e) {
+                  if (e.filename && e.filename.includes('credentials-library')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    return false;
+                  }
+                  if (e.message && (e.message.includes('MutationObserver') || e.message.includes('must be an instance of Node'))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    return false;
+                  }
+                }, true);
+                
+                // IMMEDIATE RESOURCE ERROR SUPPRESSION
+                window.addEventListener('error', function(e) {
+                  if (e.target && e.target !== window && e.target.src) {
+                    if (e.target.src.includes('extension://') || e.target.src.includes('lastpass')) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      e.stopImmediatePropagation();
+                      return false;
+                    }
+                  }
+                }, true);
+              })();
+              
               // Theme initialization - must run before React hydration
               (function() {
                 try {
