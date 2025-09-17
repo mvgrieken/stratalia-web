@@ -2,24 +2,33 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
 import { normalizeError } from '@/lib/errors';
+import { validateRegistration } from '@/lib/validation';
+import { applyRateLimit } from '@/middleware/rateLimiter';
 export async function POST(request: NextRequest) {
   try {
-    const { email, password, full_name } = await request.json();
-    if (!email || !password || !full_name) {
+    // Apply rate limiting for auth endpoints
+    const rateLimitCheck = applyRateLimit(request, 'auth');
+    if (!rateLimitCheck.allowed) {
+      return rateLimitCheck.response!;
+    }
+
+    const body = await request.json();
+    
+    // Validate input with Zod (includes password complexity)
+    let validatedData;
+    try {
+      validatedData = validateRegistration({
+        ...body,
+        terms_accepted: true // Assume terms accepted for now
+      });
+    } catch (validationError) {
+      logger.warn(`Registration validation failed: ${validationError instanceof Error ? validationError.message : String(validationError)}`);
       return NextResponse.json({
-        error: 'Email, password and full name are required'
+        error: 'Ongeldige registratiegegevens. Controleer alle velden.'
       }, { status: 400 });
     }
-    if (password.length < 8) {
-      return NextResponse.json({
-        error: 'Password must be at least 8 characters long'
-      }, { status: 400 });
-    }
-    if (!isValidEmail(email)) {
-      return NextResponse.json({
-        error: 'Invalid email address'
-      }, { status: 400 });
-    }
+    
+    const { email, password, full_name } = validatedData;
     // Initialize Supabase client with service role for auth operations
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -113,7 +122,4 @@ export async function POST(request: NextRequest) {
     }, { status: 500 });
   }
 }
-function isValidEmail(email: string): boolean {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-}
+// Email validation now handled by Zod schema in validateRegistration

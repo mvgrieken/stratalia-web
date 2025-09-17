@@ -2,16 +2,31 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { normalizeError } from '@/lib/errors';
 import { logger } from '@/lib/logger';
+import { validateLogin } from '@/lib/validation';
+import { applyRateLimit } from '@/middleware/rateLimiter';
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password } = await request.json();
+    // Apply rate limiting for auth endpoints
+    const rateLimitCheck = applyRateLimit(request, 'auth');
+    if (!rateLimitCheck.allowed) {
+      return rateLimitCheck.response!;
+    }
 
-    if (!email || !password) {
+    const body = await request.json();
+    
+    // Validate input with Zod
+    let validatedData;
+    try {
+      validatedData = validateLogin(body);
+    } catch (validationError) {
+      logger.warn(`Login validation failed: ${validationError instanceof Error ? validationError.message : String(validationError)}`);
       return NextResponse.json({
-        error: 'Email and password are required'
+        error: 'Ongeldige inloggegevens. Controleer je e-mail en wachtwoord.'
       }, { status: 400 });
     }
+    
+    const { email, password } = validatedData;
 
     // Initialize Supabase client with service role for auth operations
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
