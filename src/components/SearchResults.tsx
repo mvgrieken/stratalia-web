@@ -2,7 +2,7 @@
 
 import React from 'react';
 import WordCard from './WordCard';
-import { SearchResult } from '@/hooks/useSearchAndTranslate';
+import type { SearchResult } from '@/types/api';
 
 interface SearchResultsProps {
   results: SearchResult[];

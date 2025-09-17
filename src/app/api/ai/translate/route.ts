@@ -5,21 +5,7 @@ import { normalizeError } from '@/lib/errors';
 import { logger } from '@/lib/logger';
 import { getTranslationMap, getReverseTranslationMap } from '@/data/translations';
 import { cacheService, cacheKeys, CACHE_TTL } from '@/lib/cache-service';
-
-interface TranslationRequest {
-  text: string;
-  direction: 'to_slang' | 'to_formal';
-  context?: string;
-}
-
-interface TranslationResponse {
-  translation: string;
-  confidence: number;
-  alternatives: string[];
-  explanation: string;
-  etymology?: string;
-  source?: string;
-}
+import type { TranslationRequest, TranslationResponse } from '@/types/api';
 
 export async function POST(request: NextRequest) {
   let cleanText = '';

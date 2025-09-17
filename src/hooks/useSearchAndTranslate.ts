@@ -1,13 +1,5 @@
 import { useState, useCallback } from 'react';
-
-export interface SearchResult {
-  id: string;
-  word: string;
-  meaning: string;
-  example: string;
-  match_type: 'exact' | 'partial' | 'fallback';
-  similarity_score: number;
-}
+import type { SearchResult, TranslationResponse } from '@/types/api';
 
 export interface TranslateResult {
   original_text: string;

@@ -3,6 +3,7 @@ import { createSuccessResponse } from '@/lib/errors';
 import { applyRateLimit } from '@/middleware/rateLimiter';
 import { logger } from '@/lib/logger';
 import { cacheService, cacheKeys, CACHE_TTL } from '@/lib/cache-service';
+import type { SearchResult, SearchResponse } from '@/types/api';
 
 export async function GET(request: NextRequest) {
   try {
@@ -31,14 +32,7 @@ export async function GET(request: NextRequest) {
 
     // Check cache first
     const cacheKey = cacheKeys.search(query.trim(), limit);
-    const cachedResults = cacheService.get<Array<{
-      id: string;
-      word: string;
-      meaning: string;
-      example: string;
-      match_type: 'exact' | 'partial';
-      similarity_score: number;
-    }>>(cacheKey);
+    const cachedResults = cacheService.get<SearchResult[]>(cacheKey);
 
     if (cachedResults) {
       logger.info(`Search cache hit: query=${query.trim()}, results=${cachedResults.length}`);
@@ -57,14 +51,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Always use mock data for now to ensure reliability
-    let results: Array<{
-      id: string;
-      word: string;
-      meaning: string;
-      example: string;
-      match_type: 'exact' | 'partial';
-      similarity_score: number;
-    }>;
+    let results: SearchResult[];
     try {
       const { searchWords } = await import('@/lib/mock-data');
       const mockWords = searchWords(query.trim().toLowerCase(), limit);
