@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import Navigation from '@/components/Navigation';
 import { ApiErrorHandler } from '@/components/ApiErrorHandler';
 import RequireAuth from '@/components/RequireAuth';
 
@@ -124,10 +123,8 @@ export default function CommunityPage() {
 
   if (submitted) {
     return (
-      <>
-        <Navigation />
-        <RequireAuth>
-          <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <RequireAuth>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
           <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-8 text-center">
             <div className="text-6xl mb-4">🎉</div>
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Bedankt voor je bijdrage!</h1>
@@ -152,15 +149,12 @@ export default function CommunityPage() {
           </div>
         </div>
         </RequireAuth>
-      </>
     );
   }
 
   return (
-    <>
-      <Navigation />
-      <RequireAuth>
-        <div className="min-h-screen bg-gray-50">
+    <RequireAuth>
+      <div className="min-h-screen bg-gray-50">
           <div className="container mx-auto px-4 py-8">
           <div className="max-w-2xl mx-auto">
             <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">
@@ -345,6 +339,5 @@ export default function CommunityPage() {
         </div>
         </div>
         </RequireAuth>
-    </>
   );
 }

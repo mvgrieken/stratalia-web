@@ -5,7 +5,6 @@ import QuizQuestionComponent from '@/components/Quiz/QuizQuestion';
 import QuizResult from '@/components/Quiz/QuizResult';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { ErrorMessage } from '@/components/ErrorMessage';
-import Navigation from '@/components/Navigation';
 
 interface QuizQuestion {
   id: string;
@@ -87,23 +86,18 @@ export default function LazyQuizPage() {
 
   if (loading) {
     return (
-      <>
-        <Navigation />
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="text-center">
-            <LoadingSpinner />
-            <p className="mt-4 text-gray-600">Quiz wordt geladen...</p>
-          </div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <LoadingSpinner />
+          <p className="mt-4 text-gray-600">Quiz wordt geladen...</p>
         </div>
-      </>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <>
-        <Navigation />
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
           <div className="text-center max-w-md mx-auto">
             <ErrorMessage message="Er is een fout opgetreden bij het laden van de quiz" />
             <button
@@ -114,15 +108,12 @@ export default function LazyQuizPage() {
             </button>
           </div>
         </div>
-      </>
     );
   }
 
   if (questions.length === 0) {
     return (
-      <>
-        <Navigation />
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
           <div className="text-center">
             <p className="text-gray-600">Geen quiz vragen beschikbaar</p>
             <button
@@ -133,7 +124,6 @@ export default function LazyQuizPage() {
             </button>
           </div>
         </div>
-      </>
     );
   }
 
@@ -154,16 +144,13 @@ export default function LazyQuizPage() {
             />
           </div>
         </div>
-      </>
     );
   }
 
   const currentQuestionData = questions[currentQuestion];
 
   return (
-    <>
-      <Navigation />
-      <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-4xl mx-auto px-4">
         {/* Quiz Header */}
         <div className="text-center mb-8">
@@ -195,8 +182,7 @@ export default function LazyQuizPage() {
         <div className="mt-8 text-center text-sm text-gray-500">
           <p>Kies het juiste antwoord en klik op "Volgende Vraag"</p>
         </div>
+        </div>
       </div>
-    </div>
-    </>
   );
 }

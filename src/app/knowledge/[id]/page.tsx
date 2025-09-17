@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import Navigation from '@/components/Navigation';
 import DetailNavigation from './DetailNavigation';
 import NotFoundState from './NotFoundState';
 
@@ -386,33 +385,25 @@ Straattaal blijft evolueren:
 
   if (loading) {
     return (
-      <>
-        <Navigation />
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Item wordt geladen...</p>
-          </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Item wordt geladen...</p>
         </div>
-      </>
+      </div>
     );
   }
 
   if (error || !item) {
     return (
-      <>
-        <Navigation />
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <NotFoundState error={error} />
-        </div>
-      </>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <NotFoundState error={error} />
+      </div>
     );
   }
 
   return (
-    <>
-      <Navigation />
-      <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-4xl mx-auto">
             {/* Breadcrumb */}
@@ -546,6 +537,5 @@ Straattaal blijft evolueren:
           </div>
         </div>
       </div>
-    </>
   );
 }

@@ -1,4 +1,3 @@
-import Navigation from '@/components/Navigation';
 import { getSupabaseServiceClient } from '@/lib/supabase-client';
 import KnowledgeClient from './KnowledgeClient';
 import RequireAuth from '@/components/RequireAuth';
@@ -190,11 +189,8 @@ export default async function KnowledgePage() {
   // Remove error state to ensure fallback items are always shown
 
   return (
-    <>
-      <Navigation />
-      <RequireAuth>
-        <KnowledgeClient initialItems={items} />
-      </RequireAuth>
-    </>
+    <RequireAuth>
+      <KnowledgeClient initialItems={items} />
+    </RequireAuth>
   );
 }

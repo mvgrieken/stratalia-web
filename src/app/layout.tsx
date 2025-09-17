@@ -6,6 +6,7 @@ import '@/lib/browser-fixes'
 import { AuthProvider } from '@/components/AuthProvider'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import ThemeProvider from '@/components/ThemeProvider'
+import Navigation from '@/components/Navigation'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -189,6 +190,7 @@ export default function RootLayout({
         <ErrorBoundary>
           <ThemeProvider>
             <AuthProvider>
+              <Navigation />
               {children}
             </AuthProvider>
           </ThemeProvider>
