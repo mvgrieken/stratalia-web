@@ -131,19 +131,17 @@ export default function LazyQuizPage() {
     const timeTaken = Math.round((Date.now() - startTime) / 1000);
 
     return (
-      <>
-        <Navigation />
-        <div className="min-h-screen bg-gray-50 py-8">
-          <div className="max-w-2xl mx-auto px-4">
-            <QuizResult
-              score={score}
-              totalQuestions={questions.length}
-              timeTaken={timeTaken}
-              onRestart={handleRestart}
-              onBackToHome={() => window.location.href = '/'}
-            />
-          </div>
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-2xl mx-auto px-4">
+          <QuizResult
+            score={score}
+            totalQuestions={questions.length}
+            timeTaken={timeTaken}
+            onRestart={handleRestart}
+            onBackToHome={() => window.location.href = '/'}
+          />
         </div>
+      </div>
     );
   }
 
