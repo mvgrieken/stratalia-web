@@ -4,6 +4,7 @@ import { config, isSupabaseConfigured } from '@/lib/config';
 import { normalizeError } from '@/lib/errors';
 import { logger } from '@/lib/logger';
 import { getTranslationMap, getReverseTranslationMap } from '@/data/translations';
+import { cacheService, cacheKeys, CACHE_TTL } from '@/lib/cache-service';
 
 interface TranslationRequest {
   text: string;
@@ -36,23 +37,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Empty text provided' }, { status: 400 });
     }
 
+    // Check cache first
+    const cacheKey = cacheKeys.translate(cleanText, direction);
+    const cachedTranslation = cacheService.get<TranslationResponse>(cacheKey);
+    
+    if (cachedTranslation) {
+      logger.info(`Translation cache hit: text="${cleanText}", direction="${direction}"`);
+      return NextResponse.json(cachedTranslation);
+    }
+
     // Try database translation first if Supabase is configured
+    let translation: TranslationResponse;
     if (isSupabaseConfigured()) {
       try {
         const supabase = createClient(config.supabase.url, config.supabase.anonKey);
-        const translation = await generateTranslation(cleanText, direction, context, supabase);
+        translation = await generateTranslation(cleanText, direction, context, supabase);
         logger.info(`Translation completed: text="${cleanText}", direction="${direction}", source="database"`);
-        return NextResponse.json(translation);
       } catch (dbError) {
         const normalized = normalizeError(dbError);
         logger.warn(`Database translation failed, using fallback: ${normalized.message}`);
+        translation = await generateFallbackTranslation(cleanText, direction);
       }
     } else {
       logger.info('Supabase not configured, using fallback translation');
+      translation = await generateFallbackTranslation(cleanText, direction);
     }
 
-    // Fallback to hardcoded translation
-    const translation = await generateFallbackTranslation(cleanText, direction);
+    // Cache the translation result
+    cacheService.set(cacheKey, translation, CACHE_TTL.LONG);
     return NextResponse.json(translation);
 
   } catch (error) {
