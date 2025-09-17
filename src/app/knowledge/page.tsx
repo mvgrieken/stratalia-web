@@ -1,6 +1,5 @@
 import { getSupabaseServiceClient } from '@/lib/supabase-client';
 import KnowledgeClient from './KnowledgeClient';
-import RequireAuth from '@/components/RequireAuth';
 
 interface KnowledgeItem {
   id: string;
@@ -189,8 +188,8 @@ export default async function KnowledgePage() {
   // Remove error state to ensure fallback items are always shown
 
   return (
-    <RequireAuth>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <KnowledgeClient initialItems={items} />
-    </RequireAuth>
+    </div>
   );
 }

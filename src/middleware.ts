@@ -17,7 +17,7 @@ export function middleware(request: NextRequest) {
   )
   
   // Protected routes that require authentication
-  const protectedRoutes = ['/quiz', '/knowledge', '/community', '/leaderboard', '/challenges', '/dashboard', '/profile', '/notifications']
+  const protectedRoutes = ['/quiz', '/community', '/leaderboard', '/challenges', '/dashboard', '/profile', '/notifications']
   const currentPath = request.nextUrl.pathname
   
   // Check if the current path is a protected route
