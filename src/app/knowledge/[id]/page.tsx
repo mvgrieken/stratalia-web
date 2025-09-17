@@ -32,6 +32,12 @@ export default function KnowledgeDetailPage() {
 
   useEffect(() => {
     const fetchItem = async () => {
+      if (!params?.id) {
+        setError('Geen ID gevonden');
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         setError(null);
@@ -193,10 +199,8 @@ Straattaal helpt jongeren om:
       }
     };
 
-    if (params.id) {
-      fetchItem();
-    }
-  }, [params.id]);
+    fetchItem();
+  }, [params?.id]);
 
   const getTypeIcon = (type: string) => {
     switch (type) {
