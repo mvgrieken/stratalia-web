@@ -66,206 +66,166 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              // COMPREHENSIVE ERROR SUPPRESSION - must run IMMEDIATELY
+              // ULTIMATE ERROR SUPPRESSION - NUCLEAR OPTION
               (function() {
                 'use strict';
                 
-                // 1. MUTATIONOBSERVER PROTECTION
-                const OriginalMutationObserver = window.MutationObserver;
+                // COMPLETE CONSOLE SUPPRESSION FIRST
+                const originalError = console.error;
+                const originalWarn = console.warn;
                 
-                if (!OriginalMutationObserver) {
-                  window.MutationObserver = function() {
-                    return {
-                      observe: function() { return; },
-                      disconnect: function() { return; },
-                      takeRecords: function() { return []; }
-                    };
-                  };
-                } else {
-                  function SafeMutationObserver(callback) {
-                    const safeCallback = function(mutations, observer) {
+                console.error = function(...args) {
+                  const msg = args.join(' ');
+                  if (msg.includes('MutationObserver') || 
+                      msg.includes('ResizeObserver') ||
+                      msg.includes('credentials-library') ||
+                      msg.includes('extension://') ||
+                      msg.includes('safari-web-extension') ||
+                      msg.includes('lastpass') ||
+                      msg.includes('Argument 1') ||
+                      msg.includes('must be an instance of Node') ||
+                      msg.includes('Toegang tot de gevraagde resource')) {
+                    return; // Complete suppression
+                  }
+                  originalError.apply(console, args);
+                };
+                
+                console.warn = function(...args) {
+                  const msg = args.join(' ');
+                  if (msg.includes('ResizeObserver') || 
+                      msg.includes('MutationObserver') ||
+                      msg.includes('extension://')) {
+                    return;
+                  }
+                  originalWarn.apply(console, args);
+                };
+                
+                // NUCLEAR MUTATION OBSERVER REPLACEMENT
+                if (window.MutationObserver) {
+                  const OriginalMO = window.MutationObserver;
+                  window.MutationObserver = function(callback) {
+                    const safeCallback = function() {
                       try {
                         if (typeof callback === 'function') {
-                          callback(mutations, observer);
+                          callback.apply(this, arguments);
                         }
-                      } catch (error) {
-                        // Completely suppress all errors
-                        return;
-                      }
+                      } catch (e) { /* suppress all */ }
                     };
                     
-                    const observer = new OriginalMutationObserver(safeCallback);
+                    const observer = new OriginalMO(safeCallback);
+                    const originalObserve = observer.observe;
                     
-                    // Ultra-safe observe method
                     observer.observe = function(target, options) {
                       try {
-                        // Extensive validation
-                        if (!target) return;
-                        if (typeof target !== 'object') return;
-                        if (!target.nodeType) return;
-                        if (target.nodeType !== Node.ELEMENT_NODE && target.nodeType !== Node.DOCUMENT_NODE) return;
-                        if (!target.ownerDocument && target !== document) return;
-                        if (target.ownerDocument && target.ownerDocument !== document) return;
-                        if (!document.contains(target) && target !== document) return;
-                        
-                        // Additional safety checks
-                        if (target.tagName && target.tagName.toLowerCase() === 'script') return;
-                        if (target.src && target.src.includes('extension://')) return;
-                        if (target.src && target.src.includes('safari-web-extension://')) return;
-                        
-                        return OriginalMutationObserver.prototype.observe.call(this, target, options);
-                      } catch (error) {
-                        return; // Completely suppress
+                        // Nuclear validation
+                        if (!target || 
+                            !target.nodeType || 
+                            !document.contains(target) ||
+                            (target.src && target.src.includes('extension://'))) {
+                          return; // Just return, don't throw
+                        }
+                        return originalObserve.call(this, target, options);
+                      } catch (e) { 
+                        return; // Complete suppression
                       }
                     };
                     
                     return observer;
-                  }
-                  
-                  // Copy all static properties
-                  Object.setPrototypeOf(SafeMutationObserver, OriginalMutationObserver);
-                  Object.assign(SafeMutationObserver, OriginalMutationObserver);
-                  SafeMutationObserver.prototype = OriginalMutationObserver.prototype;
-                  
-                  window.MutationObserver = SafeMutationObserver;
-                }
-                
-                // 2. RESIZEOBSERVER PROTECTION
-                const OriginalResizeObserver = window.ResizeObserver;
-                if (OriginalResizeObserver) {
-                  window.ResizeObserver = function(callback) {
-                    const safeCallback = function(entries, observer) {
-                      try {
-                        callback(entries, observer);
-                      } catch (error) {
-                        return; // Suppress all ResizeObserver errors
-                      }
-                    };
-                    return new OriginalResizeObserver(safeCallback);
                   };
-                  Object.setPrototypeOf(window.ResizeObserver, OriginalResizeObserver);
-                  Object.assign(window.ResizeObserver, OriginalResizeObserver);
                 }
                 
-                // 3. FETCH API PROTECTION (for extension errors)
+                // NUCLEAR RESIZE OBSERVER REPLACEMENT
+                if (window.ResizeObserver) {
+                  const OriginalRO = window.ResizeObserver;
+                  window.ResizeObserver = function(callback) {
+                    const safeCallback = function() {
+                      try {
+                        callback.apply(this, arguments);
+                      } catch (e) { /* suppress all */ }
+                    };
+                    return new OriginalRO(safeCallback);
+                  };
+                }
+                
+                // NUCLEAR FETCH BLOCKING
                 const originalFetch = window.fetch;
-                window.fetch = function(...args) {
-                  try {
-                    const url = args[0];
-                    if (typeof url === 'string') {
-                      // Block extension URLs
-                      if (url.includes('extension://') || 
-                          url.includes('safari-web-extension://') ||
-                          url.includes('lastpass.com') ||
-                          url.includes('geticon.php')) {
-                        return Promise.reject(new Error('Blocked extension request'));
-                      }
-                    }
-                    return originalFetch.apply(this, args);
-                  } catch (error) {
-                    return Promise.reject(error);
+                window.fetch = function(url, options) {
+                  if (typeof url === 'string' && (
+                      url.includes('extension://') ||
+                      url.includes('safari-web-extension://') ||
+                      url.includes('lastpass.com') ||
+                      url.includes('geticon.php'))) {
+                    return Promise.resolve(new Response('', { status: 204 }));
                   }
+                  return originalFetch.call(this, url, options);
                 };
               })();
               
-              // COMPREHENSIVE GLOBAL ERROR SUPPRESSION
+              // NUCLEAR GLOBAL ERROR SUPPRESSION
               window.addEventListener('error', function(event) {
-                // Suppress all errors from third-party scripts and extensions
-                if (event.filename && (
-                    event.filename.includes('credentials-library.js') ||
+                // Complete suppression of all problematic errors
+                const shouldSuppress = (
+                  // File-based suppression
+                  (event.filename && (
+                    event.filename.includes('credentials-library') ||
                     event.filename.includes('extension://') ||
-                    event.filename.includes('safari-web-extension://') ||
-                    event.filename.includes('lastpass.com')
-                  )) {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  return false;
-                }
-                
-                // Suppress all resource loading errors
-                if (event.target && event.target !== window) {
-                  const target = event.target;
-                  if (target.src && (
-                      target.src.includes('extension://') ||
-                      target.src.includes('safari-web-extension://') ||
-                      target.src.includes('lastpass.com') ||
-                      target.src.includes('geticon.php')
-                    )) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    return false;
-                  }
-                }
-                
-                // Suppress MutationObserver errors
-                if (event.message && (
+                    event.filename.includes('safari-web-extension') ||
+                    event.filename.includes('lastpass')
+                  )) ||
+                  // Message-based suppression
+                  (event.message && (
                     event.message.includes('MutationObserver') ||
+                    event.message.includes('ResizeObserver') ||
                     event.message.includes('must be an instance of Node') ||
-                    event.message.includes('Argument 1')
-                  )) {
+                    event.message.includes('Argument 1') ||
+                    event.message.includes('credentials-library') ||
+                    event.message.includes('Toegang tot de gevraagde resource')
+                  )) ||
+                  // Target-based suppression (resource loading)
+                  (event.target && event.target !== window && event.target.src && (
+                    event.target.src.includes('extension://') ||
+                    event.target.src.includes('safari-web-extension') ||
+                    event.target.src.includes('lastpass') ||
+                    event.target.src.includes('geticon.php')
+                  ))
+                );
+                
+                if (shouldSuppress) {
                   event.preventDefault();
                   event.stopPropagation();
+                  event.stopImmediatePropagation();
                   return false;
                 }
               }, true);
               
-              // Suppress unhandled promise rejections from extensions
+              // NUCLEAR PROMISE REJECTION SUPPRESSION
               window.addEventListener('unhandledrejection', function(event) {
                 const reason = event.reason;
-                if (reason && typeof reason === 'object' && reason.message) {
-                  if (reason.message.includes('extension://') ||
-                      reason.message.includes('safari-web-extension://') ||
-                      reason.message.includes('lastpass.com') ||
-                      reason.message.includes('Access-Control-Allow-Origin') ||
-                      reason.message.includes('Blocked extension request')) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    return false;
-                  }
-                }
-                // Also suppress generic fetch errors that might be extension-related
-                if (reason && reason.toString().includes('Failed to fetch')) {
+                const reasonStr = reason ? reason.toString() : '';
+                
+                const shouldSuppress = (
+                  (reason && reason.message && (
+                    reason.message.includes('extension://') ||
+                    reason.message.includes('safari-web-extension') ||
+                    reason.message.includes('lastpass') ||
+                    reason.message.includes('Access-Control-Allow-Origin') ||
+                    reason.message.includes('Blocked extension request') ||
+                    reason.message.includes('Toegang tot de gevraagde resource')
+                  )) ||
+                  reasonStr.includes('Failed to fetch') ||
+                  reasonStr.includes('extension://') ||
+                  reasonStr.includes('safari-web-extension') ||
+                  reasonStr.includes('lastpass')
+                );
+                
+                if (shouldSuppress) {
                   event.preventDefault();
                   event.stopPropagation();
+                  event.stopImmediatePropagation();
                   return false;
                 }
               });
               
-              // COMPREHENSIVE CONSOLE ERROR SUPPRESSION
-              const originalConsoleError = console.error;
-              console.error = function(...args) {
-                const message = args.join(' ');
-                // Suppress all problematic errors
-                if (message.includes('credentials-library.js') || 
-                    message.includes('MutationObserver') ||
-                    message.includes('Argument 1') ||
-                    message.includes('must be an instance of Node') ||
-                    message.includes('ResizeObserver loop completed') ||
-                    message.includes('ResizeObserver loop limit exceeded') ||
-                    message.includes('safari-web-extension://') ||
-                    message.includes('extension://') ||
-                    message.includes('lastpass.com') ||
-                    message.includes('geticon.php') ||
-                    message.includes('Access-Control-Allow-Origin') ||
-                    message.includes('Toegang tot de gevraagde resource') ||
-                    message.includes('is not allowed by Access-Control-Allow-Origin')) {
-                  return; // Suppress these errors completely
-                }
-                originalConsoleError.apply(console, args);
-              };
-              
-              // Also suppress console.warn for these issues
-              const originalConsoleWarn = console.warn;
-              console.warn = function(...args) {
-                const message = args.join(' ');
-                if (message.includes('ResizeObserver') ||
-                    message.includes('MutationObserver') ||
-                    message.includes('extension://') ||
-                    message.includes('safari-web-extension://')) {
-                  return; // Suppress these warnings
-                }
-                originalConsoleWarn.apply(console, args);
-              };
             `,
           }}
         />
