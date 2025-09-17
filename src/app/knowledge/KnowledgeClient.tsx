@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import KnowledgeFilters from './KnowledgeFilters';
 import NoResults from './NoResults';
 
@@ -154,13 +155,31 @@ export default function KnowledgeClient({ initialItems }: KnowledgeClientProps) 
                 className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden"
               >
                 {/* Thumbnail */}
-                {item.thumbnail_url && (
-                  <div className="h-48 bg-gray-200 flex items-center justify-center">
-                    <img
+                {item.thumbnail_url ? (
+                  <div className="h-48 bg-gray-200 flex items-center justify-center relative overflow-hidden">
+                    <Image
                       src={item.thumbnail_url}
                       alt={item.title}
-                      className="w-full h-full object-cover"
+                      fill
+                      className="object-cover"
+                      onError={(e) => {
+                        // Fallback to placeholder if image fails to load
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        const parent = target.parentElement;
+                        if (parent) {
+                          parent.innerHTML = `
+                            <div class="w-full h-full flex items-center justify-center bg-gray-100">
+                              <span class="text-4xl">${getTypeIcon(item.type)}</span>
+                            </div>
+                          `;
+                        }
+                      }}
                     />
+                  </div>
+                ) : (
+                  <div className="h-48 bg-gray-200 flex items-center justify-center">
+                    <span className="text-6xl">{getTypeIcon(item.type)}</span>
                   </div>
                 )}
 

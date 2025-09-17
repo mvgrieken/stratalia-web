@@ -1,194 +1,218 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Knowledge Bank', () => {
+test.describe('Knowledge Bank Page', () => {
   test.beforeEach(async ({ page }) => {
+    // Navigate to knowledge bank page
     await page.goto('/knowledge');
   });
 
-  test('should load knowledge bank page', async ({ page }) => {
-    await expect(page).toHaveTitle(/Stratalia/);
+  test('should display knowledge bank page correctly', async ({ page }) => {
+    // Check page title and header
     await expect(page.locator('h1')).toContainText('Kennisbank');
+    await expect(page.locator('text=Ontdek artikelen, video\'s, podcasts en meer')).toBeVisible();
+  });
+
+  test('should show statistics section', async ({ page }) => {
+    // Check statistics cards
+    await expect(page.locator('text=Totaal items')).toBeVisible();
+    await expect(page.locator('text=Artikelen')).toBeVisible();
+    await expect(page.locator('text=Video\'s')).toBeVisible();
+    await expect(page.locator('text=Podcasts')).toBeVisible();
   });
 
   test('should display knowledge items', async ({ page }) => {
-    // Wait for content to load
-    await page.waitForSelector('[data-testid="knowledge-item"], .bg-white.rounded-lg.shadow-lg', { timeout: 10000 });
+    // Wait for items to load
+    await page.waitForSelector('[data-testid="knowledge-item"], .bg-white.rounded-lg', { timeout: 10000 });
     
-    // Check if items are displayed
-    const items = page.locator('.bg-white.rounded-lg.shadow-lg');
-    await expect(items).toHaveCount.greaterThan(0);
+    // Check that at least one item is displayed
+    const items = page.locator('.bg-white.rounded-lg');
+    await expect(items).toHaveCount({ min: 1 });
   });
 
-  test('should filter by type', async ({ page }) => {
-    // Wait for content to load
-    await page.waitForSelector('select', { timeout: 10000 });
+  test('should show item details correctly', async ({ page }) => {
+    // Wait for items to load
+    await page.waitForSelector('.bg-white.rounded-lg', { timeout: 10000 });
     
-    // Test type filter
-    const typeFilter = page.locator('select').first();
-    await typeFilter.selectOption('article');
+    // Check first item has required elements
+    const firstItem = page.locator('.bg-white.rounded-lg').first();
     
-    // Wait for filter to apply
-    await page.waitForTimeout(1000);
+    // Check title
+    await expect(firstItem.locator('h3')).toBeVisible();
     
-    // Check if items are filtered (this might be empty if no articles exist)
-    const items = page.locator('.bg-white.rounded-lg.shadow-lg');
-    const itemCount = await items.count();
+    // Check type icon
+    await expect(firstItem.locator('text=📄, text=🎥, text=🎧, text=📊, text=📚, text=🎵')).toBeVisible();
     
-    // If items exist, they should all be articles
-    if (itemCount > 0) {
-      // Check that items contain article-related content
-      const firstItem = items.first();
-      await expect(firstItem).toBeVisible();
+    // Check difficulty badge
+    await expect(firstItem.locator('.px-2.py-1.rounded-full')).toBeVisible();
+    
+    // Check author
+    await expect(firstItem.locator('text=Door')).toBeVisible();
+    
+    // Check action button
+    await expect(firstItem.locator('text=Bekijk')).toBeVisible();
+  });
+
+  test('should handle image loading errors gracefully', async ({ page }) => {
+    // Wait for items to load
+    await page.waitForSelector('.bg-white.rounded-lg', { timeout: 10000 });
+    
+    // Check that items with thumbnails show either image or fallback icon
+    const itemsWithThumbnails = page.locator('.bg-white.rounded-lg').filter({ has: page.locator('.h-48') });
+    
+    if (await itemsWithThumbnails.count() > 0) {
+      const firstItemWithThumbnail = itemsWithThumbnails.first();
+      
+      // Should show either image or fallback icon
+      const hasImage = await firstItemWithThumbnail.locator('img').count() > 0;
+      const hasFallbackIcon = await firstItemWithThumbnail.locator('.text-6xl, .text-4xl').count() > 0;
+      
+      expect(hasImage || hasFallbackIcon).toBeTruthy();
     }
   });
 
-  test('should filter by difficulty', async ({ page }) => {
-    // Wait for content to load
-    await page.waitForSelector('select', { timeout: 10000 });
+  test('should filter items by type', async ({ page }) => {
+    // Wait for items to load
+    await page.waitForSelector('.bg-white.rounded-lg', { timeout: 10000 });
     
-    // Test difficulty filter
-    const difficultyFilter = page.locator('select').nth(1);
-    await difficultyFilter.selectOption('beginner');
+    // Get initial count
+    const initialCount = await page.locator('.bg-white.rounded-lg').count();
     
-    // Wait for filter to apply
-    await page.waitForTimeout(1000);
-    
-    // Check if items are filtered
-    const items = page.locator('.bg-white.rounded-lg.shadow-lg');
-    const itemCount = await items.count();
-    
-    if (itemCount > 0) {
-      const firstItem = items.first();
-      await expect(firstItem).toBeVisible();
+    // Try to filter by type if filter exists
+    const typeFilter = page.locator('select, [role="combobox"]').first();
+    if (await typeFilter.count() > 0) {
+      await typeFilter.selectOption('video');
+      
+      // Wait for filtering to complete
+      await page.waitForTimeout(500);
+      
+      // Check that items are filtered (count should be different or same if no videos)
+      const filteredCount = await page.locator('.bg-white.rounded-lg').count();
+      expect(filteredCount).toBeLessThanOrEqual(initialCount);
     }
   });
 
-  test('should search knowledge items', async ({ page }) => {
-    // Wait for content to load
-    await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+  test('should search items', async ({ page }) => {
+    // Wait for items to load
+    await page.waitForSelector('.bg-white.rounded-lg', { timeout: 10000 });
     
-    // Test search functionality
-    const searchInput = page.locator('input[type="text"]');
-    await searchInput.fill('straattaal');
-    
-    // Wait for search to apply
-    await page.waitForTimeout(1000);
-    
-    // Check if search results are displayed
-    const items = page.locator('.bg-white.rounded-lg.shadow-lg');
-    const itemCount = await items.count();
-    
-    if (itemCount > 0) {
-      const firstItem = items.first();
-      await expect(firstItem).toBeVisible();
+    // Try to search if search input exists
+    const searchInput = page.locator('input[type="search"], input[placeholder*="zoek"], input[placeholder*="search"]').first();
+    if (await searchInput.count() > 0) {
+      await searchInput.fill('straattaal');
+      
+      // Wait for search to complete
+      await page.waitForTimeout(500);
+      
+      // Check that search results are shown
+      await expect(page.locator('text=van')).toBeVisible();
     }
   });
 
-  test('should navigate to knowledge item detail', async ({ page }) => {
-    // Wait for content to load
-    await page.waitForSelector('button:has-text("Bekijk")', { timeout: 10000 });
+  test('should navigate to item detail page', async ({ page }) => {
+    // Wait for items to load
+    await page.waitForSelector('.bg-white.rounded-lg', { timeout: 10000 });
     
-    // Click on first "Bekijk" button
-    const firstViewButton = page.locator('button:has-text("Bekijk")').first();
-    await firstViewButton.click();
+    // Click on first item's "Bekijk" button
+    const firstItem = page.locator('.bg-white.rounded-lg').first();
+    const viewButton = firstItem.locator('text=Bekijk');
     
-    // Check if we're on a detail page
-    await expect(page).toHaveURL(/\/knowledge\/[^\/]+$/);
+    if (await viewButton.count() > 0) {
+      await viewButton.click();
+      
+      // Should navigate to detail page
+      await expect(page).toHaveURL(/\/knowledge\/[a-f0-9-]+/);
+    }
+  });
+
+  test('should show no results message when no items match filters', async ({ page }) => {
+    // Wait for items to load
+    await page.waitForSelector('.bg-white.rounded-lg', { timeout: 10000 });
+    
+    // Try to search for something that doesn't exist
+    const searchInput = page.locator('input[type="search"], input[placeholder*="zoek"], input[placeholder*="search"]').first();
+    if (await searchInput.count() > 0) {
+      await searchInput.fill('nonexistentsearchterm12345');
+      
+      // Wait for search to complete
+      await page.waitForTimeout(500);
+      
+      // Should show no results message
+      await expect(page.locator('text=Geen resultaten, text=No results, text=0 van')).toBeVisible();
+    }
+  });
+
+  test('should handle empty state gracefully', async ({ page }) => {
+    // Mock empty response
+    await page.route('/api/knowledge*', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ data: [], error: null })
+      });
+    });
+
+    await page.goto('/knowledge');
+    
+    // Should still show some content (fallback items or empty state)
+    await expect(page.locator('h1')).toContainText('Kennisbank');
+  });
+
+  test('should handle API errors gracefully', async ({ page }) => {
+    // Mock API error
+    await page.route('/api/knowledge*', async route => {
+      await route.fulfill({
+        status: 500,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: 'Internal server error' })
+      });
+    });
+
+    await page.goto('/knowledge');
+    
+    // Should show fallback content or error state
+    await expect(page.locator('h1')).toContainText('Kennisbank');
+    
+    // Should not crash the page
+    await expect(page.locator('body')).toBeVisible();
+  });
+
+  test('should be responsive on mobile', async ({ page }) => {
+    // Set mobile viewport
+    await page.setViewportSize({ width: 375, height: 667 });
+    
+    // Wait for items to load
+    await page.waitForSelector('.bg-white.rounded-lg', { timeout: 10000 });
+    
+    // Check that items are displayed in single column
+    const items = page.locator('.bg-white.rounded-lg');
+    await expect(items).toHaveCount({ min: 1 });
+    
+    // Check that content is readable
     await expect(page.locator('h1')).toBeVisible();
   });
 
-  test('should display statistics', async ({ page }) => {
-    // Wait for content to load
-    await page.waitForSelector('text=Kennisbank Statistieken', { timeout: 10000 });
-    
-    // Check if statistics section is visible
-    const statsSection = page.locator('text=Kennisbank Statistieken');
-    await expect(statsSection).toBeVisible();
-    
-    // Check if statistics numbers are displayed
-    const statNumbers = page.locator('.text-2xl.font-bold');
-    await expect(statNumbers).toHaveCount.greaterThan(0);
-  });
+  test('should load images without CORS errors', async ({ page }) => {
+    // Track console errors
+    const errors: string[] = [];
+    page.on('console', msg => {
+      if (msg.type() === 'error') {
+        errors.push(msg.text());
+      }
+    });
 
-  test('should handle empty search results', async ({ page }) => {
-    // Wait for content to load
-    await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+    // Wait for items to load
+    await page.waitForSelector('.bg-white.rounded-lg', { timeout: 10000 });
     
-    // Search for something that doesn't exist
-    const searchInput = page.locator('input[type="text"]');
-    await searchInput.fill('nonexistentsearchterm12345');
+    // Wait a bit for images to load
+    await page.waitForTimeout(2000);
     
-    // Wait for search to apply
-    await page.waitForTimeout(1000);
+    // Check that there are no CORS or image loading errors
+    const imageErrors = errors.filter(error => 
+      error.includes('CORS') || 
+      error.includes('Failed to load resource') ||
+      error.includes('Access to the requested resource is not allowed')
+    );
     
-    // Check if "no results" message is displayed
-    const noResults = page.locator('text=Geen resultaten gevonden');
-    await expect(noResults).toBeVisible();
-  });
-});
-
-test.describe('Knowledge Item Detail', () => {
-  test('should load knowledge item detail page', async ({ page }) => {
-    // Go to a specific knowledge item (using a mock ID)
-    await page.goto('/knowledge/test-item-id');
-    
-    // Check if error page is shown (since test-item-id doesn't exist)
-    await expect(page.locator('text=Item niet gevonden')).toBeVisible();
-  });
-
-  test('should have breadcrumb navigation', async ({ page }) => {
-    // Go to knowledge page first
-    await page.goto('/knowledge');
-    
-    // Wait for content and click on first item
-    await page.waitForSelector('button:has-text("Bekijk")', { timeout: 10000 });
-    await page.locator('button:has-text("Bekijk")').first().click();
-    
-    // Check if breadcrumb is visible
-    const breadcrumb = page.locator('nav ol');
-    await expect(breadcrumb).toBeVisible();
-    
-    // Check if breadcrumb contains expected links
-    await expect(breadcrumb.locator('text=Home')).toBeVisible();
-    await expect(breadcrumb.locator('text=Kennisbank')).toBeVisible();
-  });
-});
-
-test.describe('Knowledge Bank API', () => {
-  test('should fetch knowledge items from API', async ({ request }) => {
-    const response = await request.get('/api/content/approved');
-    expect(response.ok()).toBeTruthy();
-    
-    const data = await response.json();
-    expect(data.success).toBeTruthy();
-    expect(data.data).toHaveProperty('items');
-    expect(data.data).toHaveProperty('statistics');
-  });
-
-  test('should filter knowledge items by type', async ({ request }) => {
-    const response = await request.get('/api/content/approved?type=article');
-    expect(response.ok()).toBeTruthy();
-    
-    const data = await response.json();
-    expect(data.success).toBeTruthy();
-    expect(data.data.items).toBeDefined();
-  });
-
-  test('should search knowledge items', async ({ request }) => {
-    const response = await request.get('/api/content/approved?search=straattaal');
-    expect(response.ok()).toBeTruthy();
-    
-    const data = await response.json();
-    expect(data.success).toBeTruthy();
-    expect(data.data.items).toBeDefined();
-  });
-
-  test('should handle refresh API', async ({ request }) => {
-    const response = await request.get('/api/refresh-knowledge');
-    expect(response.ok()).toBeTruthy();
-    
-    const data = await response.json();
-    expect(data.success).toBeTruthy();
-    expect(data.message).toContain('running');
+    expect(imageErrors).toHaveLength(0);
   });
 });

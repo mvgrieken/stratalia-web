@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   authors: [{ name: 'Stratalia Team' }],
   viewport: 'width=device-width, initial-scale=1',
   other: {
-    'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co; frame-ancestors 'none';",
+    'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co; frame-ancestors 'none'; object-src 'none'; base-uri 'self';",
   },
 }
 
@@ -129,6 +129,31 @@ export default function RootLayout({
                 console.warn('Unhandled promise rejection:', event.reason);
                 // Prevent the error from showing in console
                 event.preventDefault();
+              });
+              
+              // Prevent credentials-library.js from causing MutationObserver errors
+              window.addEventListener('DOMContentLoaded', function() {
+                // Override any third-party MutationObserver usage
+                const originalQuerySelector = document.querySelector;
+                const originalQuerySelectorAll = document.querySelectorAll;
+                
+                document.querySelector = function(selector) {
+                  try {
+                    return originalQuerySelector.call(this, selector);
+                  } catch (error) {
+                    console.warn('QuerySelector error prevented:', error);
+                    return null;
+                  }
+                };
+                
+                document.querySelectorAll = function(selector) {
+                  try {
+                    return originalQuerySelectorAll.call(this, selector);
+                  } catch (error) {
+                    console.warn('QuerySelectorAll error prevented:', error);
+                    return [];
+                  }
+                };
               });
             `,
           }}

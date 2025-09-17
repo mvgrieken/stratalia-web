@@ -84,7 +84,7 @@ export default async function KnowledgePage() {
           updated_at: new Date().toISOString(),
           is_active: true,
           duration: 300,
-          thumbnail_url: '/images/straattaal-video.jpg'
+          thumbnail_url: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop'
         },
         {
           id: '6dd5b2b4-2c9c-48dc-b632-01d70de074a2',
@@ -99,7 +99,52 @@ export default async function KnowledgePage() {
           updated_at: new Date().toISOString(),
           is_active: true,
           duration: 1800,
-          thumbnail_url: '/images/podcast-cover.jpg'
+          thumbnail_url: 'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&h=300&fit=crop'
+        },
+        {
+          id: 'fa845e60-d3c6-4136-bdf2-ebe750c2f1f7',
+          type: 'article',
+          title: 'Straattaal in Social Media',
+          content: 'Ontdek hoe straattaal wordt gebruikt op sociale media platforms en wat de invloed is op de Nederlandse jeugdcultuur.',
+          author: 'Stratalia Team',
+          category: 'sociale-media',
+          tags: ['sociale-media', 'jeugd', 'cultuur'],
+          difficulty: 'intermediate',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          is_active: true,
+          word_count: 120,
+          thumbnail_url: 'https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=400&h=300&fit=crop'
+        },
+        {
+          id: 'd2c07aa3-aac1-4392-8234-9edb2601437a',
+          type: 'infographic',
+          title: 'Top 10 Straattaalwoorden',
+          content: 'De meest populaire straattaalwoorden van dit moment. Van "skeer" tot "flexen" - leer de woorden die iedereen gebruikt.',
+          author: 'Stratalia Team',
+          category: 'woordenlijst',
+          tags: ['top-10', 'populair', 'woorden'],
+          difficulty: 'beginner',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          is_active: true,
+          word_count: 75,
+          thumbnail_url: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop'
+        },
+        {
+          id: '6454db1f-8518-4bec-b693-043f9372e18a',
+          type: 'book',
+          title: 'Straattaal Geschiedenis',
+          content: 'Een diepgaande analyse van de geschiedenis van Nederlandse straattaal. Van de jaren 80 tot nu.',
+          author: 'Dr. Taalwetenschap',
+          category: 'geschiedenis',
+          tags: ['geschiedenis', 'onderzoek', 'academisch'],
+          difficulty: 'advanced',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          is_active: true,
+          word_count: 200,
+          thumbnail_url: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=300&fit=crop'
         }
       ];
     }
@@ -138,7 +183,7 @@ export default async function KnowledgePage() {
         updated_at: new Date().toISOString(),
         is_active: true,
         duration: 300,
-        thumbnail_url: '/images/straattaal-video.jpg'
+        thumbnail_url: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop'
       },
       {
         id: '6dd5b2b4-2c9c-48dc-b632-01d70de074a2',
@@ -153,7 +198,7 @@ export default async function KnowledgePage() {
         updated_at: new Date().toISOString(),
         is_active: true,
         duration: 1800,
-        thumbnail_url: '/images/podcast-cover.jpg'
+        thumbnail_url: 'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&h=300&fit=crop'
       }
     ];
   }
