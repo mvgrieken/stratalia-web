@@ -19,6 +19,8 @@ interface KnowledgeItem {
   updated_at: string;
   is_active: boolean;
   thumbnail_url?: string;
+  video_url?: string;
+  audio_url?: string;
   duration?: number;
   word_count?: number;
 }

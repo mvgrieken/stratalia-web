@@ -19,6 +19,8 @@ interface KnowledgeItem {
   updated_at: string;
   is_active: boolean;
   thumbnail_url?: string;
+  video_url?: string;
+  audio_url?: string;
   duration?: number;
   word_count?: number;
 }
@@ -130,6 +132,7 @@ Deze video behandelt:
             updated_at: new Date().toISOString(),
             is_active: true,
             duration: 300,
+            video_url: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4',
             thumbnail_url: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop'
           },
           {
@@ -166,6 +169,7 @@ In deze aflevering:
             updated_at: new Date().toISOString(),
             is_active: true,
             duration: 1800,
+            audio_url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
             thumbnail_url: 'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&h=300&fit=crop'
           },
           {
@@ -464,20 +468,56 @@ Straattaal blijft evolueren:
                   />
                 ) : item.type === 'video' ? (
                   <div className="text-center">
-                    <div className="bg-gray-100 rounded-lg p-12 mb-6">
-                      <div className="text-6xl mb-4">🎥</div>
-                      <p className="text-gray-600">Video content zou hier worden weergegeven</p>
-                    </div>
+                    {item.video_url ? (
+                      <div className="mb-6">
+                        <video 
+                          controls 
+                          className="w-full max-w-4xl mx-auto rounded-lg shadow-lg"
+                          poster={item.thumbnail_url}
+                        >
+                          <source src={item.video_url} type="video/mp4" />
+                          <p className="text-gray-600 p-8">
+                            Je browser ondersteunt geen video element. 
+                            <a href={item.video_url} className="text-blue-600 underline ml-2">
+                              Download de video
+                            </a>
+                          </p>
+                        </video>
+                      </div>
+                    ) : (
+                      <div className="bg-gray-100 rounded-lg p-12 mb-6">
+                        <div className="text-6xl mb-4">🎥</div>
+                        <p className="text-gray-600">Video content zou hier worden weergegeven</p>
+                      </div>
+                    )}
                     <div className="text-left">
                       <p className="text-gray-700">{item.content}</p>
                     </div>
                   </div>
                 ) : item.type === 'podcast' ? (
                   <div className="text-center">
-                    <div className="bg-gray-100 rounded-lg p-12 mb-6">
-                      <div className="text-6xl mb-4">🎧</div>
-                      <p className="text-gray-600">Podcast audio zou hier worden weergegeven</p>
-                    </div>
+                    {item.audio_url ? (
+                      <div className="mb-6">
+                        <audio 
+                          controls 
+                          className="w-full max-w-2xl mx-auto"
+                        >
+                          <source src={item.audio_url} type="audio/mpeg" />
+                          <source src={item.audio_url} type="audio/wav" />
+                          <p className="text-gray-600 p-8">
+                            Je browser ondersteunt geen audio element. 
+                            <a href={item.audio_url} className="text-blue-600 underline ml-2">
+                              Download de audio
+                            </a>
+                          </p>
+                        </audio>
+                      </div>
+                    ) : (
+                      <div className="bg-gray-100 rounded-lg p-12 mb-6">
+                        <div className="text-6xl mb-4">🎧</div>
+                        <p className="text-gray-600">Podcast audio zou hier worden weergegeven</p>
+                      </div>
+                    )}
                     <div className="text-left">
                       <p className="text-gray-700">{item.content}</p>
                     </div>

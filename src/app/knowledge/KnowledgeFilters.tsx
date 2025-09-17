@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface KnowledgeFiltersProps {
   onFiltersChange: (filters: {
@@ -14,12 +14,17 @@ export default function KnowledgeFilters({ onFiltersChange }: KnowledgeFiltersPr
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState('all');
   const [selectedDifficulty, setSelectedDifficulty] = useState('all');
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
-  const handleFilterChange = () => {
+  const handleFilterChange = (newSearchQuery?: string, newSelectedType?: string, newSelectedDifficulty?: string) => {
+    const updatedSearchQuery = newSearchQuery !== undefined ? newSearchQuery : searchQuery;
+    const updatedSelectedType = newSelectedType !== undefined ? newSelectedType : selectedType;
+    const updatedSelectedDifficulty = newSelectedDifficulty !== undefined ? newSelectedDifficulty : selectedDifficulty;
+    
     onFiltersChange({
-      searchQuery,
-      selectedType,
-      selectedDifficulty
+      searchQuery: updatedSearchQuery,
+      selectedType: updatedSelectedType,
+      selectedDifficulty: updatedSelectedDifficulty
     });
   };
 
@@ -34,6 +39,15 @@ export default function KnowledgeFilters({ onFiltersChange }: KnowledgeFiltersPr
     });
   };
 
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, []);
+
   return (
     <div className="bg-white rounded-lg p-6 mb-8 shadow-sm">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -46,8 +60,18 @@ export default function KnowledgeFilters({ onFiltersChange }: KnowledgeFiltersPr
             type="text"
             value={searchQuery}
             onChange={(e) => {
-              setSearchQuery(e.target.value);
-              handleFilterChange();
+              const value = e.target.value;
+              setSearchQuery(value);
+              
+              // Clear existing timeout
+              if (debounceRef.current) {
+                clearTimeout(debounceRef.current);
+              }
+              
+              // Set new timeout for debounced search
+              debounceRef.current = setTimeout(() => {
+                handleFilterChange(value);
+              }, 300);
             }}
             placeholder="Zoek in titel, content of tags..."
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -62,8 +86,9 @@ export default function KnowledgeFilters({ onFiltersChange }: KnowledgeFiltersPr
           <select
             value={selectedType}
             onChange={(e) => {
-              setSelectedType(e.target.value);
-              handleFilterChange();
+              const value = e.target.value;
+              setSelectedType(value);
+              handleFilterChange(undefined, value);
             }}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
@@ -85,8 +110,9 @@ export default function KnowledgeFilters({ onFiltersChange }: KnowledgeFiltersPr
           <select
             value={selectedDifficulty}
             onChange={(e) => {
-              setSelectedDifficulty(e.target.value);
-              handleFilterChange();
+              const value = e.target.value;
+              setSelectedDifficulty(value);
+              handleFilterChange(undefined, undefined, value);
             }}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >

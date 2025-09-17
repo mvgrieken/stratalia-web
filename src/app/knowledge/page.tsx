@@ -15,6 +15,8 @@ interface KnowledgeItem {
   updated_at: string;
   is_active: boolean;
   thumbnail_url?: string;
+  video_url?: string;
+  audio_url?: string;
   duration?: number;
   word_count?: number;
 }
@@ -50,6 +52,8 @@ export default async function KnowledgePage() {
         updated_at: item.updated_at,
         is_active: item.is_active !== false,
         thumbnail_url: item.thumbnail_url,
+        video_url: item.video_url,
+        audio_url: item.audio_url,
         duration: item.duration,
         word_count: item.word_count
       }));
@@ -83,6 +87,7 @@ export default async function KnowledgePage() {
           updated_at: new Date().toISOString(),
           is_active: true,
           duration: 300,
+          video_url: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4',
           thumbnail_url: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop'
         },
         {
@@ -98,6 +103,7 @@ export default async function KnowledgePage() {
           updated_at: new Date().toISOString(),
           is_active: true,
           duration: 1800,
+          audio_url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
           thumbnail_url: 'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&h=300&fit=crop'
         },
         {
@@ -183,6 +189,7 @@ export default async function KnowledgePage() {
         updated_at: new Date().toISOString(),
         is_active: true,
         duration: 300,
+        video_url: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4',
         thumbnail_url: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop'
       },
       {
@@ -198,6 +205,7 @@ export default async function KnowledgePage() {
         updated_at: new Date().toISOString(),
         is_active: true,
         duration: 1800,
+        audio_url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
         thumbnail_url: 'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&h=300&fit=crop'
       },
       {
