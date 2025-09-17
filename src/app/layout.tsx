@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import React from 'react'
-// Browser fixes now handled inline in head script
+import '@/lib/browser-fixes'
 import { AuthProvider } from '@/components/AuthProvider'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import ThemeProvider from '@/components/ThemeProvider'
@@ -79,35 +79,7 @@ export default function RootLayout({
                   _originalWarn.apply(console, arguments);
                 };
                 
-                // IMMEDIATE MUTATION OBSERVER OVERRIDE
-                if (window.MutationObserver) {
-                  const _OriginalMO = window.MutationObserver;
-                  window.MutationObserver = function(callback) {
-                    const safeCallback = function() {
-                      try {
-                        if (typeof callback === 'function') {
-                          callback.apply(this, arguments);
-                        }
-                      } catch (e) { /* suppress all */ }
-                    };
-                    
-                    const observer = new _OriginalMO(safeCallback);
-                    const _originalObserve = observer.observe;
-                    
-                    observer.observe = function(target, options) {
-                      try {
-                        if (!target || !target.nodeType || !document.contains(target)) {
-                          return;
-                        }
-                        return _originalObserve.call(this, target, options);
-                      } catch (e) { 
-                        return;
-                      }
-                    };
-                    
-                    return observer;
-                  };
-                }
+                // MutationObserver override now handled by browser-fixes.ts import
                 
                 // IMMEDIATE GLOBAL ERROR SUPPRESSION
                 window.addEventListener('error', function(e) {

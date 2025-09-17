@@ -4,6 +4,7 @@ import { normalizeError } from '@/lib/errors';
 import { logger } from '@/lib/logger';
 import { validateLogin } from '@/lib/validation';
 import { applyRateLimit } from '@/middleware/rateLimiter';
+import { isAuthConfigured, getConfigErrorMessage } from '@/lib/environment-check';
 
 export async function POST(request: NextRequest) {
   try {
@@ -28,16 +29,18 @@ export async function POST(request: NextRequest) {
     
     const { email, password } = validatedData;
 
-    // Initialize Supabase client with service role for auth operations
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    
-    if (!supabaseUrl || !supabaseServiceKey) {
-      logger.error('❌ Supabase environment variables are missing!', new Error(`Missing env vars: hasUrl=${!!supabaseUrl}, hasServiceKey=${!!supabaseServiceKey}`));
+    // Check environment configuration
+    if (!isAuthConfigured()) {
+      const errorMessage = getConfigErrorMessage();
+      logger.error('❌ Auth environment validation failed');
       return NextResponse.json({
-        error: 'Database configuratie ontbreekt. Neem contact op met de beheerder.'
+        error: errorMessage
       }, { status: 500 });
     }
+
+    // Initialize Supabase client with service role for auth operations
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 

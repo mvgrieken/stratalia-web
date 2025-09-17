@@ -107,6 +107,28 @@
     
     return element;
   };
+  
+  // Enhanced ResizeObserver protection to prevent loop warnings
+  const OriginalResizeObserver = window.ResizeObserver;
+  if (OriginalResizeObserver) {
+    window.ResizeObserver = class extends OriginalResizeObserver {
+      constructor(callback: ResizeObserverCallback) {
+        // Wrap callback to prevent infinite loops
+        const safeCallback: ResizeObserverCallback = (entries, observer) => {
+          // Use requestAnimationFrame to prevent loop warnings
+          requestAnimationFrame(() => {
+            try {
+              callback(entries, observer);
+            } catch (error) {
+              console.warn('ResizeObserver callback error:', error);
+            }
+          });
+        };
+        
+        super(safeCallback);
+      }
+    } as any;
+  }
 })();
 
 export {};
