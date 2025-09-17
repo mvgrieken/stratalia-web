@@ -28,11 +28,12 @@ export async function GET() {
     try {
       new URL(supabaseUrl);
     } catch (urlError) {
-      logger.error('Health check failed: Invalid Supabase URL format', urlError);
+      const normalizedUrlError = normalizeError(urlError);
+      logger.error('Health check failed: Invalid Supabase URL format', normalizedUrlError);
       return NextResponse.json({
         status: 'error',
         message: 'Health check failed',
-        details: `Invalid supabaseUrl: Must be a valid HTTP or HTTPS URL.`,
+        details: `Invalid supabaseUrl: Must be a valid HTTP or HTTPS URL. ${normalizedUrlError.message}`,
         timestamp: new Date().toISOString(),
         responseTime: `${Date.now() - startTime}ms`
       }, { status: 503 });
