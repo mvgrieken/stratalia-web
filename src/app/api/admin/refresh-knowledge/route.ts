@@ -9,7 +9,8 @@ export async function POST(request: NextRequest) {
     const adminToken = process.env.ADMIN_TOKEN || 'admin-token';
     
     if (!authHeader || authHeader !== adminToken) {
-      logger.warn(`Unauthorized admin access attempt - hasHeader: ${!!authHeader}, headerValue: ${authHeader ? 'SET' : 'MISSING'}, ip: ${request.ip || 'unknown'}`);
+      const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+      logger.warn(`Unauthorized admin access attempt - hasHeader: ${!!authHeader}, headerValue: ${authHeader ? 'SET' : 'MISSING'}, ip: ${ip}`);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
