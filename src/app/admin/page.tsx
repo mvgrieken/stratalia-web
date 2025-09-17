@@ -19,7 +19,7 @@ export default function AdminPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'admin-token' // Simple auth for demo
+          'Authorization': process.env.NEXT_PUBLIC_ADMIN_TOKEN || 'admin-token'
         }
       });
 

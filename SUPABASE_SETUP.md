@@ -1,150 +1,148 @@
-# 🔧 Supabase Setup Guide
+# Supabase Setup voor Stratalia
 
-## Environment Variables Configuration
+## 🚨 Probleem
+De registratie en login functionaliteit werkt niet op de live site omdat de Supabase omgevingsvariabelen niet zijn geconfigureerd.
 
-### 1. Create `.env.local` file
+## 🔧 Oplossing
 
-Create a `.env.local` file in the root directory with the following variables:
+### 1. Supabase Project Setup
+1. Ga naar [Supabase Dashboard](https://supabase.com/dashboard)
+2. Maak een nieuw project aan of gebruik een bestaand project
+3. Ga naar **Settings > API**
+4. Kopieer de volgende waarden:
+   - **Project URL** (NEXT_PUBLIC_SUPABASE_URL)
+   - **anon public** key (NEXT_PUBLIC_SUPABASE_ANON_KEY)
+   - **service_role** key (SUPABASE_SERVICE_KEY)
 
-```bash
-# Supabase Configuration
-NEXT_PUBLIC_SUPABASE_URL=https://trrsgvxoylhcudtiimvb.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRycnNndnhveWxoY3VkdGlpbXZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxOTQ3OTIsImV4cCI6MjA3MTc3MDc5Mn0.PG4cDu5UVUwE4Kp7NejdTcxdJDypkpdpQSO97Ipl8kQ
+### 2. Vercel Environment Variables
+1. Ga naar je [Vercel Dashboard](https://vercel.com/dashboard)
+2. Selecteer je Stratalia project
+3. Ga naar **Settings > Environment Variables**
+4. Voeg de volgende variabelen toe:
 
-# Server-side only (for admin operations)
-SUPABASE_SERVICE_KEY=your_service_role_key_here
-
-# Development settings
-NODE_ENV=development
+```
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+SUPABASE_SERVICE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ADMIN_TOKEN=your_secure_admin_token_here
 ```
 
-### 2. Environment Variables Explained
+### 3. Database Schema
+Zorg ervoor dat je Supabase database de volgende tabellen heeft:
 
-- **`NEXT_PUBLIC_SUPABASE_URL`**: Your Supabase project URL
-- **`NEXT_PUBLIC_SUPABASE_ANON_KEY`**: Your Supabase anonymous key (safe for client-side)
-- **`SUPABASE_SERVICE_KEY`**: Your Supabase service role key (server-side only, keep secret!)
+```sql
+-- Profiles table
+CREATE TABLE profiles (
+  id UUID REFERENCES auth.users(id) PRIMARY KEY,
+  email TEXT,
+  full_name TEXT,
+  role TEXT DEFAULT 'user',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 
-### 3. Security Notes
+-- User points table
+CREATE TABLE user_points (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES profiles(id),
+  total_points INTEGER DEFAULT 0,
+  current_level INTEGER DEFAULT 1,
+  current_streak INTEGER DEFAULT 0,
+  longest_streak INTEGER DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 
-- ✅ `NEXT_PUBLIC_*` variables are safe to expose in the browser
-- ❌ `SUPABASE_SERVICE_KEY` should NEVER be exposed to the client
-- 🔒 Add `.env.local` to your `.gitignore` file
-
-## Testing Database Connection
-
-### 1. Start the Development Server
-
-```bash
-npm run dev
+-- Knowledge items table
+CREATE TABLE knowledge_items (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  type TEXT NOT NULL,
+  title TEXT NOT NULL,
+  content TEXT,
+  author TEXT,
+  category TEXT,
+  tags TEXT[],
+  difficulty TEXT,
+  description TEXT,
+  word_count INTEGER,
+  duration TEXT,
+  video_url TEXT,
+  audio_url TEXT,
+  thumbnail_url TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 ```
 
-### 2. Test API Endpoints
+### 4. Row Level Security (RLS)
+Zet RLS aan en configureer policies:
 
-#### Search Words API
-```bash
-curl "http://localhost:3000/api/words/search?query=swag&limit=5"
+```sql
+-- Enable RLS
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_points ENABLE ROW LEVEL SECURITY;
+ALTER TABLE knowledge_items ENABLE ROW LEVEL SECURITY;
+
+-- Profiles policies
+CREATE POLICY "Users can view their own profile" ON profiles
+  FOR SELECT USING (auth.uid() = id);
+
+CREATE POLICY "Users can update their own profile" ON profiles
+  FOR UPDATE USING (auth.uid() = id);
+
+-- User points policies
+CREATE POLICY "Users can view their own points" ON user_points
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own points" ON user_points
+  FOR UPDATE USING (auth.uid() = user_id);
+
+-- Knowledge items policies (public read)
+CREATE POLICY "Anyone can view knowledge items" ON knowledge_items
+  FOR SELECT USING (true);
 ```
 
-Expected response:
-```json
-[
-  {
-    "id": "dde56bf0-ad96-4df9-a6d2-ec2f6672f64f",
-    "word": "swag",
-    "meaning": "stijl, cool, stoer",
-    "example": "Die jongen heeft echt swag",
-    "match_type": "exact",
-    "similarity_score": 1
-  }
-]
-```
+### 5. Admin Setup
+Om een admin gebruiker te maken:
 
-#### Daily Word API
-```bash
-curl "http://localhost:3000/api/words/daily"
-```
+1. Registreer een normale gebruiker via de app
+2. Ga naar Supabase Dashboard > Authentication > Users
+3. Zoek je gebruiker
+4. Ga naar Database > profiles
+5. Update de `role` kolom van `user` naar `admin`
 
-Expected response:
-```json
-{
-  "id": "dde56bf0-ad96-4df9-a6d2-ec2f6672f64f",
-  "word": "swag",
-  "meaning": "stijl, cool, stoer",
-  "example": "Die jongen heeft echt swag",
-  "date": "2025-09-14"
-}
-```
+### 6. Deployment
+1. Na het instellen van de environment variables, redeploy je project
+2. Test de registratie en login functionaliteit
+3. Test de admin functionaliteit (als nodig)
 
-### 3. Test Frontend
+## 🔒 Security Notes
 
-1. Open http://localhost:3000
-2. Navigate to the Search page
-3. Search for a word like "swag" or "sick"
-4. Verify results are returned from the database
+- **SUPABASE_SERVICE_KEY** is zeer gevoelig - gebruik alleen server-side
+- **ADMIN_TOKEN** moet een sterke, willekeurige string zijn
+- Zet nooit gevoelige keys in client-side code
+- Gebruik RLS policies om data toegang te beperken
 
-## Database Schema
+## 🐛 Troubleshooting
 
-### Tables Used
+### Registratie werkt niet
+- Controleer of alle Supabase environment variables zijn ingesteld
+- Check Vercel logs voor foutmeldingen
+- Verificeer dat Supabase project actief is
 
-- **`words`**: Main words table with definitions and examples
-- **`word_of_the_day`**: Daily word selections
-- **`word_variants`**: Alternative spellings and pronunciations
-- **`user_profiles`**: User information and progress
-- **`quiz_sessions`**: Quiz results and scores
+### Admin functionaliteit werkt niet
+- Controleer of ADMIN_TOKEN is ingesteld
+- Verificeer dat gebruiker admin rol heeft in database
+- Check of Supabase service key correct is
 
-### RPC Functions
+### Database errors
+- Controleer of alle tabellen bestaan
+- Verificeer RLS policies
+- Check database permissions
 
-- **`search_words(query_text, result_limit)`**: Fuzzy and phonetic search
-- **`update_word_search_fields()`**: Updates search indexes
-- **`update_variant_search_fields()`**: Updates variant indexes
+## 📚 Links
 
-## Troubleshooting
-
-### Common Issues
-
-1. **"Database unavailable" error**
-   - Check if environment variables are set correctly
-   - Verify Supabase URL and keys are valid
-   - Check network connectivity
-
-2. **"Function not found" error**
-   - Ensure RPC functions are deployed in Supabase
-   - Check function parameters match expected format
-
-3. **"Column does not exist" error**
-   - Verify database schema matches expected structure
-   - Check if migrations have been applied
-
-### Debug Mode
-
-Enable debug logging by checking the browser console and server logs for:
-- ✅ Supabase client initialization messages
-- 🔍 Search query logs
-- ❌ Error messages with details
-
-## Production Deployment
-
-### Vercel Environment Variables
-
-1. Go to your Vercel project settings
-2. Add environment variables:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_KEY` (if needed)
-
-### Security Checklist
-
-- [ ] Environment variables are set in production
-- [ ] Service key is not exposed to client
-- [ ] RLS policies are configured in Supabase
-- [ ] API rate limiting is enabled
-- [ ] Error messages don't expose sensitive information
-
-## Support
-
-If you encounter issues:
-
-1. Check the server logs for detailed error messages
-2. Verify your Supabase project is active
-3. Test the connection using the curl commands above
-4. Check the Supabase dashboard for any service issues
+- [Supabase Documentation](https://supabase.com/docs)
+- [Vercel Environment Variables](https://vercel.com/docs/concepts/projects/environment-variables)
+- [Supabase Auth](https://supabase.com/docs/guides/auth)
+- [Row Level Security](https://supabase.com/docs/guides/auth/row-level-security)

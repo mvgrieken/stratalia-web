@@ -4,9 +4,16 @@ import { logger } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
   try {
-    // Check if user is admin (you can implement proper auth here)
+    // Enhanced admin authentication
     const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.includes('admin')) {
+    const adminToken = process.env.ADMIN_TOKEN || 'admin-token';
+    
+    if (!authHeader || authHeader !== adminToken) {
+      logger.warn('Unauthorized admin access attempt', { 
+        hasHeader: !!authHeader, 
+        headerValue: authHeader ? 'SET' : 'MISSING',
+        ip: request.ip || 'unknown'
+      });
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
