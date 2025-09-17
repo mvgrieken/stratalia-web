@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useAuth } from './AuthProvider';
 import { useState } from 'react';
+import ThemeToggle from './ThemeToggle';
 
 export default function Navigation() {
   const { user, signOut } = useAuth();
@@ -81,6 +82,9 @@ export default function Navigation() {
           <div className="flex items-center">
             {user ? (
               <div className="flex items-center space-x-4">
+                {/* Theme Toggle */}
+                <ThemeToggle />
+                
                 {/* CMS-knop voor admin */}
                 {user.role === 'admin' && (
                   <Link
@@ -139,6 +143,9 @@ export default function Navigation() {
               </div>
             ) : (
               <div className="flex items-center space-x-4">
+                {/* Theme Toggle */}
+                <ThemeToggle />
+                
                 <Link
                   href="/login"
                   className="text-white hover:text-blue-200 px-3 py-2 rounded-md text-sm font-medium transition-colors"
@@ -172,6 +179,11 @@ export default function Navigation() {
         {isMenuOpen && (
           <div className="lg:hidden bg-white bg-opacity-10 backdrop-blur-sm">
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+              {/* Theme Toggle in Mobile Menu */}
+              <div className="px-3 py-2">
+                <ThemeToggle showLabel={true} className="text-white hover:text-blue-200" />
+              </div>
+              
               <Link href="/search" className="text-white hover:text-blue-200 block px-3 py-2 rounded-md text-base font-medium transition-colors">
                 🔍 Zoek & Vertaal
               </Link>

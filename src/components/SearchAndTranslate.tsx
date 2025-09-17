@@ -160,10 +160,10 @@ export default function SearchAndTranslate({ onWordClick, className = '' }: Sear
   return (
     <div className={`space-y-6 ${className}`}>
       {/* Search/Translate Input */}
-      <div className="bg-white rounded-lg shadow-sm p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="search-input" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="search-input" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Zoek of vertaal
             </label>
             <div className="flex gap-2">
@@ -173,7 +173,7 @@ export default function SearchAndTranslate({ onWordClick, className = '' }: Sear
                 value={query}
                 onChange={handleInputChange}
                 placeholder="Voer een woord of zin in om te zoeken of vertalen..."
-                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 disabled={loading}
               />
               <button
@@ -197,7 +197,7 @@ export default function SearchAndTranslate({ onWordClick, className = '' }: Sear
 
       {/* Error Display */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div className="bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-lg p-4">
           <ErrorMessage message={error} />
         </div>
       )}
@@ -205,14 +205,14 @@ export default function SearchAndTranslate({ onWordClick, className = '' }: Sear
       {/* Results Display */}
       {resultType === 'search' && results.length > 0 && (
         <div className="space-y-4">
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-green-600">✅</span>
-              <h3 className="text-lg font-semibold text-green-800">
+              <span className="text-green-600 dark:text-green-400">✅</span>
+              <h3 className="text-lg font-semibold text-green-800 dark:text-green-200">
                 Gevonden in de database
               </h3>
             </div>
-            <p className="text-green-700">
+            <p className="text-green-700 dark:text-green-300">
               {results.length} resultaat{results.length !== 1 ? 'en' : ''} gevonden voor "{query}"
             </p>
           </div>
@@ -245,14 +245,14 @@ export default function SearchAndTranslate({ onWordClick, className = '' }: Sear
 
       {resultType === 'translate' && translateResult && (
         <div className="space-y-4">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-blue-600">🤖</span>
-              <h3 className="text-lg font-semibold text-blue-800">
+              <span className="text-blue-600 dark:text-blue-400">🤖</span>
+              <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-200">
                 AI Vertaling
               </h3>
             </div>
-            <p className="text-blue-700">
+            <p className="text-blue-700 dark:text-blue-300">
               {results.length === 0 
                 ? `Niet gevonden in de database, automatisch vertaald`
                 : `Vertaling van "${query}"`
@@ -260,27 +260,27 @@ export default function SearchAndTranslate({ onWordClick, className = '' }: Sear
             </p>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Origineel
                 </label>
-                <p className="text-gray-900 font-medium">
+                <p className="text-gray-900 dark:text-gray-100 font-medium">
                   {translateResult.original_text}
                 </p>
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Vertaling
                 </label>
-                <p className="text-gray-900 text-lg">
+                <p className="text-gray-900 dark:text-gray-100 text-lg">
                   {translateResult.translated_text}
                 </p>
               </div>
               
-              <div className="flex items-center gap-4 text-sm text-gray-600">
+              <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
                 <span>
                   Betrouwbaarheid: {Math.round(translateResult.confidence * 100)}%
                 </span>
@@ -291,14 +291,14 @@ export default function SearchAndTranslate({ onWordClick, className = '' }: Sear
               
               {translateResult.alternatives && translateResult.alternatives.length > 0 && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Alternatieven
                   </label>
                   <div className="flex flex-wrap gap-2">
                     {translateResult.alternatives.map((alt, index) => (
                       <span
                         key={index}
-                        className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm"
+                        className="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm"
                       >
                         {alt}
                       </span>
@@ -313,16 +313,16 @@ export default function SearchAndTranslate({ onWordClick, className = '' }: Sear
 
       {/* No Results */}
       {resultType && results.length === 0 && !translateResult && !loading && !error && (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
-          <div className="text-gray-400 mb-4">
+        <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-8 text-center">
+          <div className="text-gray-400 dark:text-gray-500 mb-4">
             <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.47-.881-6.08-2.33" />
             </svg>
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
             Geen resultaten gevonden
           </h3>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-400">
             Probeer een ander woord of controleer je spelling.
           </p>
         </div>

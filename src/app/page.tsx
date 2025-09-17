@@ -35,14 +35,14 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navigation />
       <div className="flex flex-col items-center justify-center min-h-screen px-6">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
             Stratalia
           </h1>
-          <p className="text-xl text-gray-600 mb-8">
+          <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
             Leer straattaal op een leuke en interactieve manier
           </p>
         </div>
@@ -62,10 +62,10 @@ export default function HomePage() {
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-4xl">
-          <div className="bg-white rounded-lg shadow-md p-6 text-center">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 text-center">
             <div className="text-4xl mb-4">🔤</div>
-            <h3 className="text-xl font-semibold mb-2">Zoeken</h3>
-            <p className="mb-4 text-gray-600">
+            <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-gray-100">Zoeken</h3>
+            <p className="mb-4 text-gray-600 dark:text-gray-300">
               Zoek straattaalwoorden in onze database
             </p>
             <Link
@@ -76,10 +76,10 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6 text-center">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 text-center">
             <div className="text-4xl mb-4">📖</div>
-            <h3 className="text-xl font-semibold mb-2">Woordenboek</h3>
-            <p className="mb-4 text-gray-600">
+            <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-gray-100">Woordenboek</h3>
+            <p className="mb-4 text-gray-600 dark:text-gray-300">
               Blader door onze straattaal woordenlijst
             </p>
             <Link
@@ -90,10 +90,10 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6 text-center">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 text-center">
             <div className="text-4xl mb-4">📅</div>
-            <h3 className="text-xl font-semibold mb-2">Woord van de Dag</h3>
-            <p className="mb-4 text-gray-600">
+            <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-gray-100">Woord van de Dag</h3>
+            <p className="mb-4 text-gray-600 dark:text-gray-300">
               Leer elke dag een nieuw straattaalwoord
             </p>
             <Link
@@ -104,10 +104,10 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6 text-center">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 text-center">
             <div className="text-4xl mb-4">🧠</div>
-            <h3 className="text-xl font-semibold mb-2">Quiz</h3>
-            <p className="mb-4 text-gray-600">
+            <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-gray-100">Quiz</h3>
+            <p className="mb-4 text-gray-600 dark:text-gray-300">
               Test je kennis en verdien punten
             </p>
             <Link
@@ -118,10 +118,10 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6 text-center">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 text-center">
             <div className="text-4xl mb-4">📚</div>
-            <h3 className="text-xl font-semibold mb-2">Kennisbank</h3>
-            <p className="mb-4 text-gray-600">
+            <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-gray-100">Kennisbank</h3>
+            <p className="mb-4 text-gray-600 dark:text-gray-300">
               Verdiep je kennis met artikelen en podcasts
             </p>
             <Link
@@ -132,10 +132,10 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6 text-center">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 text-center">
             <div className="text-4xl mb-4">👥</div>
-            <h3 className="text-xl font-semibold mb-2">Community</h3>
-            <p className="mb-4 text-gray-600">
+            <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-gray-100">Community</h3>
+            <p className="mb-4 text-gray-600 dark:text-gray-300">
               Draag bij aan de straattaal database
             </p>
             <Link
