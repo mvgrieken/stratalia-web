@@ -18,8 +18,7 @@ export const metadata: Metadata = {
   viewport: 'width=device-width, initial-scale=1',
   icons: {
     icon: [
-      { url: '/favicon.svg', type: 'image/svg+xml' },
-      { url: '/favicon.ico', sizes: 'any' }
+      { url: '/favicon.svg', type: 'image/svg+xml' }
     ],
     apple: [
       { url: '/favicon.svg', type: 'image/svg+xml' }
@@ -200,11 +199,33 @@ export default function RootLayout({
                 if (message.includes('credentials-library.js') || 
                     message.includes('MutationObserver') ||
                     message.includes('Argument 1') ||
-                    message.includes('must be an instance of Node')) {
+                    message.includes('must be an instance of Node') ||
+                    message.includes('ResizeObserver loop completed') ||
+                    message.includes('ResizeObserver loop limit exceeded')) {
                   return; // Suppress these errors
                 }
                 originalConsoleError.apply(console, args);
               };
+              
+              // Suppress ResizeObserver errors globally
+              const originalResizeObserver = window.ResizeObserver;
+              if (originalResizeObserver) {
+                window.ResizeObserver = class extends originalResizeObserver {
+                  constructor(callback) {
+                    const wrappedCallback = (entries, observer) => {
+                      try {
+                        callback(entries, observer);
+                      } catch (error) {
+                        // Suppress ResizeObserver errors
+                        if (!error.message.includes('ResizeObserver loop')) {
+                          throw error;
+                        }
+                      }
+                    };
+                    super(wrappedCallback);
+                  }
+                };
+              }
             `,
           }}
         />
