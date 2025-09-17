@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
       }
     ];
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('knowledge_items')
       .insert(knowledgeItems);
 

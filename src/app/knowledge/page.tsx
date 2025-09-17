@@ -1,7 +1,6 @@
 import Navigation from '@/components/Navigation';
 import { getSupabaseServiceClient } from '@/lib/supabase-client';
 import KnowledgeClient from './KnowledgeClient';
-import ErrorState from './ErrorState';
 
 interface KnowledgeItem {
   id: string;
@@ -22,7 +21,6 @@ interface KnowledgeItem {
 
 export default async function KnowledgePage() {
   let items: KnowledgeItem[] = [];
-  let error: string | null = null;
 
   try {
     // Fetch knowledge items directly from Supabase using service client
