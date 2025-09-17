@@ -152,9 +152,11 @@ export default function KnowledgeClient({ initialItems }: KnowledgeClientProps) 
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredItems.map((item) => (
-              <div
+              <Link
                 key={item.id}
-                className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden"
+                href={`/knowledge/${item.id}`}
+                className="block bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 group"
+                aria-label={`Bekijk ${item.title} - ${item.type} door ${item.author}`}
               >
                 {/* Thumbnail */}
                 {item.thumbnail_url ? (
@@ -240,15 +242,15 @@ export default function KnowledgeClient({ initialItems }: KnowledgeClientProps) 
                     )}
                   </div>
 
-                  {/* Action Button */}
-                  <Link
-                    href={`/knowledge/${item.id}`}
-                    className="block w-full bg-blue-600 text-white text-center py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    Bekijk
-                  </Link>
+                  {/* Hover indicator */}
+                  <div className="mt-4 text-blue-600 dark:text-blue-400 group-hover:text-blue-800 dark:group-hover:text-blue-300 text-sm font-medium flex items-center">
+                    Bekijk details
+                    <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}

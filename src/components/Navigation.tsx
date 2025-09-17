@@ -5,6 +5,7 @@ import { useAuth } from './AuthProvider';
 import { useState } from 'react';
 import ThemeToggle from './ThemeToggle';
 import NavItem from './NavItem';
+import { isFeatureEnabled } from '@/lib/feature-flags';
 
 interface MenuItem {
   label: string;
@@ -12,21 +13,30 @@ interface MenuItem {
   icon: string;
   requiresAuth: boolean;
   requiresAdmin?: boolean;
+  featureFlag?: keyof typeof import('@/lib/feature-flags').featureFlags;
 }
 
 const menuItems: MenuItem[] = [
   { label: 'Zoek & Vertaal', href: '/search', icon: '🔍', requiresAuth: false },
   { label: 'Woord v/d Dag', href: '/word-of-the-day', icon: '📅', requiresAuth: false },
-  { label: 'Quiz', href: '/quiz', icon: '🧠', requiresAuth: true },
-  { label: 'Kennisbank', href: '/knowledge', icon: '📚', requiresAuth: true },
-  { label: 'Community', href: '/community', icon: '👥', requiresAuth: true },
-  { label: 'Ranking', href: '/leaderboard', icon: '🏆', requiresAuth: true },
-  { label: 'Challenges', href: '/challenges', icon: '🎯', requiresAuth: true },
+  { label: 'Kennisbank', href: '/knowledge', icon: '📚', requiresAuth: false },
+  { label: 'Quiz', href: '/quiz', icon: '🧠', requiresAuth: true, featureFlag: 'ENABLE_QUIZ' },
+  { label: 'Community', href: '/community', icon: '👥', requiresAuth: true, featureFlag: 'ENABLE_COMMUNITY' },
+  { label: 'Ranking', href: '/leaderboard', icon: '🏆', requiresAuth: true, featureFlag: 'ENABLE_LEADERBOARD' },
+  { label: 'Challenges', href: '/challenges', icon: '🎯', requiresAuth: true, featureFlag: 'ENABLE_CHALLENGES' },
 ];
 
 export default function Navigation() {
   const { user, signOut } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  
+  // Filter menu items based on feature flags
+  const enabledMenuItems = menuItems.filter(item => {
+    if (item.featureFlag) {
+      return isFeatureEnabled(item.featureFlag);
+    }
+    return true;
+  });
 
   return (
     <nav className="bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg">
@@ -38,7 +48,7 @@ export default function Navigation() {
             </Link>
             
             <div className="hidden lg:ml-6 lg:flex lg:space-x-4">
-              {menuItems.map((item) => (
+              {enabledMenuItems.map((item) => (
                 <NavItem
                   key={item.href}
                   label={item.label}
@@ -157,7 +167,7 @@ export default function Navigation() {
                 <ThemeToggle showLabel={true} className="text-white hover:text-blue-200" />
               </div>
               
-              {menuItems.map((item) => (
+              {enabledMenuItems.map((item) => (
                 <NavItem
                   key={item.href}
                   label={item.label}

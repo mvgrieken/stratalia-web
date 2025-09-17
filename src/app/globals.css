@@ -15,6 +15,20 @@
 
 /* Dark mode component styles */
 @layer components {
+  /* WCAG Accessibility Styles */
+  .focus-visible {
+    @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-blue-400 dark:focus:ring-offset-gray-900;
+  }
+  
+  .skip-link {
+    @apply sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded-md z-50;
+  }
+  
+  /* High contrast focus styles for better visibility */
+  .focus-high-contrast {
+    @apply focus:outline-none focus:ring-4 focus:ring-yellow-400 focus:ring-offset-2 focus:ring-offset-black;
+  }
+  
   /* Card styles */
   .card {
     @apply bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700;
@@ -25,13 +39,13 @@
     @apply bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400;
   }
   
-  /* Button styles */
+  /* Button styles with accessibility */
   .btn-primary {
-    @apply bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white;
+    @apply bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-blue-400 dark:focus:ring-offset-gray-900;
   }
   
   .btn-secondary {
-    @apply bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100;
+    @apply bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-gray-400 dark:focus:ring-offset-gray-900;
   }
   
   /* Navigation styles */

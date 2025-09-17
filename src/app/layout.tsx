@@ -7,6 +7,7 @@ import { AuthProvider } from '@/components/AuthProvider'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import ThemeProvider from '@/components/ThemeProvider'
 import Navigation from '@/components/Navigation'
+import SkipToContent from '@/components/SkipToContent'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -231,11 +232,14 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
+        <SkipToContent />
         <ErrorBoundary>
           <ThemeProvider>
             <AuthProvider>
               <Navigation />
-              {children}
+              <main id="main-content" tabIndex={-1}>
+                {children}
+              </main>
             </AuthProvider>
           </ThemeProvider>
         </ErrorBoundary>
