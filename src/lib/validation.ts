@@ -65,7 +65,7 @@ export const translationSchema = z.object({
     .trim()
     .transform(val => val.replace(/[<>\"'&]/g, '')), // Basic XSS protection
   direction: z.enum(['to_slang', 'to_formal'], {
-    errorMap: () => ({ message: 'Ongeldige vertaalrichting' })
+    message: 'Ongeldige vertaalrichting'
   }),
   context: z.string()
     .max(200, 'Context mag maximaal 200 tekens lang zijn')
@@ -88,7 +88,7 @@ export const quizSubmissionSchema = z.object({
     .min(1000, 'Quiz moet minimaal 1 seconde duren')
     .max(3600000, 'Quiz mag maximaal 1 uur duren'), // 1 hour max
   difficulty: z.enum(['easy', 'medium', 'hard'], {
-    errorMap: () => ({ message: 'Ongeldige moeilijkheidsgraad' })
+    message: 'Ongeldige moeilijkheidsgraad'
   })
 });
 
@@ -122,12 +122,12 @@ export const communitySubmissionSchema = z.object({
 // Admin operations schema
 export const adminOperationSchema = z.object({
   action: z.enum(['refresh_knowledge', 'update_user_role', 'moderate_submission'], {
-    errorMap: () => ({ message: 'Ongeldige admin actie' })
+    message: 'Ongeldige admin actie'
   }),
   target_id: z.string()
     .uuid('Ongeldig ID formaat')
     .optional(),
-  data: z.record(z.any())
+  data: z.record(z.string(), z.any())
     .optional()
 });
 
