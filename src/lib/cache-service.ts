@@ -88,10 +88,18 @@ class CacheService {
     keys: string[];
     memoryUsage: number;
   } {
+    const keys: string[] = [];
+    const values: any[] = [];
+    
+    this.cache.forEach((entry, key) => {
+      keys.push(key);
+      values.push(entry);
+    });
+    
     return {
       size: this.cache.size,
-      keys: Array.from(this.cache.keys()),
-      memoryUsage: JSON.stringify(Array.from(this.cache.values())).length
+      keys,
+      memoryUsage: JSON.stringify(values).length
     };
   }
 
