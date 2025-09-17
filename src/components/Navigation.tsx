@@ -4,6 +4,25 @@ import Link from 'next/link';
 import { useAuth } from './AuthProvider';
 import { useState } from 'react';
 import ThemeToggle from './ThemeToggle';
+import NavItem from './NavItem';
+
+interface MenuItem {
+  label: string;
+  href: string;
+  icon: string;
+  requiresAuth: boolean;
+  requiresAdmin?: boolean;
+}
+
+const menuItems: MenuItem[] = [
+  { label: 'Zoek & Vertaal', href: '/search', icon: '🔍', requiresAuth: false },
+  { label: 'Woord v/d Dag', href: '/word-of-the-day', icon: '📅', requiresAuth: false },
+  { label: 'Quiz', href: '/quiz', icon: '🧠', requiresAuth: true },
+  { label: 'Kennisbank', href: '/knowledge', icon: '📚', requiresAuth: true },
+  { label: 'Community', href: '/community', icon: '👥', requiresAuth: true },
+  { label: 'Ranking', href: '/leaderboard', icon: '🏆', requiresAuth: true },
+  { label: 'Challenges', href: '/challenges', icon: '🎯', requiresAuth: true },
+];
 
 export default function Navigation() {
   const { user, signOut } = useAuth();
@@ -19,63 +38,17 @@ export default function Navigation() {
             </Link>
             
             <div className="hidden lg:ml-6 lg:flex lg:space-x-4">
-              <Link href="/search" className="text-white hover:text-blue-200 px-2 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap">
-                🔍 Zoek & Vertaal
-              </Link>
-              <Link href="/word-of-the-day" className="text-white hover:text-blue-200 px-2 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap">
-                📅 Woord v/d Dag
-              </Link>
-              
-              {/* Protected items - show with lock icon if not logged in */}
-              {user ? (
-                <Link href="/quiz" className="text-white hover:text-blue-200 px-2 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap">
-                  🧠 Quiz
-                </Link>
-              ) : (
-                <span className="text-white text-opacity-60 px-2 py-2 rounded-md text-sm font-medium whitespace-nowrap cursor-not-allowed flex items-center">
-                  🧠 Quiz 🔒
-                </span>
-              )}
-              
-              {user ? (
-                <Link href="/knowledge" className="text-white hover:text-blue-200 px-2 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap">
-                  📚 Kennisbank
-                </Link>
-              ) : (
-                <span className="text-white text-opacity-60 px-2 py-2 rounded-md text-sm font-medium whitespace-nowrap cursor-not-allowed flex items-center">
-                  📚 Kennisbank 🔒
-                </span>
-              )}
-              
-              {user ? (
-                <Link href="/community" className="text-white hover:text-blue-200 px-2 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap">
-                  👥 Community
-                </Link>
-              ) : (
-                <span className="text-white text-opacity-60 px-2 py-2 rounded-md text-sm font-medium whitespace-nowrap cursor-not-allowed flex items-center">
-                  👥 Community 🔒
-                </span>
-              )}
-              
-              {user ? (
-                <Link href="/leaderboard" className="text-white hover:text-blue-200 px-2 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap">
-                  🏆 Ranking
-                </Link>
-              ) : (
-                <span className="text-white text-opacity-60 px-2 py-2 rounded-md text-sm font-medium whitespace-nowrap cursor-not-allowed flex items-center">
-                  🏆 Ranking 🔒
-                </span>
-              )}
-              
-              {user ? (
-                <Link href="/challenges" className="text-white hover:text-blue-200 px-2 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap">
-                  🎯 Challenges
-                </Link>
-              ) : (
-                <span className="text-white text-opacity-60 px-2 py-2 rounded-md text-sm font-medium whitespace-nowrap cursor-not-allowed flex items-center">
-                  🎯 Challenges 🔒
-                </span>
-              )}
+              {menuItems.map((item) => (
+                <NavItem
+                  key={item.href}
+                  label={item.label}
+                  href={item.href}
+                  icon={item.icon}
+                  requiresAuth={item.requiresAuth}
+                  requiresAdmin={item.requiresAdmin}
+                  user={user}
+                />
+              ))}
             </div>
           </div>
 
@@ -184,63 +157,18 @@ export default function Navigation() {
                 <ThemeToggle showLabel={true} className="text-white hover:text-blue-200" />
               </div>
               
-              <Link href="/search" className="text-white hover:text-blue-200 block px-3 py-2 rounded-md text-base font-medium transition-colors">
-                🔍 Zoek & Vertaal
-              </Link>
-              <Link href="/word-of-the-day" className="text-white hover:text-blue-200 block px-3 py-2 rounded-md text-base font-medium transition-colors">
-                📅 Woord van de Dag
-              </Link>
-              
-              {/* Protected items in mobile menu */}
-              {user ? (
-                <Link href="/quiz" className="text-white hover:text-blue-200 block px-3 py-2 rounded-md text-base font-medium transition-colors">
-                  🧠 Quiz
-                </Link>
-              ) : (
-                <span className="text-white text-opacity-60 block px-3 py-2 rounded-md text-base font-medium cursor-not-allowed">
-                  🧠 Quiz 🔒
-                </span>
-              )}
-              
-              {user ? (
-                <Link href="/knowledge" className="text-white hover:text-blue-200 block px-3 py-2 rounded-md text-base font-medium transition-colors">
-                  📚 Kennisbank
-                </Link>
-              ) : (
-                <span className="text-white text-opacity-60 block px-3 py-2 rounded-md text-base font-medium cursor-not-allowed">
-                  📚 Kennisbank 🔒
-                </span>
-              )}
-              
-              {user ? (
-                <Link href="/community" className="text-white hover:text-blue-200 block px-3 py-2 rounded-md text-base font-medium transition-colors">
-                  👥 Community
-                </Link>
-              ) : (
-                <span className="text-white text-opacity-60 block px-3 py-2 rounded-md text-base font-medium cursor-not-allowed">
-                  👥 Community 🔒
-                </span>
-              )}
-              
-              {user ? (
-                <Link href="/leaderboard" className="text-white hover:text-blue-200 block px-3 py-2 rounded-md text-base font-medium transition-colors">
-                  🏆 Leaderboard
-                </Link>
-              ) : (
-                <span className="text-white text-opacity-60 block px-3 py-2 rounded-md text-base font-medium cursor-not-allowed">
-                  🏆 Leaderboard 🔒
-                </span>
-              )}
-              
-              {user ? (
-                <Link href="/challenges" className="text-white hover:text-blue-200 block px-3 py-2 rounded-md text-base font-medium transition-colors">
-                  🎯 Challenges
-                </Link>
-              ) : (
-                <span className="text-white text-opacity-60 block px-3 py-2 rounded-md text-base font-medium cursor-not-allowed">
-                  🎯 Challenges 🔒
-                </span>
-              )}
+              {menuItems.map((item) => (
+                <NavItem
+                  key={item.href}
+                  label={item.label}
+                  href={item.href}
+                  icon={item.icon}
+                  requiresAuth={item.requiresAuth}
+                  requiresAdmin={item.requiresAdmin}
+                  user={user}
+                  isMobile={true}
+                />
+              ))}
             </div>
           </div>
         )}
