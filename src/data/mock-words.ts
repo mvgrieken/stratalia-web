@@ -583,3 +583,7 @@ export function getWordOfTheDay(): MockWord {
   const index = dayOfYear % mockWords.length;
   return mockWords[index];
 }
+
+export function getWords(): MockWord[] {
+  return mockWords;
+}

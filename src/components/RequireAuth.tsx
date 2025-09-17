@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -11,7 +11,7 @@ interface RequireAuthProps {
   redirectTo?: string;
 }
 
-export function RequireAuth({ children, fallback, redirectTo }: RequireAuthProps) {
+function RequireAuthInner({ children, fallback, redirectTo }: RequireAuthProps) {
   const { user, loading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -82,6 +82,23 @@ export function RequireAuth({ children, fallback, redirectTo }: RequireAuthProps
 
   // User is authenticated, render children
   return <>{children}</>;
+}
+
+export function RequireAuth({ children, fallback, redirectTo }: RequireAuthProps) {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Laden...</p>
+        </div>
+      </div>
+    }>
+      <RequireAuthInner fallback={fallback} redirectTo={redirectTo}>
+        {children}
+      </RequireAuthInner>
+    </Suspense>
+  );
 }
 
 export default RequireAuth;

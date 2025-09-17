@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from './ThemeProvider';
 
 interface ThemeToggleProps {
@@ -9,7 +9,27 @@ interface ThemeToggleProps {
 }
 
 export default function ThemeToggle({ className = '', showLabel = false }: ThemeToggleProps) {
+  const [mounted, setMounted] = useState(false);
   const { theme, toggleTheme } = useTheme();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <button
+        className={`relative inline-flex items-center justify-center p-2 rounded-lg transition-colors duration-200 hover:bg-white hover:bg-opacity-10 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 ${className}`}
+        aria-label="Thema wisselen"
+        title="Thema wisselen"
+      >
+        <div className="w-5 h-5 flex items-center justify-center">
+          <div className="w-4 h-4 bg-gray-400 rounded-full"></div>
+        </div>
+        {showLabel && <span className="ml-2 text-sm">Thema</span>}
+      </button>
+    );
+  }
 
   return (
     <button

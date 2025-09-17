@@ -229,7 +229,7 @@ class QuizService {
     }
 
     // Fallback to mock data
-    const allQuestions = mockDataService.getQuizQuestions();
+    const allQuestions = getQuizQuestions();
     const stats = {
       totalQuestions: allQuestions.length,
       questionsByDifficulty: allQuestions.reduce((acc, q) => {

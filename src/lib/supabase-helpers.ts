@@ -40,16 +40,16 @@ export function createSupabaseServiceClient() {
     throw new Error('Supabase is not configured. Please check your environment variables.');
   }
 
-  if (!config.supabase.serviceKey) {
+  if (!config.supabase.serviceRoleKey) {
     throw new Error('Supabase service key is not configured');
   }
 
   try {
-    const client = createClient(config.supabase.url, config.supabase.serviceKey);
+    const client = createClient(config.supabase.url, config.supabase.serviceRoleKey);
     logger.info('Supabase service client created successfully');
     return client;
   } catch (error) {
-    logger.error('Failed to create Supabase service client:', error);
+    logger.error('Failed to create Supabase service client:', error instanceof Error ? error : new Error(String(error)));
     throw new Error('Failed to initialize Supabase service client');
   }
 }
@@ -66,7 +66,7 @@ export async function executeSupabaseQuery<T>(
     const result = await queryFn(client);
     return result;
   } catch (error) {
-    logger.error('Supabase query failed:', error);
+    logger.error('Supabase query failed:', error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 }
@@ -129,13 +129,15 @@ export async function checkSupabaseHealth(): Promise<boolean> {
     const { error } = await client.from('words').select('id').limit(1);
     
     if (error) {
-      logger.warn('Supabase health check failed:', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.warn(`Supabase health check failed: ${errorMessage}`);
       return false;
     }
     
     return true;
   } catch (error) {
-    logger.warn('Supabase health check error:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.warn(`Supabase health check error: ${errorMessage}`);
     return false;
   }
 }
@@ -153,6 +155,6 @@ export function getSupabaseStatus(): {
     configured: isSupabaseConfigured(),
     hasUrl: !!config.supabase.url,
     hasAnonKey: !!config.supabase.anonKey,
-    hasServiceKey: !!config.supabase.serviceKey
+    hasServiceKey: !!config.supabase.serviceRoleKey
   };
 }

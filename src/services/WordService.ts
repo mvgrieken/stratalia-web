@@ -4,7 +4,7 @@
  */
 
 import { wordRepository } from '@/repositories/WordRepository';
-import { mockDataService } from '@/lib/mock-data';
+import { getWords } from '@/lib/mock-data';
 import { cacheService } from '@/lib/cache';
 import { logger } from '@/lib/logger';
 import { getSupabaseClient } from '@/lib/supabase-client';
@@ -84,7 +84,10 @@ class WordService extends BaseService {
         }
 
         // Fallback to mock data
-        const mockWords = mockDataService.searchWords(searchQuery, limit);
+        const mockWords = getWords().filter(word => 
+          word.word.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          word.meaning.toLowerCase().includes(searchQuery.toLowerCase())
+        ).slice(0, limit);
         const results = mockWords.map(word => ({
           id: word.id,
           word: word.word,
@@ -170,7 +173,8 @@ class WordService extends BaseService {
     }
 
     // Fallback to mock data
-    const mockWord = mockDataService.getDailyWord();
+    const allWords = getWords();
+    const mockWord = allWords[Math.floor(Math.random() * allWords.length)];
     logger.info('Using fallback daily word');
     return {
       word: {
@@ -224,7 +228,8 @@ class WordService extends BaseService {
     }
 
     // Fallback to mock data
-    const mockWord = mockDataService.getWordById(id);
+    const allWords = getWords();
+    const mockWord = allWords.find(word => word.id === id);
     if (mockWord) {
       logger.info(`Word found in fallback data: id=undefined`);
       return {
@@ -278,7 +283,7 @@ class WordService extends BaseService {
     }
 
     // Fallback to mock data
-    const allMockWords = mockDataService.getWords();
+    const allMockWords = getWords();
     const startIndex = (page - 1) * limit;
     const endIndex = startIndex + limit;
     const words = allMockWords.slice(startIndex, endIndex).map(word => ({

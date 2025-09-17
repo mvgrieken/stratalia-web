@@ -70,7 +70,12 @@ export function ThemeProvider({ children, defaultTheme = 'light' }: ThemeProvide
 export function useTheme() {
   const context = useContext(ThemeContext);
   if (context === undefined) {
-    throw new Error('useTheme must be used within a ThemeProvider');
+    // Return fallback values during server-side rendering
+    return {
+      theme: 'light' as Theme,
+      toggleTheme: () => {},
+      setTheme: () => {}
+    };
   }
   return context;
 }

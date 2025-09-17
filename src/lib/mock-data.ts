@@ -17,7 +17,8 @@ export {
   getWordsByCategory,
   getWordsByDifficulty,
   getRandomWords,
-  getWordOfTheDay
+  getWordOfTheDay,
+  getWords
 } from '@/data/mock-words';
 
 export {
