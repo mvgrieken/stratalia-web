@@ -10,7 +10,7 @@ interface KnowledgeFiltersProps {
   }) => void;
 }
 
-export default function KnowledgeFilters({ onFiltersChange, showClearButton = false }: KnowledgeFiltersProps) {
+export default function KnowledgeFilters({ onFiltersChange }: KnowledgeFiltersProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState('all');
   const [selectedDifficulty, setSelectedDifficulty] = useState('all');
