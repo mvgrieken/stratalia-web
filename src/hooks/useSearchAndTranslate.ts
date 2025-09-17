@@ -42,7 +42,10 @@ export function useSearchAndTranslate() {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({ 
+        text,
+        direction: 'to_formal' // Default to translating slang to formal Dutch
+      }),
     });
     
     const data = await response.json();
@@ -51,7 +54,15 @@ export function useSearchAndTranslate() {
       throw new Error(data.error || 'Translation failed');
     }
     
-    return data;
+    // Transform API response to expected format
+    return {
+      original_text: text,
+      translated_text: data.translation || text,
+      confidence: data.confidence || 0.5,
+      source_language: 'straattaal',
+      target_language: 'nederlands',
+      alternatives: data.alternatives || []
+    };
   }, []);
 
   const handleSearch = useCallback(async (searchQuery: string) => {

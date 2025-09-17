@@ -55,6 +55,17 @@ export function ThemeProvider({ children, defaultTheme = 'light' }: ThemeProvide
     setThemeState(prev => prev === 'light' ? 'dark' : 'light');
   };
 
+  // Apply theme to document immediately, even before mounted
+  useEffect(() => {
+    const root = document.documentElement;
+    
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  }, [theme]);
+
   // Prevent hydration mismatch by not rendering until mounted
   if (!mounted) {
     return <>{children}</>;
