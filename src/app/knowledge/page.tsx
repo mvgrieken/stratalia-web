@@ -162,8 +162,8 @@ export default async function KnowledgePage() {
   // Always show fallback items if no items loaded - use full mock dataset
   if (items.length === 0) {
     // Import and use the full mock dataset
-    const { mockDataService } = await import('@/lib/mock-data');
-    const mockItems = mockDataService.getKnowledgeItems();
+    const { getKnowledgeItems } = await import('@/lib/mock-data');
+    const mockItems = getKnowledgeItems();
     
     items = mockItems.map((item: any) => ({
       id: item.id,
