@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import KnowledgeFilters from './KnowledgeFilters';
 
 interface KnowledgeItem {
   id: string;
@@ -27,32 +28,34 @@ interface KnowledgeClientProps {
 export default function KnowledgeClient({ initialItems }: KnowledgeClientProps) {
   const [items] = useState<KnowledgeItem[]>(initialItems);
   const [filteredItems, setFilteredItems] = useState<KnowledgeItem[]>(initialItems);
-  const [selectedType, setSelectedType] = useState<string>('all');
-  const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [filters, setFilters] = useState({
+    searchQuery: '',
+    selectedType: 'all',
+    selectedDifficulty: 'all'
+  });
 
   const filterItems = useCallback(() => {
     let filtered = items;
 
-    if (selectedType !== 'all') {
-      filtered = filtered.filter(item => item.type === selectedType);
+    if (filters.selectedType !== 'all') {
+      filtered = filtered.filter(item => item.type === filters.selectedType);
     }
 
-    if (selectedDifficulty !== 'all') {
-      filtered = filtered.filter(item => item.difficulty === selectedDifficulty);
+    if (filters.selectedDifficulty !== 'all') {
+      filtered = filtered.filter(item => item.difficulty === filters.selectedDifficulty);
     }
 
-    if (searchQuery) {
+    if (filters.searchQuery) {
       filtered = filtered.filter(item => 
-        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+        item.title.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
+        item.content.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
+        item.category.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
+        item.tags.some(tag => tag.toLowerCase().includes(filters.searchQuery.toLowerCase()))
       );
     }
 
     setFilteredItems(filtered);
-  }, [items, selectedType, selectedDifficulty, searchQuery]);
+  }, [items, filters]);
 
   useEffect(() => {
     filterItems();
@@ -124,74 +127,7 @@ export default function KnowledgeClient({ initialItems }: KnowledgeClientProps) 
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-lg p-6 mb-8 shadow-sm">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {/* Search */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Zoeken
-              </label>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Zoek in titel, content of tags..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            {/* Type Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Type
-              </label>
-              <select
-                value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">Alle types</option>
-                <option value="article">📄 Artikelen</option>
-                <option value="video">🎥 Video's</option>
-                <option value="podcast">🎧 Podcasts</option>
-                <option value="infographic">📊 Infographics</option>
-                <option value="book">📚 Boeken</option>
-                <option value="music">🎵 Muziek</option>
-              </select>
-            </div>
-
-            {/* Difficulty Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Niveau
-              </label>
-              <select
-                value={selectedDifficulty}
-                onChange={(e) => setSelectedDifficulty(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">Alle niveaus</option>
-                <option value="beginner">Beginner</option>
-                <option value="intermediate">Gemiddeld</option>
-                <option value="advanced">Gevorderd</option>
-              </select>
-            </div>
-
-            {/* Clear Filters */}
-            <div className="flex items-end">
-              <button
-                onClick={() => {
-                  setSearchQuery('');
-                  setSelectedType('all');
-                  setSelectedDifficulty('all');
-                }}
-                className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 transition-colors"
-              >
-                Filters wissen
-              </button>
-            </div>
-          </div>
-        </div>
+        <KnowledgeFilters onFiltersChange={setFilters} />
 
         {/* Results */}
         <div className="mb-6">
@@ -211,11 +147,11 @@ export default function KnowledgeClient({ initialItems }: KnowledgeClientProps) 
               Probeer andere zoektermen of filters te gebruiken.
             </p>
             <button
-              onClick={() => {
-                setSearchQuery('');
-                setSelectedType('all');
-                setSelectedDifficulty('all');
-              }}
+              onClick={() => setFilters({
+                searchQuery: '',
+                selectedType: 'all',
+                selectedDifficulty: 'all'
+              })}
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
             >
               Alle filters wissen
