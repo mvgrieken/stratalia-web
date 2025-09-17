@@ -50,8 +50,8 @@ export default function KnowledgeDetailPage() {
         // Fallback to mock data (using real database IDs)
         const mockItems = [
           {
-            id: '1614551a-e197-42ff-ac1d-b7573f5cfd7f',
-            title: 'De Geschiedenis van Nederlandse Straattaal',
+            id: 'fa845e60-d3c6-4136-bdf2-ebe750c2f1f7',
+            title: 'Straattaal in Social Media',
             content: `Straattaal in Nederland heeft een rijke geschiedenis die teruggaat tot de jaren 80. Het ontstond in multiculturele wijken waar verschillende talen en culturen samenkwamen.
 
 ## De Oorsprong
@@ -87,8 +87,8 @@ Straattaal blijft evolueren en nieuwe woorden worden constant toegevoegd. Het is
             word_count: 150
           },
           {
-            id: '6dd5b2b4-2c9c-48dc-b632-01d70de074a2',
-            title: 'Top 10 Meest Gebruikte Straattaalwoorden',
+            id: 'd2c07aa3-aac1-4392-8234-9edb2601437a',
+            title: 'Podcast: Straattaal in de Muziek',
             content: `Ontdek de meest populaire straattaalwoorden van dit moment:
 
 ## 1. Skeer
@@ -139,6 +139,43 @@ Straattaal blijft evolueren en nieuwe woorden worden constant toegevoegd. Het is
             updated_at: new Date().toISOString(),
             is_active: true,
             word_count: 75
+          },
+          {
+            id: '6454db1f-8518-4bec-b693-043f9372e18a',
+            title: 'Wat is Straattaal?',
+            content: `Straattaal is een informele variant van het Nederlands die vooral wordt gebruikt door jongeren in stedelijke gebieden. Het is een dynamische taal die voortdurend evolueert en elementen bevat uit verschillende culturen en talen.
+
+## Definitie
+
+Straattaal is niet alleen een verzameling woorden, maar een complete communicatievorm die:
+- Identiteit uitdrukt
+- Groepsvorming bevordert
+- Creativiteit stimuleert
+- Culturele diversiteit weerspiegelt
+
+## Kenmerken
+
+- **Dynamisch**: Nieuwe woorden worden constant toegevoegd
+- **Multicultureel**: Invloeden uit verschillende talen
+- **Creatief**: Woorden worden op nieuwe manieren gebruikt
+- **Generatiegebonden**: Vooral populair bij jongeren
+
+## Waarom Straattaal?
+
+Straattaal helpt jongeren om:
+- Hun identiteit te vormen
+- Bij een groep te horen
+- Creatief te communiceren
+- Hun culturele achtergrond te uiten`,
+            type: 'article' as const,
+            difficulty: 'beginner' as const,
+            category: 'basis',
+            tags: ['basis', 'introductie', 'definitie'],
+            author: 'Stratalia Team',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            is_active: true,
+            word_count: 150
           }
         ];
 

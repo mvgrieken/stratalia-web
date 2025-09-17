@@ -125,7 +125,8 @@ export default function SearchClient() {
       setSearchMessage(data.message);
       setSuggestions(data.suggestions);
     } catch (err: any) {
-      setError(err.message || 'Er is een fout opgetreden bij het zoeken. Probeer het opnieuw.');
+      console.error('Search error:', err);
+      setError('Er is een fout opgetreden bij het zoeken. Probeer het opnieuw.');
       setSearchResults([]);
       setSearchMessage('');
       setSuggestions([]);

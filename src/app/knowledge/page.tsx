@@ -108,6 +108,56 @@ export default async function KnowledgePage() {
     error = 'Er is een fout opgetreden bij het laden van de kennisbank.';
   }
 
+  // Always show fallback items if no items loaded and no error
+  if (items.length === 0 && !error) {
+    items = [
+      {
+        id: '0b012f34-1c42-4aea-8eae-b0165d4c0712',
+        type: 'article',
+        title: 'Welkom bij Stratalia',
+        content: 'Leer meer over Nederlandse straattaal en hoe je het kunt gebruiken. Deze kennisbank bevat artikelen, video\'s en podcasts over straattaal.',
+        author: 'Stratalia Team',
+        category: 'introductie',
+        tags: ['introductie', 'straattaal', 'leren'],
+        difficulty: 'beginner',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        is_active: true,
+        word_count: 50
+      },
+      {
+        id: '1614551a-e197-42ff-ac1d-b7573f5cfd7f',
+        type: 'video',
+        title: 'Straattaal voor Beginners',
+        content: 'Een video introductie tot Nederlandse straattaal. Leer de basiswoorden en hoe je ze kunt gebruiken.',
+        author: 'Stratalia Team',
+        category: 'video',
+        tags: ['video', 'beginners', 'introductie'],
+        difficulty: 'beginner',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        is_active: true,
+        duration: 300,
+        thumbnail_url: '/images/straattaal-video.jpg'
+      },
+      {
+        id: '6dd5b2b4-2c9c-48dc-b632-01d70de074a2',
+        type: 'podcast',
+        title: 'Straattaal Podcast',
+        content: 'Luister naar gesprekken over straattaal en cultuur. Experts delen hun kennis over de evolutie van straattaal.',
+        author: 'Stratalia Team',
+        category: 'podcast',
+        tags: ['podcast', 'cultuur', 'experts'],
+        difficulty: 'intermediate',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        is_active: true,
+        duration: 1800,
+        thumbnail_url: '/images/podcast-cover.jpg'
+      }
+    ];
+  }
+
   if (error) {
     return (
       <>
