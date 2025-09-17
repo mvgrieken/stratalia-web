@@ -65,7 +65,8 @@ export async function GET(request: NextRequest) {
     return createSuccessResponse(responseData, 200);
 
   } catch (error) {
-    logger.error('Search API error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    logger.error('Search API error:', error instanceof Error ? error : new Error(errorMessage));
     
     // Return fallback response instead of error
     const { searchParams } = new URL(request.url);
