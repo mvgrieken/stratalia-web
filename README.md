@@ -65,13 +65,21 @@ Vul de volgende variabelen in:
 # Supabase Configuration (optioneel - app werkt zonder)
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+SUPABASE_SERVICE_KEY=your_supabase_service_role_key
 
 # Application Configuration
 NEXT_PUBLIC_APP_URL=https://stratalia.nl
 NEXT_PUBLIC_APP_NAME=Stratalia
 NODE_ENV=development
 ```
+
+**⚠️ Belangrijk voor Vercel Deployment:**
+Zorg dat je de juiste environment variabelen hebt ingesteld in Vercel:
+- `NEXT_PUBLIC_SUPABASE_URL` - Je Supabase project URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Je Supabase anon key
+- `SUPABASE_SERVICE_KEY` - Je Supabase service role key (niet de anon key!)
+
+De service key is nodig voor server-side authenticatie operaties.
 
 #### Optionele variabelen
 ```env

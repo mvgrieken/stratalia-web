@@ -58,10 +58,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(data.user);
         return {};
       } else {
-        return { error: data.error || 'Login failed' };
+        // Use the user-friendly error message from the API
+        return { error: data.error || 'Inloggen mislukt. Probeer het opnieuw.' };
       }
     } catch (error) {
-      return { error: 'Network error' };
+      console.error('Network error during login:', error);
+      return { error: 'Verbindingsprobleem. Controleer je internetverbinding en probeer het opnieuw.' };
     }
   };
 
@@ -79,10 +81,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(data.user);
         return {};
       } else {
-        return { error: data.error || 'Registration failed' };
+        // Use the user-friendly error message from the API
+        return { error: data.error || 'Registratie mislukt. Probeer het opnieuw.' };
       }
     } catch (error) {
-      return { error: 'Network error' };
+      console.error('Network error during registration:', error);
+      return { error: 'Verbindingsprobleem. Controleer je internetverbinding en probeer het opnieuw.' };
     }
   };
 

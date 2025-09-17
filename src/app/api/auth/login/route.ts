@@ -18,9 +18,12 @@ export async function POST(request: NextRequest) {
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
     
     if (!supabaseUrl || !supabaseServiceKey) {
-      logger.error('❌ Supabase environment variables are missing!');
+      logger.error('❌ Supabase environment variables are missing!', {
+        hasUrl: !!supabaseUrl,
+        hasServiceKey: !!supabaseServiceKey
+      });
       return NextResponse.json({
-        error: 'Server configuration error'
+        error: 'Er is een technisch probleem opgetreden. Probeer het later opnieuw.'
       }, { status: 500 });
     }
 
@@ -34,9 +37,20 @@ export async function POST(request: NextRequest) {
 
     if (authError) {
       logger.error('❌ Authentication error', authError);
+      
+      // Provide user-friendly error messages based on the error type
+      let errorMessage = 'Inloggen mislukt. Controleer je gegevens.';
+      
+      if (authError.message.includes('Invalid login credentials')) {
+        errorMessage = 'Ongeldige inloggegevens. Controleer je e-mail en wachtwoord.';
+      } else if (authError.message.includes('Email not confirmed')) {
+        errorMessage = 'Je e-mailadres is nog niet bevestigd. Controleer je inbox.';
+      } else if (authError.message.includes('Too many requests')) {
+        errorMessage = 'Te veel pogingen. Wacht even voordat je opnieuw probeert.';
+      }
+      
       return NextResponse.json({
-        error: 'Invalid credentials',
-        details: authError.message
+        error: errorMessage
       }, { status: 401 });
     }
 
@@ -64,8 +78,7 @@ export async function POST(request: NextRequest) {
       if (createError) {
         logger.error('❌ Profile creation error', createError);
         return NextResponse.json({
-          error: 'Profile creation failed',
-          details: createError.message
+          error: 'Er is een probleem opgetreden bij het aanmaken van je profiel. Probeer het opnieuw.'
         }, { status: 500 });
       }
 
@@ -94,8 +107,7 @@ export async function POST(request: NextRequest) {
     const normalized = normalizeError(error);
     logger.error('💥 Error in login API', normalized);
     return NextResponse.json({
-      error: 'Internal server error',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      error: 'Er is een onverwachte fout opgetreden. Probeer het later opnieuw.'
     }, { status: 500 });
   }
 }

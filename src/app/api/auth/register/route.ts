@@ -24,9 +24,12 @@ export async function POST(request: NextRequest) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
     if (!supabaseUrl || !supabaseServiceKey) {
-      logger.error('❌ Supabase environment variables are missing!');
+      logger.error('❌ Supabase environment variables are missing!', {
+        hasUrl: !!supabaseUrl,
+        hasServiceKey: !!supabaseServiceKey
+      });
       return NextResponse.json({
-        error: 'Server configuration error'
+        error: 'Er is een technisch probleem opgetreden. Probeer het later opnieuw.'
       }, { status: 500 });
     }
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -42,17 +45,29 @@ export async function POST(request: NextRequest) {
     });
     if (authError) {
       logger.error('❌ Registration error:', authError);
+      
+      // Provide user-friendly error messages based on the error type
+      let errorMessage = 'Registratie mislukt. Probeer het opnieuw.';
+      
+      if (authError.message.includes('User already registered')) {
+        errorMessage = 'Dit e-mailadres is al geregistreerd. Probeer in te loggen.';
+      } else if (authError.message.includes('Password should be at least')) {
+        errorMessage = 'Wachtwoord moet minimaal 8 tekens lang zijn.';
+      } else if (authError.message.includes('Invalid email')) {
+        errorMessage = 'Ongeldig e-mailadres. Controleer je invoer.';
+      } else if (authError.message.includes('Signup is disabled')) {
+        errorMessage = 'Registratie is tijdelijk uitgeschakeld. Probeer het later opnieuw.';
+      }
+      
       return NextResponse.json({
-        error: 'Registration failed',
-        details: authError.message
+        error: errorMessage
       }, { status: 400 });
     }
     // Guard: Check if user was created successfully
     if (!authData.user) {
       logger.error('❌ User registration failed: no user data returned');
       return NextResponse.json({
-        error: 'User registration failed',
-        details: 'No user data returned from authentication service'
+        error: 'Registratie mislukt. Probeer het opnieuw.'
       }, { status: 400 });
     }
     // Create user profile
@@ -67,8 +82,7 @@ export async function POST(request: NextRequest) {
     if (profileError) {
       logger.error('❌ Profile creation error:', profileError);
       return NextResponse.json({
-        error: 'Profile creation failed',
-        details: profileError.message
+        error: 'Er is een probleem opgetreden bij het aanmaken van je profiel. Probeer het opnieuw.'
       }, { status: 500 });
     }
     // Initialize user points
@@ -98,8 +112,7 @@ export async function POST(request: NextRequest) {
     const normalized = normalizeError(error);
     logger.error('💥 Error in registration API:', normalized);
     return NextResponse.json({
-      error: 'Internal server error',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      error: 'Er is een onverwachte fout opgetreden. Probeer het later opnieuw.'
     }, { status: 500 });
   }
 }
