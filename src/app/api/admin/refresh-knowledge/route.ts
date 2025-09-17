@@ -147,10 +147,11 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    logger.error('Error in refresh knowledge API:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    logger.error('Error in refresh knowledge API:', errorMessage);
     return NextResponse.json({ 
       error: 'Internal server error',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      details: errorMessage
     }, { status: 500 });
   }
 }
