@@ -30,8 +30,9 @@ export async function GET(request: NextRequest) {
 
     logger.info(`Search request: query=${query.trim()}, limit=${limit}`);
 
-    // Check cache first
-    const cacheKey = cacheKeys.search(query.trim(), limit);
+    // Check cache first - normalize query for consistent cache keys
+    const normalizedQuery = query.trim().toLowerCase();
+    const cacheKey = cacheKeys.search(normalizedQuery, limit);
     const cachedResults = cacheService.get<SearchResult[]>(cacheKey);
 
     if (cachedResults) {
@@ -54,14 +55,14 @@ export async function GET(request: NextRequest) {
     let results: SearchResult[];
     try {
       const { searchWords } = await import('@/lib/mock-data');
-      const mockWords = searchWords(query.trim().toLowerCase(), limit);
+      const mockWords = searchWords(normalizedQuery, limit);
       results = mockWords.map(word => ({
         id: word.id,
         word: word.word,
         meaning: word.meaning,
         example: word.example,
-        match_type: word.word.toLowerCase() === query.trim().toLowerCase() ? 'exact' as const : 'partial' as const,
-        similarity_score: word.word.toLowerCase() === query.trim().toLowerCase() ? 1.0 : 0.8
+        match_type: word.word.toLowerCase() === normalizedQuery ? 'exact' as const : 'partial' as const,
+        similarity_score: word.word.toLowerCase() === normalizedQuery ? 1.0 : 0.8
       }));
       
       // Cache the results
