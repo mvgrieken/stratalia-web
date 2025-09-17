@@ -1,45 +1,46 @@
 /**
  * Centralized mock data service
  * Provides fallback data for development and testing
+ * 
+ * This file now acts as a central hub that imports from specialized modules
  */
 
-export interface MockWord {
-  id: string;
-  word: string;
-  meaning: string;
-  example: string;
-  category?: string;
-  difficulty?: 'easy' | 'medium' | 'hard';
-}
+// Re-export types and data from specialized modules
+export type { MockWord } from '@/data/mock-words';
+export type { MockQuizQuestion } from '@/data/mock-quiz';
+export type { MockKnowledgeItem } from '@/data/mock-knowledge';
 
-export interface MockQuizQuestion {
-  id: string;
-  word: string;
-  question_text: string;
-  correct_answer: string;
-  wrong_answers: string[];
-  difficulty: 'easy' | 'medium' | 'hard';
-}
+// Re-export service functions
+export {
+  searchWords,
+  getWordById,
+  getWordsByCategory,
+  getWordsByDifficulty,
+  getRandomWords,
+  getWordOfTheDay
+} from '@/data/mock-words';
 
-export interface MockKnowledgeItem {
-  id: string;
-  title: string;
-  content: string;
-  type: 'article' | 'video' | 'podcast' | 'infographic';
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
-  category: string;
-  tags: string[];
-  author: string;
-  created_at: string;
-  updated_at: string;
-  is_active: boolean;
-  thumbnail_url?: string;
-  video_url?: string;
-  audio_url?: string;
-  duration?: number;
-  word_count?: number;
-}
+export {
+  getQuizQuestions,
+  getQuizQuestionById,
+  getRandomQuizQuestion,
+  getQuizQuestionsByWord,
+  getQuizQuestionsByDifficulty,
+  getQuizStats
+} from '@/data/mock-quiz';
 
+export {
+  getKnowledgeItems,
+  getKnowledgeItemById,
+  searchKnowledgeItems,
+  getKnowledgeItemsByCategory,
+  getKnowledgeItemsByType,
+  getKnowledgeItemsByDifficulty,
+  getKnowledgeStats,
+  getRandomKnowledgeItems
+} from '@/data/mock-knowledge';
+
+// Leaderboard data (kept here as it's not large enough to warrant its own module)
 export interface MockLeaderboardUser {
   rank: number;
   user_id: string;
@@ -51,746 +52,148 @@ export interface MockLeaderboardUser {
   avatar_url?: string;
 }
 
-class MockDataService {
-  private words: MockWord[] = [
-    {
-      id: 'mock-1',
-      word: 'skeer',
-      meaning: 'arm, weinig geld hebben',
-      example: 'Ik ben helemaal skeer deze maand.',
-      category: 'geld',
-      difficulty: 'easy'
-    },
-    {
-      id: 'mock-2',
-      word: 'breezy',
-      meaning: 'cool, relaxed',
-      example: 'Die nieuwe sneakers zijn echt breezy.',
-      category: 'positief',
-      difficulty: 'easy'
-    },
-    {
-      id: 'mock-3',
-      word: 'flexen',
-      meaning: 'opscheppen, pronken',
-      example: 'Hij flexte met zijn nieuwe auto.',
-      category: 'gedrag',
-      difficulty: 'medium'
-    },
-    {
-      id: 'mock-4',
-      word: 'chill',
-      meaning: 'relaxed, kalm',
-      example: 'Laten we gewoon chillen vandaag.',
-      category: 'positief',
-      difficulty: 'easy'
-    },
-    {
-      id: 'mock-5',
-      word: 'swag',
-      meaning: 'stijl, cool',
-      example: 'Die outfit heeft echt swag.',
-      category: 'positief',
-      difficulty: 'easy'
-    },
-    {
-      id: 'mock-6',
-      word: 'dope',
-      meaning: 'geweldig, cool',
-      example: 'Die nieuwe track is echt dope.',
-      category: 'positief',
-      difficulty: 'medium'
-    },
-    {
-      id: 'mock-7',
-      word: 'lit',
-      meaning: 'geweldig, fantastisch',
-      example: 'Het feest was echt lit gisteren.',
-      category: 'positief',
-      difficulty: 'medium'
-    },
-    {
-      id: 'mock-8',
-      word: 'fire',
-      meaning: 'geweldig, fantastisch',
-      example: 'Die nieuwe sneakers zijn fire.',
-      category: 'positief',
-      difficulty: 'medium'
-    },
-    {
-      id: 'mock-9',
-      word: 'vibe',
-      meaning: 'sfeer, energie',
-      example: 'Ik hou van de vibe hier.',
-      category: 'abstract',
-      difficulty: 'medium'
-    },
-    {
-      id: 'mock-10',
-      word: 'mood',
-      meaning: 'stemming, gevoel',
-      example: 'Dit is echt mijn mood vandaag.',
-      category: 'abstract',
-      difficulty: 'easy'
-    },
-    {
-      id: 'mock-11',
-      word: 'goals',
-      meaning: 'doelen, aspiraties',
-      example: 'Jullie relatie is echt goals.',
-      category: 'abstract',
-      difficulty: 'medium'
-    },
-    {
-      id: 'mock-12',
-      word: 'salty',
-      meaning: 'boos, gefrustreerd',
-      example: 'Hij is salty omdat hij verloor.',
-      category: 'negatief',
-      difficulty: 'hard'
-    },
-    {
-      id: 'mock-13',
-      word: 'savage',
-      meaning: 'brutaal, meedogenloos',
-      example: 'Die comeback was echt savage.',
-      category: 'gedrag',
-      difficulty: 'hard'
-    },
-    {
-      id: 'mock-14',
-      word: 'cap',
-      meaning: 'liegen, onzin vertellen',
-      example: 'Dat is cap, dat geloof ik niet.',
-      category: 'negatief',
-      difficulty: 'hard'
-    },
-    {
-      id: 'mock-15',
-      word: 'no cap',
-      meaning: 'geen grap, serieus',
-      example: 'No cap, dat was echt geweldig.',
-      category: 'positief',
-      difficulty: 'hard'
-    },
-    {
-      id: 'mock-16',
-      word: 'waggi',
-      meaning: 'auto, wagen',
-      example: 'Die waggi is echt sick.',
-      category: 'vervoer',
-      difficulty: 'medium'
-    },
-    {
-      id: 'mock-17',
-      word: 'bro',
-      meaning: 'vriend, maat',
-      example: 'Hey bro, hoe gaat het?',
-      category: 'relaties',
-      difficulty: 'easy'
-    },
-    {
-      id: 'mock-18',
-      word: 'sick',
-      meaning: 'geweldig, cool',
-      example: 'Die nieuwe track is echt sick.',
-      category: 'positief',
-      difficulty: 'medium'
-    },
-    {
-      id: 'mock-19',
-      word: 'chillen',
-      meaning: 'ontspannen, relaxen',
-      example: 'Laten we gewoon chillen vandaag.',
-      category: 'activiteiten',
-      difficulty: 'easy'
-    },
-    {
-      id: 'mock-20',
-      word: 'flex',
-      meaning: 'opscheppen, pronken',
-      example: 'Hij flexte met zijn nieuwe telefoon.',
-      category: 'gedrag',
-      difficulty: 'medium'
-    },
-    {
-      id: 'mock-21',
-      word: 'vibe check',
-      meaning: 'sfeer controleren',
-      example: 'Laten we een vibe check doen.',
-      category: 'abstract',
-      difficulty: 'hard'
-    },
-    {
-      id: 'mock-22',
-      word: 'slay',
-      meaning: 'geweldig presteren',
-      example: 'Ze slayed die presentatie.',
-      category: 'positief',
-      difficulty: 'medium'
-    },
-    {
-      id: 'mock-23',
-      word: 'periodt',
-      meaning: 'punt uit, einde discussie',
-      example: 'Dat is gewoon zo, periodt.',
-      category: 'abstract',
-      difficulty: 'hard'
-    },
-    {
-      id: 'mock-24',
-      word: 'bet',
-      meaning: 'zeker, waar',
-      example: 'Bet, ik kom eraan.',
-      category: 'abstract',
-      difficulty: 'hard'
-    },
-    {
-      id: 'mock-25',
-      word: 'stan',
-      meaning: 'fan zijn van, steunen',
-      example: 'Ik stan die artiest echt.',
-      category: 'relaties',
-      difficulty: 'medium'
-    }
-  ];
-
-  private quizQuestions: MockQuizQuestion[] = [
-    {
-      id: 'quiz-1',
-      word: 'skeer',
-      question_text: 'Wat betekent het woord "skeer"?',
-      correct_answer: 'arm, weinig geld hebben',
-      wrong_answers: ['cool, relaxed', 'geweldig, fantastisch', 'boos, gefrustreerd'],
-      difficulty: 'easy'
-    },
-    {
-      id: 'quiz-2',
-      word: 'breezy',
-      question_text: 'Wat betekent het woord "breezy"?',
-      correct_answer: 'cool, relaxed',
-      wrong_answers: ['arm, weinig geld', 'opscheppen, pronken', 'geweldig, fantastisch'],
-      difficulty: 'easy'
-    },
-    {
-      id: 'quiz-3',
-      word: 'flexen',
-      question_text: 'Wat betekent het woord "flexen"?',
-      correct_answer: 'opscheppen, pronken',
-      wrong_answers: ['arm, weinig geld', 'cool, relaxed', 'geweldig, fantastisch'],
-      difficulty: 'medium'
-    },
-    {
-      id: 'quiz-4',
-      word: 'dope',
-      question_text: 'Wat betekent het woord "dope"?',
-      correct_answer: 'geweldig, cool',
-      wrong_answers: ['arm, weinig geld', 'opscheppen, pronken', 'boos, gefrustreerd'],
-      difficulty: 'medium'
-    },
-    {
-      id: 'quiz-5',
-      word: 'lit',
-      question_text: 'Wat betekent het woord "lit"?',
-      correct_answer: 'geweldig, fantastisch',
-      wrong_answers: ['arm, weinig geld', 'cool, relaxed', 'opscheppen, pronken'],
-      difficulty: 'medium'
-    },
-    {
-      id: 'quiz-6',
-      word: 'fire',
-      question_text: 'Wat betekent het woord "fire"?',
-      correct_answer: 'geweldig, fantastisch',
-      wrong_answers: ['arm, weinig geld', 'cool, relaxed', 'boos, gefrustreerd'],
-      difficulty: 'hard'
-    },
-    {
-      id: 'quiz-7',
-      word: 'salty',
-      question_text: 'Wat betekent het woord "salty"?',
-      correct_answer: 'boos, gefrustreerd',
-      wrong_answers: ['geweldig, fantastisch', 'cool, relaxed', 'opscheppen, pronken'],
-      difficulty: 'hard'
-    },
-    {
-      id: 'quiz-8',
-      word: 'vibe',
-      question_text: 'Wat betekent het woord "vibe"?',
-      correct_answer: 'sfeer, energie',
-      wrong_answers: ['arm, weinig geld', 'opscheppen, pronken', 'boos, gefrustreerd'],
-      difficulty: 'easy'
-    },
-    {
-      id: 'quiz-9',
-      word: 'mood',
-      question_text: 'Wat betekent het woord "mood"?',
-      correct_answer: 'stemming, gevoel',
-      wrong_answers: ['arm, weinig geld', 'cool, relaxed', 'opscheppen, pronken'],
-      difficulty: 'easy'
-    },
-    {
-      id: 'quiz-10',
-      word: 'goals',
-      question_text: 'Wat betekent het woord "goals"?',
-      correct_answer: 'doelen, aspiraties',
-      wrong_answers: ['arm, weinig geld', 'boos, gefrustreerd', 'opscheppen, pronken'],
-      difficulty: 'medium'
-    },
-    {
-      id: 'quiz-11',
-      word: 'waggi',
-      question_text: 'Wat betekent het woord "waggi"?',
-      correct_answer: 'auto, wagen',
-      wrong_answers: ['vriend, maat', 'geweldig, cool', 'ontspannen, relaxen'],
-      difficulty: 'medium'
-    },
-    {
-      id: 'quiz-12',
-      word: 'bro',
-      question_text: 'Wat betekent het woord "bro"?',
-      correct_answer: 'vriend, maat',
-      wrong_answers: ['auto, wagen', 'geweldig, cool', 'opscheppen, pronken'],
-      difficulty: 'easy'
-    },
-    {
-      id: 'quiz-13',
-      word: 'sick',
-      question_text: 'Wat betekent het woord "sick"?',
-      correct_answer: 'geweldig, cool',
-      wrong_answers: ['auto, wagen', 'vriend, maat', 'ontspannen, relaxen'],
-      difficulty: 'medium'
-    },
-    {
-      id: 'quiz-14',
-      word: 'slay',
-      question_text: 'Wat betekent het woord "slay"?',
-      correct_answer: 'geweldig presteren',
-      wrong_answers: ['auto, wagen', 'vriend, maat', 'ontspannen, relaxen'],
-      difficulty: 'medium'
-    }
-  ];
-
-  private knowledgeItems: MockKnowledgeItem[] = [
-    {
-      id: 'knowledge-1',
-      title: 'De Geschiedenis van Nederlandse Straattaal',
-      content: 'Straattaal in Nederland heeft een rijke geschiedenis die teruggaat tot de jaren 80. Het ontstond in multiculturele wijken waar verschillende talen en culturen samenkwamen. Vandaag de dag is straattaal een integraal onderdeel van de Nederlandse jeugdcultuur.',
-      type: 'article',
-      difficulty: 'beginner',
-      category: 'geschiedenis',
-      tags: ['geschiedenis', 'cultuur', 'jeugd'],
-      author: 'Stratalia Team',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      is_active: true,
-      word_count: 150
-    },
-    {
-      id: 'knowledge-2',
-      title: 'Top 10 Meest Gebruikte Straattaalwoorden',
-      content: 'Ontdek de meest populaire straattaalwoorden van dit moment: 1. Skeer - arm zijn, 2. Breezy - cool, relaxed, 3. Flexen - opscheppen, 4. Chill - ontspannen, 5. Dope - geweldig, 6. Lit - fantastisch, 7. Fire - geweldig, 8. Vibe - sfeer, 9. Mood - stemming, 10. Goals - doelen.',
-      type: 'infographic',
-      difficulty: 'beginner',
-      category: 'woordenlijst',
-      tags: ['top 10', 'populair', 'woorden'],
-      author: 'Stratalia Team',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      is_active: true,
-      word_count: 75
-    },
-    {
-      id: 'knowledge-3',
-      title: 'Straattaal in Social Media',
-      content: 'Hoe straattaal zich verspreidt via Instagram, TikTok en andere platforms. Social media speelt een cruciale rol in de evolutie van straattaal, met nieuwe woorden die viral gaan en binnen dagen door miljoenen jongeren worden gebruikt.',
-      type: 'article',
-      difficulty: 'intermediate',
-      category: 'social media',
-      tags: ['social media', 'viral', 'trends'],
-      author: 'Stratalia Team',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      is_active: true,
-      word_count: 200
-    },
-    {
-      id: 'knowledge-4',
-      title: 'Podcast: Straattaal in de Muziek',
-      content: 'Een diepgaande discussie over hoe Nederlandse rappers en artiesten straattaal gebruiken in hun muziek. Van de vroege hip-hop tot moderne trap, straattaal heeft altijd een belangrijke rol gespeeld in de Nederlandse muziekscene.',
-      type: 'podcast',
-      difficulty: 'intermediate',
-      category: 'muziek',
-      tags: ['muziek', 'rap', 'hip-hop', 'cultuur'],
-      author: 'Stratalia Team',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      is_active: true,
-      duration: 1800, // 30 minutes
-      audio_url: 'https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Kangaroo_MusiQue_-_The_Neverwritten_Role_Playing_Game.mp3', // Working audio URL
-      thumbnail_url: 'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&h=300&fit=crop'
-    },
-    {
-      id: 'knowledge-5',
-      title: 'Video: Hoe Spreek Je Straattaal Uit?',
-      content: 'Een visuele gids voor de juiste uitspraak van populaire straattaalwoorden. Leer de subtiele verschillen in intonatie en accent die straattaal zo uniek maken.',
-      type: 'video',
-      difficulty: 'beginner',
-      category: 'uitspraak',
-      tags: ['uitspraak', 'video', 'leer'],
-      author: 'Stratalia Team',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      is_active: true,
-      duration: 300, // 5 minutes
-      video_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', // Working video URL
-      thumbnail_url: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop'
-    },
-    {
-      id: 'knowledge-6',
-      title: 'De Psychologie van Straattaal',
-      content: 'Waarom gebruiken jongeren straattaal? Een psychologische analyse van de sociale functies van straattaal, inclusief groepsvorming, identiteit en rebellie tegen de gevestigde orde.',
-      type: 'article',
-      difficulty: 'advanced',
-      category: 'psychologie',
-      tags: ['psychologie', 'sociologie', 'identiteit'],
-      author: 'Stratalia Team',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      is_active: true,
-      word_count: 500
-    },
-    {
-      id: 'knowledge-7',
-      title: 'Straattaal per Regio: Amsterdam vs Rotterdam',
-      content: 'Ontdek de verschillen tussen Amsterdamse en Rotterdamse straattaal. Van "waggi" tot "auto", elke stad heeft zijn eigen unieke woorden en uitdrukkingen die de lokale cultuur weerspiegelen.',
-      type: 'article',
-      difficulty: 'intermediate',
-      category: 'regio',
-      tags: ['amsterdam', 'rotterdam', 'regio', 'verschillen'],
-      author: 'Stratalia Team',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      is_active: true,
-      word_count: 350
-    },
-    {
-      id: 'knowledge-8',
-      title: 'Video: Straattaal in de Klas',
-      content: 'Hoe docenten omgaan met straattaal in het onderwijs. Een documentaire over de uitdagingen en kansen van straattaal in de klas, met tips voor leraren en leerlingen.',
-      type: 'video',
-      difficulty: 'intermediate',
-      category: 'onderwijs',
-      tags: ['onderwijs', 'klas', 'docenten', 'leerlingen'],
-      author: 'Stratalia Team',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      is_active: true,
-      duration: 600, // 10 minutes
-      thumbnail_url: '/images/straattaal-klas.jpg'
-    },
-    {
-      id: 'knowledge-9',
-      title: 'Podcast: De Geschiedenis van Nederlandse Straattaal',
-      content: 'Een historische reis door de evolutie van Nederlandse straattaal. Van de jaren 80 tot nu, ontdek hoe straattaal zich heeft ontwikkeld en welke invloeden hebben bijgedragen aan de huidige vorm.',
-      type: 'podcast',
-      difficulty: 'advanced',
-      category: 'geschiedenis',
-      tags: ['geschiedenis', 'evolutie', 'jaren 80', 'cultuur'],
-      author: 'Stratalia Team',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      is_active: true,
-      duration: 2400 // 40 minutes
-    },
-    {
-      id: 'knowledge-10',
-      title: 'Straattaal Woordenboek: De Basis',
-      content: 'Een uitgebreide lijst van de meest gebruikte straattaalwoorden met betekenissen en voorbeelden. Perfect voor beginners die willen starten met het leren van straattaal.',
-      type: 'article',
-      difficulty: 'beginner',
-      category: 'woordenboek',
-      tags: ['woordenboek', 'basis', 'beginners', 'lijst'],
-      author: 'Stratalia Team',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      is_active: true,
-      word_count: 800
-    },
-    {
-      id: 'knowledge-11',
-      title: 'Video: Straattaal in Films en Series',
-      content: 'Hoe wordt straattaal gebruikt in Nederlandse films en series? Een analyse van populaire producties en de impact van straattaal op de entertainment industrie.',
-      type: 'video',
-      difficulty: 'intermediate',
-      category: 'entertainment',
-      tags: ['films', 'series', 'entertainment', 'media'],
-      author: 'Stratalia Team',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      is_active: true,
-      duration: 450, // 7.5 minutes
-      thumbnail_url: '/images/straattaal-films.jpg'
-    },
-    {
-      id: 'knowledge-12',
-      title: 'De Invloed van Migrantentalen op Straattaal',
-      content: 'Hoe hebben verschillende migrantengemeenschappen de Nederlandse straattaal beïnvloed? Een diepgaande analyse van de taalkundige diversiteit in moderne straattaal.',
-      type: 'article',
-      difficulty: 'advanced',
-      category: 'taalkunde',
-      tags: ['migratie', 'taalkunde', 'diversiteit', 'invloed'],
-      author: 'Stratalia Team',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      is_active: true,
-      word_count: 600
-    },
-    {
-      id: 'knowledge-13',
-      title: 'Podcast: Straattaal en Identiteit',
-      content: 'Een gesprek met jongeren over hoe straattaal hun identiteit vormt. Persoonlijke verhalen over de rol van taal in zelfexpressie en groepslidmaatschap.',
-      type: 'podcast',
-      difficulty: 'intermediate',
-      category: 'identiteit',
-      tags: ['identiteit', 'jongeren', 'verhalen', 'zelfexpressie'],
-      author: 'Stratalia Team',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      is_active: true,
-      duration: 1800 // 30 minutes
-    },
-    {
-      id: 'knowledge-14',
-      title: 'Video: Straattaal Uitspraak Gids',
-      content: 'Leer de juiste uitspraak van moeilijke straattaalwoorden. Met audio voorbeelden en tips voor het perfecte accent.',
-      type: 'video',
-      difficulty: 'beginner',
-      category: 'uitspraak',
-      tags: ['uitspraak', 'accent', 'audio', 'leer'],
-      author: 'Stratalia Team',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      is_active: true,
-      duration: 360, // 6 minutes
-      thumbnail_url: '/images/straattaal-uitspraak-gids.jpg'
-    },
-    {
-      id: 'knowledge-15',
-      title: 'Straattaal in de Wereld: Vergelijking met Andere Landen',
-      content: 'Hoe verhoudt Nederlandse straattaal zich tot straattaal in andere landen? Een internationale vergelijking van jeugdtaal en culturele invloeden.',
-      type: 'article',
-      difficulty: 'advanced',
-      category: 'internationaal',
-      tags: ['internationaal', 'vergelijking', 'wereldwijd', 'cultuur'],
-      author: 'Stratalia Team',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      is_active: true,
-      word_count: 700
-    }
-  ];
-
-  private leaderboardUsers: MockLeaderboardUser[] = [
-    {
-      rank: 1,
-      user_id: 'demo-1',
-      full_name: 'Alex van der Berg',
-      total_points: 2450,
-      current_level: 8,
-      current_streak: 12,
-      longest_streak: 25,
-      avatar_url: '/avatars/alex.jpg'
-    },
-    {
-      rank: 2,
-      user_id: 'demo-2',
-      full_name: 'Sofia Martinez',
-      total_points: 2180,
-      current_level: 7,
-      current_streak: 8,
-      longest_streak: 18,
-      avatar_url: '/avatars/sofia.jpg'
-    },
-    {
-      rank: 3,
-      user_id: 'demo-3',
-      full_name: 'Mohammed Hassan',
-      total_points: 1950,
-      current_level: 6,
-      current_streak: 15,
-      longest_streak: 22,
-      avatar_url: '/avatars/mohammed.jpg'
-    },
-    {
-      rank: 4,
-      user_id: 'demo-4',
-      full_name: 'Emma de Vries',
-      total_points: 1720,
-      current_level: 6,
-      current_streak: 5,
-      longest_streak: 12,
-      avatar_url: '/avatars/emma.jpg'
-    },
-    {
-      rank: 5,
-      user_id: 'demo-5',
-      full_name: 'Liam O\'Connor',
-      total_points: 1580,
-      current_level: 5,
-      current_streak: 3,
-      longest_streak: 8,
-      avatar_url: '/avatars/liam.jpg'
-    },
-    {
-      rank: 6,
-      user_id: 'demo-6',
-      full_name: 'Zara Ahmed',
-      total_points: 1420,
-      current_level: 5,
-      current_streak: 7,
-      longest_streak: 15,
-      avatar_url: '/avatars/zara.jpg'
-    },
-    {
-      rank: 7,
-      user_id: 'demo-7',
-      full_name: 'Noah van Dijk',
-      total_points: 1280,
-      current_level: 4,
-      current_streak: 2,
-      longest_streak: 6,
-      avatar_url: '/avatars/noah.jpg'
-    },
-    {
-      rank: 8,
-      user_id: 'demo-8',
-      full_name: 'Luna Rodriguez',
-      total_points: 1150,
-      current_level: 4,
-      current_streak: 9,
-      longest_streak: 14,
-      avatar_url: '/avatars/luna.jpg'
-    },
-    {
-      rank: 9,
-      user_id: 'demo-9',
-      full_name: 'Finn Bakker',
-      total_points: 980,
-      current_level: 3,
-      current_streak: 4,
-      longest_streak: 9,
-      avatar_url: '/avatars/finn.jpg'
-    },
-    {
-      rank: 10,
-      user_id: 'demo-10',
-      full_name: 'Maya Singh',
-      total_points: 850,
-      current_level: 3,
-      current_streak: 1,
-      longest_streak: 5,
-      avatar_url: '/avatars/maya.jpg'
-    }
-  ];
-
-  // Word methods
-  getWords(): MockWord[] {
-    return [...this.words];
+export const mockLeaderboardUsers: MockLeaderboardUser[] = [
+  {
+    rank: 1,
+    user_id: 'user-1',
+    full_name: 'Ahmed Hassan',
+    total_points: 2450,
+    current_level: 12,
+    current_streak: 15,
+    longest_streak: 23,
+    avatar_url: '/avatars/ahmed.jpg'
+  },
+  {
+    rank: 2,
+    user_id: 'user-2',
+    full_name: 'Sofia Rodriguez',
+    total_points: 2380,
+    current_level: 11,
+    current_streak: 8,
+    longest_streak: 18,
+    avatar_url: '/avatars/sofia.jpg'
+  },
+  {
+    rank: 3,
+    user_id: 'user-3',
+    full_name: 'Mohammed Ali',
+    total_points: 2290,
+    current_level: 11,
+    current_streak: 12,
+    longest_streak: 20,
+    avatar_url: '/avatars/mohammed.jpg'
+  },
+  {
+    rank: 4,
+    user_id: 'user-4',
+    full_name: 'Emma van der Berg',
+    total_points: 2150,
+    current_level: 10,
+    current_streak: 5,
+    longest_streak: 16,
+    avatar_url: '/avatars/emma.jpg'
+  },
+  {
+    rank: 5,
+    user_id: 'user-5',
+    full_name: 'Yusuf Demir',
+    total_points: 2080,
+    current_level: 10,
+    current_streak: 20,
+    longest_streak: 25,
+    avatar_url: '/avatars/yusuf.jpg'
+  },
+  {
+    rank: 6,
+    user_id: 'user-6',
+    full_name: 'Layla Johnson',
+    total_points: 1950,
+    current_level: 9,
+    current_streak: 3,
+    longest_streak: 14,
+    avatar_url: '/avatars/layla.jpg'
+  },
+  {
+    rank: 7,
+    user_id: 'user-7',
+    full_name: 'Omar El-Mansouri',
+    total_points: 1820,
+    current_level: 9,
+    current_streak: 7,
+    longest_streak: 12,
+    avatar_url: '/avatars/omar.jpg'
+  },
+  {
+    rank: 8,
+    user_id: 'user-8',
+    full_name: 'Aisha Bakker',
+    total_points: 1750,
+    current_level: 8,
+    current_streak: 10,
+    longest_streak: 15,
+    avatar_url: '/avatars/aisha.jpg'
+  },
+  {
+    rank: 9,
+    user_id: 'user-9',
+    full_name: 'Hassan van Dijk',
+    total_points: 1680,
+    current_level: 8,
+    current_streak: 4,
+    longest_streak: 11,
+    avatar_url: '/avatars/hassan.jpg'
+  },
+  {
+    rank: 10,
+    user_id: 'user-10',
+    full_name: 'Fatima de Vries',
+    total_points: 1620,
+    current_level: 8,
+    current_streak: 6,
+    longest_streak: 13,
+    avatar_url: '/avatars/fatima.jpg'
   }
+];
 
-  searchWords(query: string, limit: number = 10): MockWord[] {
-    const searchQuery = query.toLowerCase();
-    return this.words
-      .filter(word => 
-        word.word.toLowerCase().includes(searchQuery) ||
-        word.meaning.toLowerCase().includes(searchQuery)
-      )
-      .slice(0, limit);
-  }
-
-  getWordById(id: string): MockWord | undefined {
-    return this.words.find(word => word.id === id);
-  }
-
-  getRandomWord(): MockWord {
-    const randomIndex = Math.floor(Math.random() * this.words.length);
-    return this.words[randomIndex];
-  }
-
-  getDailyWord(): MockWord {
-    // Use day of month for consistent daily selection
-    const dayOfMonth = new Date().getDate();
-    return this.words[dayOfMonth % this.words.length];
-  }
-
-  // Quiz methods
-  getQuizQuestions(difficulty?: 'easy' | 'medium' | 'hard', limit: number = 5): MockQuizQuestion[] {
-    let questions = this.quizQuestions;
-    
-    if (difficulty) {
-      questions = questions.filter(q => q.difficulty === difficulty);
-    }
-    
-    return questions.slice(0, limit);
-  }
-
-  getQuizQuestionById(id: string): MockQuizQuestion | undefined {
-    return this.quizQuestions.find(q => q.id === id);
-  }
-
-  // Knowledge methods
-  getKnowledgeItems(
-    type?: 'article' | 'video' | 'podcast' | 'infographic',
-    difficulty?: 'beginner' | 'intermediate' | 'advanced',
-    limit: number = 50
-  ): MockKnowledgeItem[] {
-    let items = this.knowledgeItems;
-    
-    if (type) {
-      items = items.filter(item => item.type === type);
-    }
-    
-    if (difficulty) {
-      items = items.filter(item => item.difficulty === difficulty);
-    }
-    
-    return items.slice(0, limit);
-  }
-
-  getKnowledgeItemById(id: string): MockKnowledgeItem | undefined {
-    return this.knowledgeItems.find(item => item.id === id);
-  }
-
-  // Leaderboard methods
-  getLeaderboard(limit: number = 10): MockLeaderboardUser[] {
-    return this.leaderboardUsers.slice(0, limit);
-  }
-
-  getUserById(userId: string): MockLeaderboardUser | undefined {
-    return this.leaderboardUsers.find(user => user.user_id === userId);
-  }
-
-  // Translation methods
-  getTranslationMap(): Record<string, string> {
-    const map: Record<string, string> = {};
-    this.words.forEach(word => {
-      map[word.word.toLowerCase()] = word.meaning;
-    });
-    return map;
-  }
-
-  getReverseTranslationMap(): Record<string, string> {
-    const map: Record<string, string> = {};
-    this.words.forEach(word => {
-      // Split meaning and map each part
-      const meanings = word.meaning.split(',').map(m => m.trim());
-      meanings.forEach(meaning => {
-        map[meaning.toLowerCase()] = word.word;
-      });
-    });
-    return map;
-  }
+// Leaderboard service functions
+export function getLeaderboardUsers(limit: number = 10): MockLeaderboardUser[] {
+  return mockLeaderboardUsers.slice(0, limit);
 }
 
-// Singleton instance
-export const mockDataService = new MockDataService();
+export function getLeaderboardUserById(userId: string): MockLeaderboardUser | undefined {
+  return mockLeaderboardUsers.find(user => user.user_id === userId);
+}
+
+export function getLeaderboardUserByRank(rank: number): MockLeaderboardUser | undefined {
+  return mockLeaderboardUsers.find(user => user.rank === rank);
+}
+
+export function getTopUsers(count: number = 5): MockLeaderboardUser[] {
+  return mockLeaderboardUsers.slice(0, count);
+}
+
+export function getLeaderboardStats(): {
+  totalUsers: number;
+  averagePoints: number;
+  highestStreak: number;
+  totalPoints: number;
+} {
+  const totalUsers = mockLeaderboardUsers.length;
+  const totalPoints = mockLeaderboardUsers.reduce((sum, user) => sum + user.total_points, 0);
+  const averagePoints = totalPoints / totalUsers;
+  const highestStreak = Math.max(...mockLeaderboardUsers.map(user => user.longest_streak));
+  
+  return {
+    totalUsers,
+    averagePoints: Math.round(averagePoints),
+    highestStreak,
+    totalPoints
+  };
+}
+
+// Translation service functions (re-exported from translations.ts)
+export {
+  getTranslationMap,
+  getReverseTranslationMap,
+  findTranslation
+} from '@/data/translations';
