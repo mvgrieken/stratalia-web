@@ -11,12 +11,30 @@ export async function GET() {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     
-    if (!supabaseUrl || !supabaseAnonKey) {
-      logger.error('Health check failed: Missing environment variables');
+    if (!supabaseUrl || !supabaseAnonKey || 
+        supabaseUrl === 'your_supabase_project_url' || 
+        supabaseAnonKey === 'your_supabase_anon_key') {
+      logger.error('Health check failed: Missing or invalid environment variables');
       return NextResponse.json({
         status: 'error',
-        message: 'Missing environment variables',
-        timestamp: new Date().toISOString()
+        message: 'Environment configuration missing',
+        details: 'Supabase credentials not properly configured',
+        timestamp: new Date().toISOString(),
+        responseTime: `${Date.now() - startTime}ms`
+      }, { status: 503 });
+    }
+
+    // Validate URL format
+    try {
+      new URL(supabaseUrl);
+    } catch (urlError) {
+      logger.error('Health check failed: Invalid Supabase URL format', urlError);
+      return NextResponse.json({
+        status: 'error',
+        message: 'Health check failed',
+        details: `Invalid supabaseUrl: Must be a valid HTTP or HTTPS URL.`,
+        timestamp: new Date().toISOString(),
+        responseTime: `${Date.now() - startTime}ms`
       }, { status: 503 });
     }
 
