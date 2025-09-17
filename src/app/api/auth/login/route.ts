@@ -18,10 +18,7 @@ export async function POST(request: NextRequest) {
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
     
     if (!supabaseUrl || !supabaseServiceKey) {
-      logger.error('❌ Supabase environment variables are missing!', {
-        hasUrl: !!supabaseUrl,
-        hasServiceKey: !!supabaseServiceKey
-      });
+      logger.error('❌ Supabase environment variables are missing!', new Error(`Missing env vars: hasUrl=${!!supabaseUrl}, hasServiceKey=${!!supabaseServiceKey}`));
       return NextResponse.json({
         error: 'Er is een technisch probleem opgetreden. Probeer het later opnieuw.'
       }, { status: 500 });
