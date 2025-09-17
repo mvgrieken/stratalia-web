@@ -11,6 +11,19 @@
   body {
     @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100;
   }
+  
+  /* Hide browser extension elements that might cause issues */
+  [data-lastpass-icon-root],
+  [data-lastpass-root],
+  iframe[src*="extension://"],
+  iframe[src*="safari-web-extension://"],
+  div[id*="lastpass"],
+  div[class*="extension"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
 }
 
 /* Dark mode component styles */
