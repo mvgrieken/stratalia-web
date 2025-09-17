@@ -1,6 +1,7 @@
 import Navigation from '@/components/Navigation';
 import { getSupabaseServiceClient } from '@/lib/supabase-client';
 import KnowledgeClient from './KnowledgeClient';
+import RequireAuth from '@/components/RequireAuth';
 
 interface KnowledgeItem {
   id: string;
@@ -191,7 +192,9 @@ export default async function KnowledgePage() {
   return (
     <>
       <Navigation />
-      <KnowledgeClient initialItems={items} />
+      <RequireAuth>
+        <KnowledgeClient initialItems={items} />
+      </RequireAuth>
     </>
   );
 }

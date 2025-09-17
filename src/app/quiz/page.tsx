@@ -1,6 +1,7 @@
 'use client';
 
 import { withLazyLoading } from '@/components/LazyPageWrapper';
+import RequireAuth from '@/components/RequireAuth';
 
 // Lazy load the heavy quiz component
 const LazyQuizPage = withLazyLoading(
@@ -18,5 +19,9 @@ const LazyQuizPage = withLazyLoading(
 );
 
 export default function QuizPage() {
-  return <LazyQuizPage />;
+  return (
+    <RequireAuth>
+      <LazyQuizPage />
+    </RequireAuth>
+  );
 }

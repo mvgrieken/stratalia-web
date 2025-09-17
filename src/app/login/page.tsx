@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
 
@@ -12,6 +12,8 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const { signIn } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirect_to') || '/dashboard';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,7 +25,7 @@ export default function LoginPage() {
       if (result.error) {
         setError(result.error);
       } else {
-        router.push('/dashboard');
+        router.push(redirectTo);
       }
     } catch (err) {
       setError('Er is een onverwachte fout opgetreden');

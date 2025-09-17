@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Navigation from '@/components/Navigation';
 import { ApiErrorHandler } from '@/components/ApiErrorHandler';
+import RequireAuth from '@/components/RequireAuth';
 
 interface Submission {
   word: string;
@@ -125,30 +126,32 @@ export default function CommunityPage() {
     return (
       <>
         <Navigation />
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-8 text-center">
-          <div className="text-6xl mb-4">🎉</div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Bedankt voor je bijdrage!</h1>
-          <p className="text-gray-600 mb-6">
-            Je woord is ingediend en wordt beoordeeld door ons team. 
-            Je ontvangt punten zodra het wordt goedgekeurd!
-          </p>
-          <div className="space-x-4">
-            <button
-              onClick={() => setSubmitted(false)}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
-            >
-              Nog een woord toevoegen
-            </button>
-            <button
-              onClick={() => window.location.href = '/'}
-              className="border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50"
-            >
-              Terug naar Home
-            </button>
+        <RequireAuth>
+          <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-8 text-center">
+            <div className="text-6xl mb-4">🎉</div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Bedankt voor je bijdrage!</h1>
+            <p className="text-gray-600 mb-6">
+              Je woord is ingediend en wordt beoordeeld door ons team. 
+              Je ontvangt punten zodra het wordt goedgekeurd!
+            </p>
+            <div className="space-x-4">
+              <button
+                onClick={() => setSubmitted(false)}
+                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
+              >
+                Nog een woord toevoegen
+              </button>
+              <button
+                onClick={() => window.location.href = '/'}
+                className="border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50"
+              >
+                Terug naar Home
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+        </RequireAuth>
       </>
     );
   }
@@ -156,12 +159,13 @@ export default function CommunityPage() {
   return (
     <>
       <Navigation />
-      <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-            Draag bij aan Stratalia
-          </h1>
+      <RequireAuth>
+        <div className="min-h-screen bg-gray-50">
+          <div className="container mx-auto px-4 py-8">
+          <div className="max-w-2xl mx-auto">
+            <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">
+              Draag bij aan Stratalia
+            </h1>
 
           <div className="bg-white rounded-lg shadow-lg p-8">
             <div className="mb-6">
@@ -337,9 +341,10 @@ export default function CommunityPage() {
               </div>
             </div>
           </div>
+          </div>
         </div>
-      </div>
-    </div>
+        </div>
+        </RequireAuth>
     </>
   );
 }

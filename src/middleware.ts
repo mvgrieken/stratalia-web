@@ -16,6 +16,25 @@ export function middleware(request: NextRequest) {
     "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; worker-src 'self'; manifest-src 'self';"
   )
   
+  // Protected routes that require authentication
+  const protectedRoutes = ['/quiz', '/knowledge', '/community', '/leaderboard', '/challenges', '/dashboard', '/profile', '/notifications']
+  const currentPath = request.nextUrl.pathname
+  
+  // Check if the current path is a protected route
+  const isProtectedRoute = protectedRoutes.some(route => currentPath.startsWith(route))
+  
+  if (isProtectedRoute) {
+    // Check for authentication token in cookies
+    const authToken = request.cookies.get('sb-access-token') || request.cookies.get('supabase-auth-token')
+    
+    if (!authToken) {
+      // Redirect to login with the current path as redirect_to parameter
+      const loginUrl = new URL('/login', request.url)
+      loginUrl.searchParams.set('redirect_to', currentPath)
+      return NextResponse.redirect(loginUrl)
+    }
+  }
+  
   // Handle CORS for API routes
   if (request.nextUrl.pathname.startsWith('/api/')) {
     // Add CORS headers

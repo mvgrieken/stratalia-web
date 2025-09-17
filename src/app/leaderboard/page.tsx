@@ -1,6 +1,7 @@
 'use client';
 
 import { withLazyLoading } from '@/components/LazyPageWrapper';
+import RequireAuth from '@/components/RequireAuth';
 
 // Lazy load the heavy leaderboard component
 const LazyLeaderboardPage = withLazyLoading(
@@ -18,5 +19,9 @@ const LazyLeaderboardPage = withLazyLoading(
 );
 
 export default function LeaderboardPage() {
-  return <LazyLeaderboardPage />;
+  return (
+    <RequireAuth>
+      <LazyLeaderboardPage />
+    </RequireAuth>
+  );
 }

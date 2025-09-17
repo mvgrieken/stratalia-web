@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import Navigation from '@/components/Navigation';
+import RequireAuth from '@/components/RequireAuth';
 
 interface Challenge {
   id: string;
@@ -113,6 +114,7 @@ export default function ChallengesPage() {
     return true;
   });
 
+  // Show preview for non-logged in users
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -219,11 +221,12 @@ export default function ChallengesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navigation />
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">Challenges</h1>
+    <RequireAuth>
+      <div className="min-h-screen bg-gray-50">
+        <Navigation />
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-6xl mx-auto">
+            <h1 className="text-3xl font-bold text-gray-900 mb-8">Challenges</h1>
           
           {/* Tabs */}
           <div className="mb-8">
@@ -357,8 +360,9 @@ export default function ChallengesPage() {
               </p>
             </div>
           )}
+          </div>
         </div>
       </div>
-    </div>
+    </RequireAuth>
   );
 }
