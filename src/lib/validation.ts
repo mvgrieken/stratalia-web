@@ -29,7 +29,7 @@ export const registerSchema = z.object({
   full_name: z.string()
     .min(2, 'Naam moet minimaal 2 tekens lang zijn')
     .max(100, 'Naam mag maximaal 100 tekens lang zijn')
-    .regex(/^[a-zA-Z\s\-'\.]+$/, 'Naam mag alleen letters, spaties, koppeltekens en apostrofes bevatten')
+    .regex(/^[a-zA-Z\s\-'.]+$/, 'Naam mag alleen letters, spaties, koppeltekens en apostrofes bevatten')
     .trim(),
   terms_accepted: z.boolean()
     .refine(val => val === true, 'Je moet akkoord gaan met de voorwaarden')
@@ -49,7 +49,7 @@ export const searchSchema = z.object({
     .min(1, 'Zoekterm is verplicht')
     .max(100, 'Zoekterm mag maximaal 100 tekens lang zijn')
     .trim()
-    .transform(val => val.replace(/[<>\"'&]/g, '')), // Basic XSS protection
+    .transform(val => val.replace(/[<>"'&]/g, '')), // Basic XSS protection
   limit: z.number()
     .int('Limit moet een geheel getal zijn')
     .min(1, 'Limit moet minimaal 1 zijn')
@@ -63,14 +63,14 @@ export const translationSchema = z.object({
     .min(1, 'Tekst is verplicht')
     .max(500, 'Tekst mag maximaal 500 tekens lang zijn')
     .trim()
-    .transform(val => val.replace(/[<>\"'&]/g, '')), // Basic XSS protection
+    .transform(val => val.replace(/[<>"'&]/g, '')), // Basic XSS protection
   direction: z.enum(['to_slang', 'to_formal'], {
     message: 'Ongeldige vertaalrichting'
   }),
   context: z.string()
     .max(200, 'Context mag maximaal 200 tekens lang zijn')
     .optional()
-    .transform(val => val ? val.replace(/[<>\"'&]/g, '') : undefined)
+    .transform(val => val ? val.replace(/[<>"'&]/g, '') : undefined)
 });
 
 // Quiz submission schema

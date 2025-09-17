@@ -1,14 +1,7 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { getSupabaseServiceClient } from '@/lib/supabase-client';
-import { isSupabaseConfigured } from '@/lib/config';
-import { getKnowledgeItemById } from '@/lib/mock-data';
-import LoadingSpinner from '@/components/LoadingSpinner';
-import ErrorMessage from '@/components/ErrorMessage';
-import OptimizedImage from '@/components/OptimizedImage';
 import DetailNavigation from './DetailNavigation';
 import NotFoundState from './NotFoundState';
 

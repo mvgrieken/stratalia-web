@@ -42,7 +42,7 @@ export function isFeatureEnabled(feature: keyof FeatureFlags): boolean {
  */
 export function getEnabledFeatures(): Partial<FeatureFlags> {
   return Object.entries(featureFlags)
-    .filter(([_, enabled]) => enabled)
+    .filter(([, enabled]) => enabled)
     .reduce((acc, [key, value]) => {
       acc[key as keyof FeatureFlags] = value;
       return acc;
