@@ -56,7 +56,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               id: session.user.id,
               email: session.user.email || '',
               name: session.user.user_metadata?.full_name || '',
-            role: 'user'
               role: 'user'
             });
           });
