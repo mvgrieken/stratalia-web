@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
     });
     
     const { data: profile, error: profileError } = await supabaseService
-      .from('profiles')
+      .from('users')
       .select('*')
       .eq('id', authData.user.id)
       .single();
@@ -95,12 +95,11 @@ export async function POST(request: NextRequest) {
       logger.error('❌ Profile fetch error', profileError);
       // Create profile if it doesn't exist (use service client for profile creation)
       const { data: newProfile, error: createError } = await supabaseService
-        .from('profiles')
+        .from('users')
         .insert({
           id: authData.user.id,
           email: authData.user.email,
-          full_name: authData.user.user_metadata?.full_name || '',
-          role: 'user'
+          name: authData.user.user_metadata?.full_name || ''
         })
         .select()
         .single();
@@ -116,8 +115,7 @@ export async function POST(request: NextRequest) {
         user: {
           id: authData.user.id,
           email: authData.user.email,
-          role: newProfile.role,
-          full_name: newProfile.full_name
+          name: newProfile.name
         },
         session: authData.session
       });
@@ -127,8 +125,7 @@ export async function POST(request: NextRequest) {
       user: {
         id: authData.user.id,
         email: authData.user.email,
-        role: profile.role,
-        full_name: profile.full_name
+        name: profile.name
       },
       session: authData.session
     });

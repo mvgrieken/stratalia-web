@@ -77,12 +77,11 @@ export async function POST(request: NextRequest) {
     }
     // Create user profile (use service client for profile creation)
     const { error: profileError } = await supabaseService
-      .from('profiles')
+      .from('users')
       .insert({
         id: authData.user.id,
         email: authData.user.email,
-        full_name: full_name || '',
-        role: 'user'
+        name: full_name || ''
       });
     if (profileError) {
       logger.error('❌ Profile creation error:', profileError);
@@ -95,10 +94,8 @@ export async function POST(request: NextRequest) {
       .from('user_points')
       .insert({
         user_id: authData.user.id,
-        total_points: 0,
-        current_level: 1,
-        current_streak: 0,
-        longest_streak: 0
+        points: 0,
+        level: 1
       });
     if (pointsError) {
       logger.error('❌ User points initialization error:', pointsError);
@@ -109,8 +106,7 @@ export async function POST(request: NextRequest) {
       user: {
         id: authData.user.id,
         email: authData.user.email,
-        full_name,
-        role: 'user'
+        name: full_name
       }
     });
   } catch (error) {
