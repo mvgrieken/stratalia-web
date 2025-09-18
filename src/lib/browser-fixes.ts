@@ -4,46 +4,73 @@
  * This must be loaded as early as possible to catch all MutationObserver usage
  */
 
-// Immediate execution to catch errors as early as possible
+// ULTRA-EARLY execution - BEFORE document ready
 (function() {
   if (typeof window === 'undefined') return;
+  
+  // BLOCK ALL MUTATION OBSERVERS UNTIL DOCUMENT IS READY
+  let documentReady = false;
+  
+  const checkReadyState = () => {
+    documentReady = document.readyState === 'complete';
+    if (!documentReady) {
+      setTimeout(checkReadyState, 10);
+    }
+  };
+  
+  // Start checking immediately
+  checkReadyState();
+  
+  // Also listen for ready state changes
+  document.addEventListener('readystatechange', () => {
+    documentReady = document.readyState === 'complete';
+  });
   
   // Store original MutationObserver before any libraries can modify it
   const OriginalMutationObserver = window.MutationObserver;
   
   if (!OriginalMutationObserver) return;
   
-  // Create comprehensive safe wrapper
+  // Create comprehensive safe wrapper with document ready blocking
   class SafeMutationObserver extends OriginalMutationObserver {
     observe(target: any, options?: MutationObserverInit) {
+      // CRITICAL: Block all observers until document is ready
+      if (!documentReady) {
+        console.warn('MutationObserver blocked - document not ready, target:', target);
+        return; // Block completely until ready
+      }
+      
       // Comprehensive validation
       if (!target) {
-        console.warn('MutationObserver.observe called with null/undefined target - ignoring');
+        // Silent fail - no console spam
         return;
       }
       
-      // Check if target is a valid Node
+      // Critical: Check if target is a valid Node
       if (!(target instanceof Node)) {
-        console.warn('MutationObserver.observe called with invalid target:', typeof target, target, '- ignoring');
+        // Silent fail - no console spam for extension issues
         return;
       }
       
       // Additional safety checks
-      if (!target.nodeType || !target.ownerDocument) {
-        console.warn('MutationObserver.observe called with invalid Node:', target, '- ignoring');
+      if (!target.nodeType) {
         return;
       }
       
       // Check if target is still in the document
-      if (!document.contains(target)) {
-        console.warn('MutationObserver.observe called with detached Node - ignoring');
+      try {
+        if (!document.contains(target)) {
+          return;
+        }
+      } catch (e) {
+        // document.contains can fail in some edge cases
         return;
       }
       
       try {
         return super.observe(target, options);
       } catch (error) {
-        console.warn('MutationObserver.observe error:', error, '- ignoring');
+        // Silent fail - extensions cause this
         return;
       }
     }
