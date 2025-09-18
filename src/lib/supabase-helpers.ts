@@ -104,7 +104,7 @@ export function getSupabaseErrorMessage(error: any): string {
  */
 export function validateSupabaseResponse<T>(response: { data: T | null; error: any }): T {
   if (response.error) {
-    logger.error(`Supabase response error: ${error instanceof Error ? error.message : String(error)}`);
+    logger.error(`Supabase response error: ${response.error instanceof Error ? response.error.message : String(response.error)}`);
     throw new Error(getSupabaseErrorMessage(response.error));
   }
   
