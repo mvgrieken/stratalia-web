@@ -124,7 +124,7 @@ export async function GET(request: NextRequest) {
         cacheService.set(cacheKey, results, CACHE_TTL.MEDIUM);
         
         } catch (dbError) {
-          logger.warn(`Database search failed, falling back to mock data: ${error instanceof Error ? error.message : String(error)}`);
+          logger.warn(`Database search failed, falling back to mock data: ${dbError instanceof Error ? dbError.message : String(dbError)}`);
           source = 'fallback';
           
           // Fallback to mock data

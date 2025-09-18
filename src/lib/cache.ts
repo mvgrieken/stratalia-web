@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 /**
  * Simple in-memory cache service
  * For production, consider Redis or similar

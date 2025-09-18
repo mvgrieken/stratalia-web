@@ -29,7 +29,7 @@ export async function GET() {
       new URL(supabaseUrl);
     } catch (urlError) {
       const normalizedUrlError = normalizeError(urlError);
-      logger.error(`Health check failed: Invalid Supabase URL format ${error instanceof Error ? error.message : String(error)}`);
+      logger.error(`Health check failed: Invalid Supabase URL format ${urlError instanceof Error ? urlError.message : String(urlError)}`);
       return NextResponse.json({
         status: 'error',
         message: 'Health check failed',

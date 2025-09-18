@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 /**
  * Feature flags configuration
  * Controls which features are enabled based on environment variables

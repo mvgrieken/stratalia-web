@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { logger } from '@/lib/logger';
 import QuizQuestionComponent from '@/components/Quiz/QuizQuestion';
 import QuizResult from '@/components/Quiz/QuizResult';
 import { LoadingSpinner } from '@/components/LoadingSpinner';

@@ -1,4 +1,5 @@
 import { getSupabaseServiceClient } from '@/lib/supabase-client';
+import { logger } from '@/lib/logger';
 import KnowledgeClient from './KnowledgeClient';
 
 interface KnowledgeItem {

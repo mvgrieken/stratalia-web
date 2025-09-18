@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
+import { logger } from '@/lib/logger';
 import { getSupabaseClient } from '@/lib/supabase-client';
 
 interface User {

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { logger } from '@/lib/logger';
 import { useParams, useRouter } from 'next/navigation';
 import DetailNavigation from './DetailNavigation';
 import NotFoundState from './NotFoundState';

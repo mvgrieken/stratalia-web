@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 /**
  * Browser compatibility fixes
  * Comprehensive fix for MutationObserver errors from third-party libraries

@@ -4,6 +4,7 @@
  */
 
 import React, { Suspense, lazy, ComponentType } from 'react';
+import { logger } from '@/lib/logger';
 import { LoadingSpinner } from './LoadingSpinner';
 import { ErrorMessage } from './ErrorMessage';
 

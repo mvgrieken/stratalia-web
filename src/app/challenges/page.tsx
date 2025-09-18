@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import RequireAuth from '@/components/RequireAuth';
+import { logger } from '@/lib/logger';
 
 interface Challenge {
   id: string;

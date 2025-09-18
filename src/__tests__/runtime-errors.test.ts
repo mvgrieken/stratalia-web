@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { logger } from '@/lib/logger';
 
 // Mock browser environment
 const mockObserve = vi.fn();

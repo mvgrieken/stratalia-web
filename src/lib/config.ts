@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 /**
  * Configuration utility with fallbacks
  * Ensures the app always works, even with missing environment variables
