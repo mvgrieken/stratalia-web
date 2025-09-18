@@ -185,7 +185,7 @@ export async function GET(request: NextRequest) {
       logger.error('❌ Error fetching status counts:', normalized);
       return NextResponse.json({
         error: 'Database unavailable',
-        details: statusError.message
+        details: (statusError as any)?.message ?? 'Unknown error'
       }, { status: 500 });
     }
 
@@ -206,7 +206,7 @@ export async function GET(request: NextRequest) {
       logger.error('❌ Error fetching type counts:', normalized);
       return NextResponse.json({
         error: 'Database unavailable',
-        details: typeError.message
+        details: (typeError as any)?.message ?? 'Unknown error'
       }, { status: 500 });
     }
 
@@ -222,7 +222,7 @@ export async function GET(request: NextRequest) {
       logger.error('❌ Error fetching recent activity:', normalized);
       return NextResponse.json({
         error: 'Database unavailable',
-        details: activityError.message
+        details: (activityError as any)?.message ?? 'Unknown error'
       }, { status: 500 });
     }
 
