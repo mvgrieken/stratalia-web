@@ -26,7 +26,6 @@ export const metadata: Metadata = {
     ]
   },
   other: {
-    'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; worker-src 'self'; manifest-src 'self';",
     'X-Content-Type-Options': 'nosniff',
     'X-Frame-Options': 'DENY',
     'X-XSS-Protection': '1; mode=block',
@@ -42,7 +41,6 @@ export default function RootLayout({
     <html lang="nl">
       <head>
         <meta name="robots" content="noindex, nofollow" />
-        <meta httpEquiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self';" />
         <script
           dangerouslySetInnerHTML={{
             __html: `

@@ -45,40 +45,10 @@ const nextConfig = {
     // your project has type errors.
     ignoreBuildErrors: false,
   },
-  async headers() {
-    // Skip CSP headers in development to avoid hot reload issues
-    if (process.env.NODE_ENV === 'development') {
-      return [];
-    }
-    
-    return [
-      {
-        source: '/(.*)',
-        headers: [
-          {
-            key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co; frame-ancestors 'none'; object-src 'none'; base-uri 'self';"
-          },
-          {
-            key: 'X-Frame-Options',
-            value: 'DENY'
-          },
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff'
-          },
-          {
-            key: 'X-XSS-Protection',
-            value: '1; mode=block'
-          },
-          {
-            key: 'Referrer-Policy',
-            value: 'origin-when-cross-origin'
-          }
-        ],
-      },
-    ];
-  },
+  // Temporarily disable headers function to avoid CSP issues in development
+  // async headers() {
+  //   return [];
+  // },
 }
 
 module.exports = withBundleAnalyzer(nextConfig)
