@@ -391,7 +391,7 @@ export class ContentCrawler {
         return true;
       }
     } catch (error) {
-      logger.error('Failed to create content proposal:', error);
+      logger.error(`Failed to create content proposal: ${error instanceof Error ? error.message : String(error)}`);
       return false;
     }
   }
