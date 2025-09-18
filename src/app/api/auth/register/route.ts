@@ -29,17 +29,30 @@ export async function POST(request: NextRequest) {
     }
     
     const { email, password, full_name } = validatedData;
-    // Initialize Supabase client with service role for auth operations
+    // CRITICAL: Use ANON key for user registration (not service key!)
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (!supabaseUrl || !supabaseServiceKey) {
-      logger.error('❌ Supabase environment variables are missing!', new Error(`Missing env vars: hasUrl=${!!supabaseUrl}, hasServiceKey=${!!supabaseServiceKey}`));
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    
+    if (!supabaseUrl || !supabaseAnonKey) {
+      logger.error('❌ Supabase environment variables are missing!');
       return NextResponse.json({
         error: 'Database configuratie ontbreekt. Neem contact op met de beheerder.'
       }, { status: 500 });
     }
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+      },
+    });
+    
+    // Service client for profile operations
+    const supabaseService = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+      auth: { persistSession: false }
+    });
     // Create user account
+    logger.info(`🔐 Attempting registration for: ${email}`);
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
@@ -49,8 +62,10 @@ export async function POST(request: NextRequest) {
         }
       }
     });
+    
+    logger.info(`🔐 Registration response - Success: ${!!authData.user}, Error: ${!!authError}`);
     if (authError) {
-      logger.error('❌ Registration error:', authError);
+      logger.error(`❌ Registration error: ${authError.message || String(authError)}`);
       
       // Provide user-friendly error messages based on the error type
       let errorMessage = 'Registratie mislukt. Probeer het opnieuw.';
@@ -76,8 +91,8 @@ export async function POST(request: NextRequest) {
         error: 'Registratie mislukt. Probeer het opnieuw.'
       }, { status: 400 });
     }
-    // Create user profile
-    const { error: profileError } = await supabase
+    // Create user profile (use service client for profile creation)
+    const { error: profileError } = await supabaseService
       .from('profiles')
       .insert({
         id: authData.user.id,
@@ -91,8 +106,8 @@ export async function POST(request: NextRequest) {
         error: 'Er is een probleem opgetreden bij het aanmaken van je profiel. Probeer het opnieuw.'
       }, { status: 500 });
     }
-    // Initialize user points
-    const { error: pointsError } = await supabase
+    // Initialize user points (use service client)
+    const { error: pointsError } = await supabaseService
       .from('user_points')
       .insert({
         user_id: authData.user.id,

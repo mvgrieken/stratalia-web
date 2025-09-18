@@ -38,19 +38,19 @@ export async function POST(request: NextRequest) {
       }, { status: 500 });
     }
 
-    // Initialize Supabase client with service role for auth operations
+    // CRITICAL: Use ANON key for user authentication (not service key!)
+    // Service key is only for admin operations, not user auth
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-    // For development: fallback to anon key if service key is placeholder
-    const isValidServiceKey = supabaseServiceKey && 
-                             !supabaseServiceKey.includes('example') && 
-                             !supabaseServiceKey.includes('your_service_role_key');
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+      },
+    });
     
-    const keyToUse = isValidServiceKey ? supabaseServiceKey : process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-    const supabase = createClient(supabaseUrl, keyToUse);
-    
-    logger.info(`🔐 Using ${isValidServiceKey ? 'service' : 'anon'} key for auth`);
+    logger.info('🔐 Using ANON key for user authentication (correct approach)');
 
     // Authenticate user
     logger.info(`🔐 Attempting login for: ${email}`);
@@ -80,8 +80,12 @@ export async function POST(request: NextRequest) {
       }, { status: 401 });
     }
 
-    // Get user profile with role
-    const { data: profile, error: profileError } = await supabase
+    // Get user profile with role (use service client for profile access)
+    const supabaseService = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+      auth: { persistSession: false }
+    });
+    
+    const { data: profile, error: profileError } = await supabaseService
       .from('profiles')
       .select('*')
       .eq('id', authData.user.id)
@@ -89,8 +93,8 @@ export async function POST(request: NextRequest) {
 
     if (profileError) {
       logger.error('❌ Profile fetch error', profileError);
-      // Create profile if it doesn't exist
-      const { data: newProfile, error: createError } = await supabase
+      // Create profile if it doesn't exist (use service client for profile creation)
+      const { data: newProfile, error: createError } = await supabaseService
         .from('profiles')
         .insert({
           id: authData.user.id,
