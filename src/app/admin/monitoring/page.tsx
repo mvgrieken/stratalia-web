@@ -308,7 +308,7 @@ export default function AdminMonitoringPage() {
                       <span className="text-lg">{getActionIcon(action.action_type)}</span>
                       <div>
                         <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                          {action.action_type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                          {action.action_type.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
                         </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
                           {new Date(action.created_at).toLocaleString('nl-NL')}
