@@ -300,6 +300,16 @@ export default function CommunityPage() {
                 {isSubmitting ? 'Wordt ingediend...' : 'Woord Indienen'}
               </button>
             </form>
+            
+            {/* Link to user submissions */}
+            <div className="mt-6 text-center">
+              <a
+                href="/profile/submissions"
+                className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium"
+              >
+                📊 Bekijk mijn submissions en punten
+              </a>
+            </div>
           </div>
 
           {/* Recent Submissions */}

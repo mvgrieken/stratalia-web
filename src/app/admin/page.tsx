@@ -272,8 +272,14 @@ export default function AdminPage() {
                 <div className="text-xs text-gray-500 dark:text-gray-400">Rollen en accounts beheren</div>
               </Link>
               <Link
-                href="/api/admin/monitoring"
-                target="_blank"
+                href="/admin/community"
+                className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                <div className="text-sm font-medium text-gray-900 dark:text-gray-100">💬 Community Moderatie</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">Woord inzendingen beheren</div>
+              </Link>
+              <Link
+                href="/admin/monitoring"
                 className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               >
                 <div className="text-sm font-medium text-gray-900 dark:text-gray-100">📊 Monitoring</div>

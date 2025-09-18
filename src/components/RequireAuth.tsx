@@ -3,7 +3,7 @@
 import React, { Suspense } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+// import { useRouter, useSearchParams } from 'next/navigation'; // Not used in current implementation
 
 interface RequireAuthProps {
   children: React.ReactNode;
@@ -13,8 +13,6 @@ interface RequireAuthProps {
 
 function RequireAuthInner({ children, fallback, redirectTo }: RequireAuthProps) {
   const { user, loading } = useAuth();
-  const router = useRouter();
-  const searchParams = useSearchParams();
 
   // Show loading state while checking authentication
   if (loading) {

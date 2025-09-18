@@ -61,12 +61,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       translation: cleanText,
       confidence: 0.1,
-      alternatives: ['Vertaling niet beschikbaar', 'Probeer een ander woord', 'Controleer de spelling'],
+      alternatives: ['Vertaling niet beschikbaar', 'Probeer een ander woord', 'Controleer de spelling', 'Dien dit woord in via de community'],
       explanation: 'De vertaalservice is tijdelijk niet beschikbaar. We proberen een alternatieve vertaling te vinden.',
-      etymology: 'Deze vertaling kon niet worden verwerkt door de AI-service.',
+      etymology: 'Deze vertaling kon niet worden verwerkt door de AI-service. Help mee door nieuwe woorden in te dienen!',
       source: 'error-fallback',
       error: true,
-      message: 'Vertaling niet beschikbaar - probeer het later opnieuw'
+      message: 'Vertaling niet beschikbaar - probeer het later opnieuw of dien het woord in via de community'
     }, { status: 200 }); // Return 200 to avoid frontend error handling
   }
 }
@@ -89,17 +89,17 @@ async function generateTranslation(
       if (direction === 'to_formal') {
         const { data: words, error } = await supabase
           .from('words')
-          .select('word, definition, example, meaning')
+          .select('word, meaning, example')
           .ilike('word', text.toLowerCase())
           .limit(1);
 
         if (!error && words && words.length > 0) {
           const word = words[0];
           return {
-            translation: word.definition || word.meaning || text,
+            translation: word.meaning || text,
             confidence: 0.95,
-            alternatives: [word.definition || word.meaning || text],
-            explanation: `"${text}" betekent "${word.definition || word.meaning}" in het Nederlands.`,
+            alternatives: [word.meaning || text],
+            explanation: `"${text}" betekent "${word.meaning}" in het Nederlands.`,
             etymology: 'Dit woord komt uit de Nederlandse straattaal.',
             source: 'database'
           };
@@ -107,8 +107,8 @@ async function generateTranslation(
       } else {
         const { data: words, error } = await supabase
           .from('words')
-          .select('word, definition, example, meaning')
-          .or(`definition.ilike.%${text}%,meaning.ilike.%${text}%`)
+          .select('word, meaning, example')
+          .ilike('meaning', `%${text}%`)
           .limit(1);
 
         if (!error && words && words.length > 0) {
@@ -188,9 +188,10 @@ async function generateFallbackTranslation(
     alternatives.push(translation + ' (geen exacte match gevonden)');
     alternatives.push('Probeer een ander woord');
     alternatives.push('Controleer de spelling');
+    alternatives.push('Dien dit woord in via de community');
     confidence = 0.2;
-    explanation = `We hebben geen exacte vertaling gevonden voor "${text}". Probeer een ander woord of controleer de spelling.`;
-    etymology = 'Niet alle woorden zijn beschikbaar in onze vertaaldatabase.';
+    explanation = `We hebben geen exacte vertaling gevonden voor "${text}". Probeer een ander woord, controleer de spelling, of dien dit woord in via de community pagina.`;
+    etymology = 'Niet alle woorden zijn beschikbaar in onze vertaaldatabase. Help mee door nieuwe woorden in te dienen!';
   }
 
   // Ensure we always have a meaningful translation

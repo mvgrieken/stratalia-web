@@ -75,6 +75,29 @@ export default function TranslateResults({ translateResult, query, hasSearchResu
               </div>
             </div>
           )}
+          
+          {translateResult.confidence < 0.5 && (
+            <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900 border border-yellow-200 dark:border-yellow-700 rounded-lg">
+              <div className="flex items-start gap-3">
+                <span className="text-yellow-600 dark:text-yellow-400 text-xl">💡</span>
+                <div>
+                  <h4 className="font-medium text-yellow-800 dark:text-yellow-200 mb-2">
+                    Vertaling niet gevonden?
+                  </h4>
+                  <p className="text-yellow-700 dark:text-yellow-300 text-sm mb-3">
+                    Help mee door dit woord in te dienen via de community pagina. 
+                    Andere gebruikers kunnen dan ook profiteren van jouw kennis!
+                  </p>
+                  <a
+                    href="/community"
+                    className="inline-flex items-center px-4 py-2 bg-yellow-600 text-white text-sm font-medium rounded-lg hover:bg-yellow-700 transition-colors"
+                  >
+                    Woord indienen
+                  </a>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -1,42 +1,55 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
 import { normalizeError } from '@/lib/errors';
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    // Get session from Authorization header
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ user: null });
-    }
-    const token = authHeader.split(' ')[1];
     // Initialize Supabase client
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     if (!supabaseUrl || !supabaseAnonKey) {
       return NextResponse.json({ user: null });
     }
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
-    // Verify token and get user
-    const { data: { user }, error } = await supabase.auth.getUser(token);
-    if (error || !user) {
+    
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+      },
+    });
+    
+    // Get session from cookies
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error || !session?.user) {
       return NextResponse.json({ user: null });
     }
-    // Get user profile with role
+    
+    const user = session.user;
+    // Get user profile from users table
     const { data: profile, error: profileError } = await supabase
-      .from('profiles')
+      .from('users')
       .select('*')
       .eq('id', user.id)
       .single();
+    
     if (profileError) {
-      return NextResponse.json({ user: null });
+      // Return user data even if profile doesn't exist
+      return NextResponse.json({
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.user_metadata?.full_name || '',
+          role: 'user'
+        }
+      });
     }
+    
     return NextResponse.json({
       user: {
         id: user.id,
         email: user.email,
-        full_name: profile.full_name,
-        role: profile.role
+        name: profile.name || user.user_metadata?.full_name || '',
+        role: profile.role || 'user'
       }
     });
   } catch (error) {

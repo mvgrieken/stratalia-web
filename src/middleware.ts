@@ -24,10 +24,15 @@ export function middleware(request: NextRequest) {
   const isProtectedRoute = protectedRoutes.some(route => currentPath.startsWith(route))
   
   if (isProtectedRoute) {
-    // Check for authentication token in cookies
-    const authToken = request.cookies.get('sb-access-token') || request.cookies.get('supabase-auth-token')
+    // Check for Supabase authentication session
+    const supabaseAccessToken = request.cookies.get('sb-ahcvmgwbvfgrnwuyxmzi-auth-token')
     
-    if (!authToken) {
+    // Also check for generic Supabase cookies
+    const hasAuthSession = request.cookies.getAll().some(cookie => 
+      cookie.name.includes('sb-') && cookie.name.includes('auth-token')
+    )
+    
+    if (!hasAuthSession && !supabaseAccessToken) {
       // Redirect to login with the current path as redirect_to parameter
       const loginUrl = new URL('/login', request.url)
       loginUrl.searchParams.set('redirect_to', currentPath)

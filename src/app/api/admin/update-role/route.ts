@@ -54,8 +54,8 @@ export async function POST(request: NextRequest) {
 
     // Get current user's profile and target user's profile
     const { data: profiles, error: profilesError } = await supabaseService
-      .from('profiles')
-      .select('id, role, email, full_name')
+      .from('users')
+      .select('id, role, email, name')
       .in('id', [currentUserData.user.id, user_id]);
 
     if (profilesError || !profiles || profiles.length !== 2) {
@@ -96,10 +96,9 @@ export async function POST(request: NextRequest) {
 
     // Update role
     const { error: updateError } = await supabaseService
-      .from('profiles')
+      .from('users')
       .update({ 
-        role: new_role,
-        updated_at: new Date().toISOString()
+        role: new_role
       })
       .eq('id', user_id);
 
@@ -121,7 +120,7 @@ export async function POST(request: NextRequest) {
           old_role: targetProfile.role,
           new_role: new_role,
           target_email: targetProfile.email,
-          target_name: targetProfile.full_name
+          target_name: targetProfile.name
         },
         ip_address: request.headers.get('x-forwarded-for') || 'unknown',
         user_agent: request.headers.get('user-agent') || 'unknown'

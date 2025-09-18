@@ -1,12 +1,13 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
+import { getSupabaseClient } from '@/lib/supabase-client';
 
 interface User {
   id: string;
   email: string;
-  full_name: string;
-  role: 'user' | 'admin';
+  name: string;
+  role?: 'user' | 'moderator' | 'admin';
 }
 
 interface AuthContextType {
@@ -28,17 +29,75 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Check for existing session
     checkSession();
+
+    // Listen for auth state changes
+    const supabase = getSupabaseClient();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('🔐 Auth state changed:', event, session?.user?.email);
+      
+      if (event === 'SIGNED_IN' && session?.user) {
+        // Get user profile from our API
+        fetch('/api/auth/me')
+          .then(response => response.ok ? response.json() : null)
+          .then(userData => {
+            if (userData?.user) {
+              setUser(userData.user);
+            } else {
+              setUser({
+                id: session.user.id,
+                email: session.user.email || '',
+                name: session.user.user_metadata?.full_name || '',
+            role: 'user'
+              });
+            }
+          })
+          .catch(() => {
+            setUser({
+              id: session.user.id,
+              email: session.user.email || '',
+              name: session.user.user_metadata?.full_name || '',
+            role: 'user'
+              role: 'user'
+            });
+          });
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const checkSession = async () => {
     try {
-      const response = await fetch('/api/auth/me');
-      if (response.ok) {
-        const userData = await response.json();
-        setUser(userData.user);
+      const supabase = getSupabaseClient();
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('Session check failed:', error);
+        setUser(null);
+      } else if (session?.user) {
+        // Get user profile from our API
+        const response = await fetch('/api/auth/me');
+        if (response.ok) {
+          const userData = await response.json();
+          setUser(userData.user);
+        } else {
+          // Fallback to session user data
+          setUser({
+            id: session.user.id,
+            email: session.user.email || '',
+            name: session.user.user_metadata?.full_name || '',
+            role: 'user'
+            role: 'user'
+          });
+        }
+      } else {
+        setUser(null);
       }
     } catch (error) {
       console.error('Session check failed:', error);
+      setUser(null);
     } finally {
       setLoading(false);
     }
@@ -48,25 +107,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('🔐 AuthProvider: Attempting login for:', email);
       
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+      const supabase = getSupabaseClient();
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
       });
 
-      console.log('🔐 AuthProvider: Login response status:', response.status);
-      
-      const data = await response.json();
-      console.log('🔐 AuthProvider: Login response data:', data);
+      if (error) {
+        console.error('❌ AuthProvider: Login failed:', error.message);
+        return { error: error.message || 'Inloggen mislukt. Probeer het opnieuw.' };
+      }
 
-      if (response.ok) {
-        setUser(data.user);
+      if (data.user) {
+        // Get user profile from our API
+        const response = await fetch('/api/auth/me');
+        if (response.ok) {
+          const userData = await response.json();
+          setUser(userData.user);
+        } else {
+          // Fallback to session user data
+          setUser({
+            id: data.user.id,
+            email: data.user.email || '',
+            name: data.user.user_metadata?.full_name || '',
+            role: 'user'
+          });
+        }
         console.log('✅ AuthProvider: Login successful, user set');
         return {};
-      } else {
-        console.error('❌ AuthProvider: Login failed with status:', response.status, 'Error:', data.error);
-        // Use the user-friendly error message from the API
-        return { error: data.error || 'Inloggen mislukt. Probeer het opnieuw.' };
       }
     } catch (error) {
       console.error('💥 AuthProvider: Network error during login:', error);
@@ -76,30 +144,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, full_name: string) => {
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, full_name })
+      console.log('🔐 AuthProvider: Attempting registration for:', email);
+      
+      const supabase = getSupabaseClient();
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name
+          }
+        }
       });
 
-      const data = await response.json();
+      if (error) {
+        console.error('❌ AuthProvider: Registration failed:', error.message);
+        return { error: error.message || 'Registratie mislukt. Probeer het opnieuw.' };
+      }
 
-      if (response.ok) {
-        setUser(data.user);
+      if (data.user) {
+        // Get user profile from our API
+        const response = await fetch('/api/auth/me');
+        if (response.ok) {
+          const userData = await response.json();
+          setUser(userData.user);
+        } else {
+          // Fallback to session user data
+          setUser({
+            id: data.user.id,
+            email: data.user.email || '',
+            name: data.user.user_metadata?.full_name || '',
+            role: 'user'
+          });
+        }
+        console.log('✅ AuthProvider: Registration successful, user set');
         return {};
-      } else {
-        // Use the user-friendly error message from the API
-        return { error: data.error || 'Registratie mislukt. Probeer het opnieuw.' };
       }
     } catch (error) {
-      console.error('Network error during registration:', error);
+      console.error('💥 AuthProvider: Network error during registration:', error);
       return { error: 'Verbindingsprobleem. Controleer je internetverbinding en probeer het opnieuw.' };
     }
   };
 
   const signOut = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      const supabase = getSupabaseClient();
+      await supabase.auth.signOut();
       setUser(null);
     } catch (error) {
       console.error('Logout failed:', error);

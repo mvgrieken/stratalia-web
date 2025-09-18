@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
 import { normalizeError } from '@/lib/errors';
-import { validateRegistration } from '@/lib/validation';
+// import { validateRegistration } from '@/lib/validation'; // Temporarily disabled for debugging
 import { applyRateLimit } from '@/middleware/rateLimiter';
 export async function POST(request: NextRequest) {
   try {

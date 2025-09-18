@@ -64,6 +64,10 @@ export async function POST(request: NextRequest) {
         const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
         const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+        // Get user ID from session if available
+        const { data: { session } } = await supabase.auth.getSession();
+        const submittedBy = session?.user?.id || null;
+
         // Insert submission
         const { data, error } = await supabase
           .from('community_submissions')
@@ -73,9 +77,9 @@ export async function POST(request: NextRequest) {
             example: example?.trim() || null,
             context: context?.trim() || null,
             source: source?.trim() || null,
-            notes: notes?.trim() || null,
             status: 'pending',
-            submitted_by: 'anonymous'
+            submitted_by: submittedBy,
+            submitted_by_name: session?.user?.user_metadata?.full_name || 'Anoniem'
           })
           .select()
           .single();
@@ -124,35 +128,55 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') || 'approved';
+    const userId = searchParams.get('user_id');
     const limit = parseInt(searchParams.get('limit') || '20');
-    logger.info(`📝 Fetching community submissions - Status: ${status}, Limit: ${limit}`);
+    
+    logger.info(`📝 Fetching community submissions - Status: ${status}, User: ${userId}, Limit: ${limit}`);
+    
     // Initialize Supabase client
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    
     if (!supabaseUrl || !supabaseAnonKey) {
       logger.error('❌ Supabase environment variables are missing!');
       return NextResponse.json({
         error: 'Database configuration missing'
       }, { status: 500 });
     }
+    
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
-    // Fetch submissions
-    const { data: submissions, error } = await supabase
+    
+    // Build query
+    let query = supabase
       .from('community_submissions')
       .select('*')
-      .eq('status', status)
       .order('created_at', { ascending: false })
       .limit(limit);
+    
+    // Filter by status if specified
+    if (status !== 'all') {
+      query = query.eq('status', status);
+    }
+    
+    // Filter by user if specified
+    if (userId) {
+      query = query.eq('submitted_by', userId);
+    }
+    
+    const { data: submissions, error } = await query;
+    
     if (error) {
       const normalized = normalizeError(error);
-    logger.error('❌ Error fetching community submissions:', normalized);
+      logger.error('❌ Error fetching community submissions:', normalized);
       return NextResponse.json({
         error: 'Database unavailable',
         details: error.message
       }, { status: 500 });
     }
+    
     logger.info(`✅ Found ${submissions?.length || 0} community submissions`);
     return NextResponse.json(submissions || []);
+    
   } catch (error) {
     const normalized = normalizeError(error);
     logger.error('💥 Error in community submissions API:', normalized);

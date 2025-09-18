@@ -1,115 +1,89 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseServiceClient } from '@/lib/supabase-client';
 import { logger } from '@/lib/logger';
-import { normalizeError } from '@/lib/errors';
-import { canManageUsers } from '@/lib/auth-roles';
-import type { UserRole } from '@/lib/auth-roles';
 
 export async function GET(request: NextRequest) {
   try {
-    // Get current user from auth header
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader) {
-      return NextResponse.json({
-        error: 'Authenticatie vereist'
-      }, { status: 401 });
-    }
-
-    const token = authHeader.replace('Bearer ', '');
-    
-    // Initialize Supabase clients
+    // Get current user from session
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const supabase = getSupabaseServiceClient();
     
-    if (!supabaseUrl || !supabaseServiceKey) {
-      return NextResponse.json({
-        error: 'Database configuratie ontbreekt'
-      }, { status: 500 });
+    // Get session from cookies
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const supabaseAnon = createClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
-    const supabaseService = createClient(supabaseUrl, supabaseServiceKey);
-
-    // Verify current user
-    const { data: currentUserData, error: userError } = await supabaseAnon.auth.getUser(token);
-    
-    if (userError || !currentUserData.user) {
-      return NextResponse.json({
-        error: 'Ongeldige authenticatie'
-      }, { status: 401 });
-    }
-
-    // Get current user's role
-    const { data: currentProfile, error: profileError } = await supabaseService
-      .from('profiles')
+    // Check if current user is admin
+    const { data: currentProfile, error: profileError } = await supabase
+      .from('users')
       .select('role')
-      .eq('id', currentUserData.user.id)
+      .eq('id', session.user.id)
       .single();
 
-    if (profileError || !currentProfile) {
-      return NextResponse.json({
-        error: 'Gebruikersprofiel niet gevonden'
-      }, { status: 404 });
+    if (profileError || !currentProfile || currentProfile.role !== 'admin') {
+      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
     }
 
-    // Check permissions
-    if (!canManageUsers(currentProfile.role as UserRole)) {
-      return NextResponse.json({
-        error: 'Onvoldoende rechten voor gebruikersbeheer'
-      }, { status: 403 });
+    // Get query parameters
+    const { searchParams } = new URL(request.url);
+    const limit = parseInt(searchParams.get('limit') || '100');
+    const offset = parseInt(searchParams.get('offset') || '0');
+    const search = searchParams.get('search') || '';
+
+    logger.info(`Admin ${session.user.email} fetching users list`);
+
+    // Build query
+    let query = supabase
+      .from('users')
+      .select('*', { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    // Add search filter if provided
+    if (search) {
+      query = query.or(`email.ilike.%${search}%,name.ilike.%${search}%`);
     }
 
-    // Fetch all users with their profiles
-    const { data: users, error: usersError } = await supabaseService
-      .from('profiles')
-      .select(`
-        id,
-        email,
-        full_name,
-        role,
-        created_at,
-        last_activity_at,
-        last_login_method,
-        mfa_enabled,
-        avatar_url,
-        login_attempts,
-        locked_until
-      `)
-      .order('created_at', { ascending: false });
+    const { data: users, error, count } = await query;
 
-    if (usersError) {
-      logger.error('Error fetching users:', usersError);
-      return NextResponse.json({
-        error: 'Fout bij ophalen van gebruikers'
-      }, { status: 500 });
+    if (error) {
+      logger.error('Error fetching users:', error);
+      return NextResponse.json({ error: 'Failed to fetch users', details: error.message }, { status: 500 });
     }
 
-    // Log admin action
-    await supabaseService
-      .from('admin_actions')
-      .insert({
-        admin_user_id: currentUserData.user.id,
-        action_type: 'view_users',
-        action_details: { users_count: users?.length || 0 },
-        ip_address: request.headers.get('x-forwarded-for') || 'unknown',
-        user_agent: request.headers.get('user-agent') || 'unknown'
-      });
+    // Get additional auth data for each user
+    const usersWithAuthData = await Promise.all(
+      (users || []).map(async (user) => {
+        try {
+          const { data: authUser } = await supabase.auth.admin.getUserById(user.id);
+          return {
+            ...user,
+            last_sign_in_at: authUser?.user?.last_sign_in_at,
+            is_active: authUser?.user?.email_confirmed_at ? true : false
+          };
+        } catch (authError) {
+          logger.warn(`Could not fetch auth data for user ${user.id}:`, authError);
+          return {
+            ...user,
+            last_sign_in_at: null,
+            is_active: false
+          };
+        }
+      })
+    );
 
-    return NextResponse.json({
-      users: users || [],
-      total: users?.length || 0,
-      current_user: {
-        id: currentUserData.user.id,
-        role: currentProfile.role
-      }
+    logger.info(`Found ${count} users`);
+    return NextResponse.json({ 
+      users: usersWithAuthData,
+      total: count,
+      limit,
+      offset
     });
 
   } catch (error) {
-    const normalized = normalizeError(error);
-    logger.error('Error in admin users API:', normalized);
-    
-    return NextResponse.json({
-      error: 'Er is een fout opgetreden bij het ophalen van gebruikers'
-    }, { status: 500 });
+    logger.error('Error in /api/admin/users GET:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
