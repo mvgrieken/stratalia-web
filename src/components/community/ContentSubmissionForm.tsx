@@ -107,7 +107,7 @@ export default function ContentSubmissionForm({ onSuccess, onCancel }: ContentSu
 
   const buildMetadata = (): any => {
     const metadata: any = {
-      submitted_by: user?.full_name || user?.email,
+      submitted_by: user?.name || user?.email,
       submission_date: new Date().toISOString()
     };
 
