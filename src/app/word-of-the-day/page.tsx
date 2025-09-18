@@ -133,7 +133,8 @@ export default function WordOfTheDayPage() {
         utterance.lang = 'nl-NL';
         utterance.rate = 0.8;
         utterance.onerror = (event) => {
-          logger.warn(`Speech synthesis error: ${error instanceof Error ? error.message : String(error)}`);
+          const message = (event as any)?.error ? String((event as any).error) : 'Unknown error';
+          logger.warn(`Speech synthesis error: ${message}`);
         };
         window.speechSynthesis.speak(utterance);
       } else {
