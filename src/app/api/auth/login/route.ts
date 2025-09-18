@@ -42,16 +42,27 @@ export async function POST(request: NextRequest) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    // For development: fallback to anon key if service key is placeholder
+    const isValidServiceKey = supabaseServiceKey && 
+                             !supabaseServiceKey.includes('example') && 
+                             !supabaseServiceKey.includes('your_service_role_key');
+    
+    const keyToUse = isValidServiceKey ? supabaseServiceKey : process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+    const supabase = createClient(supabaseUrl, keyToUse);
+    
+    logger.info(`🔐 Using ${isValidServiceKey ? 'service' : 'anon'} key for auth`);
 
     // Authenticate user
+    logger.info(`🔐 Attempting login for: ${email}`);
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email,
       password
     });
+    
+    logger.info(`🔐 Login response - Success: ${!!authData.session}, Error: ${!!authError}`);
 
     if (authError) {
-      logger.error('❌ Authentication error', authError);
+      logger.error(`❌ Authentication error: ${authError.message || String(authError)}`);
       
       // Provide user-friendly error messages based on the error type
       let errorMessage = 'Inloggen mislukt. Controleer je gegevens.';

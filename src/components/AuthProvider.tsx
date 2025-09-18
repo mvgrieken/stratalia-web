@@ -46,23 +46,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
+      console.log('🔐 AuthProvider: Attempting login for:', email);
+      
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       });
 
+      console.log('🔐 AuthProvider: Login response status:', response.status);
+      
       const data = await response.json();
+      console.log('🔐 AuthProvider: Login response data:', data);
 
       if (response.ok) {
         setUser(data.user);
+        console.log('✅ AuthProvider: Login successful, user set');
         return {};
       } else {
+        console.error('❌ AuthProvider: Login failed with status:', response.status, 'Error:', data.error);
         // Use the user-friendly error message from the API
         return { error: data.error || 'Inloggen mislukt. Probeer het opnieuw.' };
       }
     } catch (error) {
-      console.error('Network error during login:', error);
+      console.error('💥 AuthProvider: Network error during login:', error);
       return { error: 'Verbindingsprobleem. Controleer je internetverbinding en probeer het opnieuw.' };
     }
   };
