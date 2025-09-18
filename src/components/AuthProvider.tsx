@@ -88,7 +88,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             email: session.user.email || '',
             name: session.user.user_metadata?.full_name || '',
             role: 'user'
-            role: 'user'
           });
         }
       } else {
