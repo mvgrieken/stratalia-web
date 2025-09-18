@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    logger.error('Error in /api/admin/refresh-knowledge POST:', error);
+    logger.error('Error in /api/admin/refresh-knowledge POST:', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -198,7 +198,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    logger.error('Error in /api/admin/refresh-knowledge GET:', error);
+    logger.error('Error in /api/admin/refresh-knowledge GET:', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

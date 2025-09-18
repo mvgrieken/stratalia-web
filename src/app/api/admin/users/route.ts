@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
     const { data: users, error, count } = await query;
 
     if (error) {
-      logger.error('Error fetching users:', error);
+      logger.error('Error fetching users:', error instanceof Error ? error : new Error(String(error)));
       return NextResponse.json({ error: 'Failed to fetch users', details: error.message }, { status: 500 });
     }
 
@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    logger.error('Error in /api/admin/users GET:', error);
+    logger.error('Error in /api/admin/users GET:', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

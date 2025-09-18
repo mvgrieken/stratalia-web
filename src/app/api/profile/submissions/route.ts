@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
     const { data: submissions, error, count } = await query;
 
     if (error) {
-      logger.error('Error fetching user submissions:', error);
+      logger.error('Error fetching user submissions:', error instanceof Error ? error : new Error(String(error)));
       return NextResponse.json({ error: 'Failed to fetch submissions', details: error.message }, { status: 500 });
     }
 
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    logger.error('Error in /api/profile/submissions GET:', error);
+    logger.error('Error in /api/profile/submissions GET:', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
