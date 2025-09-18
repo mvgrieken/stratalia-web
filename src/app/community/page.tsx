@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { ApiErrorHandler } from '@/components/ApiErrorHandler';
 import RequireAuth from '@/components/RequireAuth';
+import { logger } from '@/lib/logger';
 
 interface Submission {
   word: string;
