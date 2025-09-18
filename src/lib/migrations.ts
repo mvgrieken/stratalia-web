@@ -86,7 +86,7 @@ class MigrationService {
       const { error: sqlError } = await supabase.rpc('exec_sql', { sql: migration.up });
 
       if (sqlError) {
-        logger.error(`Migration ${migration.name} failed ${error instanceof Error ? error.message : String(error)}`);
+        logger.error(`Migration ${migration.name} failed ${sqlError instanceof Error ? sqlError.message : String(sqlError)}`);
         throw sqlError;
       }
 
@@ -100,7 +100,7 @@ class MigrationService {
         }]);
 
       if (recordError) {
-        logger.error(`Failed to record migration ${migration.name} ${error instanceof Error ? error.message : String(error)}`);
+        logger.error(`Failed to record migration ${migration.name} ${recordError instanceof Error ? recordError.message : String(recordError)}`);
         throw recordError;
       }
 
