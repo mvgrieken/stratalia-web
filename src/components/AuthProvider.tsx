@@ -139,6 +139,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       logger.error(`💥 AuthProvider: Network error during login: ${error instanceof Error ? error.message : String(error)}`);
       return { error: 'Verbindingsprobleem. Controleer je internetverbinding en probeer het opnieuw.' };
     }
+    return { error: 'Inloggen mislukt. Probeer het opnieuw.' };
   };
 
   const signUp = async (email: string, password: string, full_name: string) => {
@@ -183,6 +184,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       logger.error(`💥 AuthProvider: Network error during registration: ${error instanceof Error ? error.message : String(error)}`);
       return { error: 'Verbindingsprobleem. Controleer je internetverbinding en probeer het opnieuw.' };
     }
+    return { error: 'Registratie mislukt. Probeer het opnieuw.' };
   };
 
   const signOut = async () => {
