@@ -4,12 +4,16 @@ import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
+import GoogleAuthButton from '@/components/auth/GoogleAuthButton';
+import AppleAuthButton from '@/components/auth/AppleAuthButton';
+import PinLoginForm from '@/components/auth/PinLoginForm';
 
 function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [loginMethod, setLoginMethod] = useState<'password' | 'pin'>('password');
   const { signIn } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -50,7 +54,9 @@ function LoginForm() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          {/* Password Login Form */}
+          {loginMethod === 'password' && (
+            <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 Email adres
@@ -103,25 +109,82 @@ function LoginForm() {
               </button>
             </div>
           </form>
+          )}
 
+          {/* Login Method Tabs */}
+          <div className="mt-6">
+            <div className="flex border-b border-gray-200 dark:border-gray-700">
+              <button
+                onClick={() => setLoginMethod('password')}
+                className={`flex-1 py-2 px-4 text-sm font-medium border-b-2 ${
+                  loginMethod === 'password'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                }`}
+              >
+                Wachtwoord
+              </button>
+              <button
+                onClick={() => setLoginMethod('pin')}
+                className={`flex-1 py-2 px-4 text-sm font-medium border-b-2 ${
+                  loginMethod === 'pin'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                }`}
+              >
+                PIN-code
+              </button>
+            </div>
+          </div>
+
+          {/* PIN Login Form */}
+          {loginMethod === 'pin' && (
+            <div className="mt-6">
+              <PinLoginForm
+                onSuccess={(user) => {
+                  router.push(redirectTo);
+                }}
+                onError={(error) => setError(error)}
+                onSwitchToPassword={() => setLoginMethod('password')}
+              />
+            </div>
+          )}
+
+          {/* Social Login Options */}
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
+                <div className="w-full border-t border-gray-300 dark:border-gray-600" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Of</span>
+                <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">Of inloggen met</span>
               </div>
             </div>
 
-            <div className="mt-6 text-center">
-              <Link
-                href="/"
-                className="text-sm text-gray-600 hover:text-gray-500"
-              >
-                Terug naar home
-              </Link>
+            <div className="mt-6 space-y-3">
+              <GoogleAuthButton
+                onSuccess={(user) => {
+                  router.push(redirectTo);
+                }}
+                onError={(error) => setError(error)}
+              />
+              
+              <AppleAuthButton
+                onSuccess={(user) => {
+                  router.push(redirectTo);
+                }}
+                onError={(error) => setError(error)}
+              />
             </div>
+          </div>
+
+          <div className="mt-6 text-center">
+            <Link
+              href="/"
+              className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+            >
+              Terug naar home
+            </Link>
           </div>
         </div>
       </div>
