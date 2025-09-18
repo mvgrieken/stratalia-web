@@ -36,6 +36,38 @@ export default function AdminPage() {
     loadStats();
   }, []);
 
+  const handleCrawlContent = async () => {
+    setIsRefreshing(true);
+    setRefreshStatus('Zoeken naar nieuwe content...');
+    
+    try {
+      const response = await fetch('/api/admin/crawl-content', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_ADMIN_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          source_types: ['rss', 'youtube_channel', 'podcast_feed'],
+          force_update: true
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setRefreshStatus(`Content crawl voltooid! ${data.results.new_proposals} nieuwe voorstellen gevonden uit ${data.results.sources_successful} bronnen.`);
+        await loadStats();
+      } else {
+        const errorData = await response.json();
+        setRefreshStatus(`Fout: ${errorData.error || 'Content crawl mislukt'}`);
+      }
+    } catch (error) {
+      setRefreshStatus('Er is een fout opgetreden bij het zoeken naar content');
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   const handleRefreshKnowledge = async () => {
     setIsRefreshing(true);
     setRefreshStatus('Bezig met verversen...');
@@ -155,18 +187,28 @@ export default function AdminPage() {
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                Kennisbank
+                Content Management
               </h2>
               <p className="text-gray-600 dark:text-gray-400 mb-4">
-                Ververs de kennisbank met nieuwe content, podcasts en video's
+                Beheer automatische content updates en moderatie
               </p>
-              <button
-                onClick={handleRefreshKnowledge}
-                disabled={isRefreshing}
-                className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {isRefreshing ? 'Verversen...' : 'Ververs Kennisbank'}
-              </button>
+              <div className="space-y-3">
+                <button
+                  onClick={handleCrawlContent}
+                  disabled={isRefreshing}
+                  className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {isRefreshing ? 'Content zoeken...' : '🔍 Update Content Nu'}
+                </button>
+                
+                <button
+                  onClick={handleRefreshKnowledge}
+                  disabled={isRefreshing}
+                  className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {isRefreshing ? 'Verversen...' : '📚 Ververs Kennisbank'}
+                </button>
+              </div>
             </div>
 
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
@@ -212,39 +254,37 @@ export default function AdminPage() {
           {/* Quick Actions */}
           <div className="mt-8 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
-              Snelle Acties
+              Admin Modules
             </h2>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <Link
+                href="/admin/content"
+                className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                <div className="text-sm font-medium text-gray-900 dark:text-gray-100">📝 Content Moderatie</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">Goedkeuren content voorstellen</div>
+              </Link>
+              <Link
+                href="/admin/users"
+                className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                <div className="text-sm font-medium text-gray-900 dark:text-gray-100">👥 Gebruikersbeheer</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">Rollen en accounts beheren</div>
+              </Link>
               <Link
                 href="/api/admin/monitoring"
                 target="_blank"
                 className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               >
-                <div className="text-sm font-medium text-gray-900 dark:text-gray-100">Monitoring</div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">Systeem logs</div>
-              </Link>
-              <Link
-                href="/api/admin/content"
-                target="_blank"
-                className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-              >
-                <div className="text-sm font-medium text-gray-900 dark:text-gray-100">Content</div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">Content beheer</div>
-              </Link>
-              <Link
-                href="/api/admin/quiz"
-                target="_blank"
-                className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-              >
-                <div className="text-sm font-medium text-gray-900 dark:text-gray-100">Quiz</div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">Quiz beheer</div>
+                <div className="text-sm font-medium text-gray-900 dark:text-gray-100">📊 Monitoring</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">Systeem logs en metrics</div>
               </Link>
               <Link
                 href="/dashboard"
                 className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               >
-                <div className="text-sm font-medium text-gray-900 dark:text-gray-100">Dashboard</div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">Gebruikers dashboard</div>
+                <div className="text-sm font-medium text-gray-900 dark:text-gray-100">🏠 Dashboard</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">Terug naar gebruikers app</div>
               </Link>
             </div>
           </div>
