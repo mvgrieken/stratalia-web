@@ -19,8 +19,8 @@ export default function RegisterPage() {
     setLoading(true);
     setError('');
 
-    if (password.length < 8) {
-      setError('Wachtwoord moet minimaal 8 karakters lang zijn');
+    if (password.length < 6) {
+      setError('Wachtwoord moet minimaal 6 karakters lang zijn');
       setLoading(false);
       return;
     }
@@ -109,7 +109,7 @@ export default function RegisterPage() {
                 />
               </div>
               <p className="mt-1 text-xs text-gray-500">
-                Minimaal 8 karakters
+                Minimaal 6 karakters
               </p>
             </div>
 
