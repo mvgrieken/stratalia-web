@@ -18,6 +18,8 @@ export default function RegisterPage() {
     e.preventDefault();
     setLoading(true);
     setError('');
+    
+    // Force cache refresh - validation updated
 
     if (password.length < 6) {
       setError('Wachtwoord moet minimaal 6 karakters lang zijn');
