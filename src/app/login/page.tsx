@@ -141,7 +141,7 @@ function LoginForm() {
           {loginMethod === 'pin' && (
             <div className="mt-6">
               <PinLoginForm
-                onSuccess={(user) => {
+                onSuccess={() => {
                   router.push(redirectTo);
                 }}
                 onError={(error) => setError(error)}
@@ -163,14 +163,14 @@ function LoginForm() {
 
             <div className="mt-6 space-y-3">
               <GoogleAuthButton
-                onSuccess={(user) => {
+                onSuccess={() => {
                   router.push(redirectTo);
                 }}
                 onError={(error) => setError(error)}
               />
               
               <AppleAuthButton
-                onSuccess={(user) => {
+                onSuccess={() => {
                   router.push(redirectTo);
                 }}
                 onError={(error) => setError(error)}

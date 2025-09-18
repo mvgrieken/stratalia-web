@@ -78,7 +78,7 @@ export default function AuthCallbackPage() {
         logger.warn('Failed to ensure user profile');
       }
     } catch (error) {
-      logger.warn('Error ensuring user profile:', error);
+      logger.warn(`Error ensuring user profile: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 

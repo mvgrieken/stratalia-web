@@ -74,7 +74,7 @@ export default function ContentSubmissionForm({ onSuccess, onCancel }: ContentSu
         throw new Error(errorData.error || 'Indiening mislukt');
       }
 
-      const result = await response.json();
+      await response.json();
       
       // Reset form
       setFormData({

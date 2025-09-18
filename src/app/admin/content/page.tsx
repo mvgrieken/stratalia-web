@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import RequireAdmin from '@/components/RequireAdmin';
 import { canModerateContent } from '@/lib/auth-roles';
@@ -32,11 +32,7 @@ export default function AdminContentPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
 
-  useEffect(() => {
-    loadProposals();
-  }, [filter]);
-
-  const loadProposals = async () => {
+  const loadProposals = useCallback(async () => {
     try {
       setLoading(true);
       const statusFilter = filter === 'all' ? '' : `&status=${filter}`;
@@ -54,7 +50,11 @@ export default function AdminContentPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter]);
+
+  useEffect(() => {
+    loadProposals();
+  }, [loadProposals]);
 
   const handleApprove = async (proposalId: string) => {
     setActionLoading(proposalId);

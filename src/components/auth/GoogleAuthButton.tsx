@@ -5,7 +5,7 @@ import { getSupabaseClient } from '@/lib/supabase-client';
 import { logger } from '@/lib/logger';
 
 interface GoogleAuthButtonProps {
-  onSuccess?: (user: any) => void;
+  onSuccess?: () => void;
   onError?: (error: string) => void;
   className?: string;
 }
@@ -23,7 +23,7 @@ export default function GoogleAuthButton({
     try {
       const supabase = getSupabaseClient();
       
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,

@@ -6,7 +6,7 @@ import RequireAdmin from '@/components/RequireAdmin';
 import { canManageUsers, getRoleDisplayName, getRoleColor, getAvailableRoles, canChangeRole } from '@/lib/auth-roles';
 import type { UserRole } from '@/lib/auth-roles';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import ErrorMessage from '@/components/ErrorMessage';
+import Image from 'next/image';
 
 interface User {
   id: string;
@@ -237,10 +237,12 @@ export default function AdminUsersPage() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             {user.avatar_url ? (
-                              <img 
+                              <Image 
                                 className="h-10 w-10 rounded-full"
                                 src={user.avatar_url}
                                 alt={user.full_name}
+                                width={40}
+                                height={40}
                               />
                             ) : (
                               <div className="h-10 w-10 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">

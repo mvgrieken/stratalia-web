@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { logger } from '@/lib/logger';
@@ -136,7 +136,7 @@ export default function PinLoginForm({
       }
 
     } catch (error) {
-      logger.error('PIN login error:', error);
+          logger.error('PIN login error:', error instanceof Error ? error : new Error(String(error)));
       onError?.('Er is een fout opgetreden bij PIN inloggen');
     } finally {
       setLoading(false);

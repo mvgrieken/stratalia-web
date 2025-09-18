@@ -5,7 +5,6 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { logger } from './logger';
-import { normalizeError } from './errors';
 
 export interface ContentSource {
   id: string;
@@ -85,7 +84,7 @@ export class ContentCrawler {
         } catch (error) {
           const errorMsg = `Source ${source.name}: ${error instanceof Error ? error.message : String(error)}`;
           results.errors.push(errorMsg);
-          logger.error(`Crawl error for source ${source.name}:`, error);
+          logger.error(`Crawl error for source ${source.name}: ${error instanceof Error ? error.message : String(error)}`);
         }
       }
 
@@ -95,7 +94,7 @@ export class ContentCrawler {
       return results;
 
     } catch (error) {
-      logger.error('Daily crawl failed:', error);
+      logger.error(`Daily crawl failed: ${error instanceof Error ? error.message : String(error)}`);
       throw error;
     }
   }
@@ -401,7 +400,7 @@ export class ContentCrawler {
    * Utility functions
    */
   private extractXMLValue(xml: string, tag: string): string {
-    const match = xml.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i'));
+    const match = xml.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`, 'i'));
     return match ? match[1].trim() : '';
   }
 
@@ -433,7 +432,7 @@ export class ContentCrawler {
   }
 
   private extractYouTubeChannelId(url: string): string | null {
-    const match = url.match(/(?:youtube\.com\/channel\/|youtube\.com\/c\/|youtube\.com\/user\/)([^\/?]+)/);
+    const match = url.match(/(?:youtube\.com\/channel\/|youtube\.com\/c\/|youtube\.com\/user\/)([^/?]+)/);
     return match ? match[1] : null;
   }
 

@@ -135,7 +135,7 @@ export function canChangeRole(
   }
 
   // Prevent self-demotion to user (lock out protection)
-  if (isSelf && targetNewRole === 'user' && currentUserRole !== 'user') {
+  if (isSelf && targetNewRole === 'user' && (currentUserRole === 'moderator' || currentUserRole === 'admin')) {
     return { allowed: false, reason: 'Je kunt je eigen rol niet verlagen naar gebruiker' };
   }
 
