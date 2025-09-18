@@ -13,26 +13,19 @@ export const emailSchema = z.string()
   .toLowerCase()
   .trim();
 
-// Password validation schema with complexity requirements
+// Password validation schema - simplified for development testing
 export const passwordSchema = z.string()
-  .min(8, 'Wachtwoord moet minimaal 8 tekens lang zijn')
-  .max(128, 'Wachtwoord mag maximaal 128 tekens lang zijn')
-  .regex(/[a-z]/, 'Wachtwoord moet minimaal één kleine letter bevatten')
-  .regex(/[A-Z]/, 'Wachtwoord moet minimaal één hoofdletter bevatten')
-  .regex(/[0-9]/, 'Wachtwoord moet minimaal één cijfer bevatten')
-  .regex(/[^a-zA-Z0-9]/, 'Wachtwoord moet minimaal één speciaal teken bevatten');
+  .min(6, 'Wachtwoord moet minimaal 6 tekens lang zijn')
+  .max(128, 'Wachtwoord mag maximaal 128 tekens lang zijn');
 
-// User registration schema
+// User registration schema - simplified for development
 export const registerSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
   full_name: z.string()
     .min(2, 'Naam moet minimaal 2 tekens lang zijn')
     .max(100, 'Naam mag maximaal 100 tekens lang zijn')
-    .regex(/^[a-zA-Z\s\-'.]+$/, 'Naam mag alleen letters, spaties, koppeltekens en apostrofes bevatten')
-    .trim(),
-  terms_accepted: z.boolean()
-    .refine(val => val === true, 'Je moet akkoord gaan met de voorwaarden')
+    .trim()
 });
 
 // User login schema

@@ -14,21 +14,16 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     
-    // Validate input with Zod (includes password complexity)
-    let validatedData;
-    try {
-      validatedData = validateRegistration({
-        ...body,
-        terms_accepted: true // Assume terms accepted for now
-      });
-    } catch (validationError) {
-      logger.warn(`Registration validation failed: ${validationError instanceof Error ? validationError.message : String(validationError)}`);
+    // Simple validation for debugging
+    const { email, password, full_name } = body;
+    
+    if (!email || !password || !full_name) {
       return NextResponse.json({
-        error: 'Ongeldige registratiegegevens. Controleer alle velden.'
+        error: 'Email, password en naam zijn verplicht'
       }, { status: 400 });
     }
     
-    const { email, password, full_name } = validatedData;
+    logger.info(`🔐 Registration data received: email=${email}, full_name=${full_name}`);
     // CRITICAL: Use ANON key for user registration (not service key!)
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -67,21 +62,10 @@ export async function POST(request: NextRequest) {
     if (authError) {
       logger.error(`❌ Registration error: ${authError.message || String(authError)}`);
       
-      // Provide user-friendly error messages based on the error type
-      let errorMessage = 'Registratie mislukt. Probeer het opnieuw.';
-      
-      if (authError.message.includes('User already registered')) {
-        errorMessage = 'Dit e-mailadres is al geregistreerd. Probeer in te loggen.';
-      } else if (authError.message.includes('Password should be at least')) {
-        errorMessage = 'Wachtwoord moet minimaal 8 tekens lang zijn.';
-      } else if (authError.message.includes('Invalid email')) {
-        errorMessage = 'Ongeldig e-mailadres. Controleer je invoer.';
-      } else if (authError.message.includes('Signup is disabled')) {
-        errorMessage = 'Registratie is tijdelijk uitgeschakeld. Probeer het later opnieuw.';
-      }
-      
+      // Return the EXACT Supabase error for debugging
       return NextResponse.json({
-        error: errorMessage
+        error: `Supabase error: ${authError.message}`,
+        details: authError
       }, { status: 400 });
     }
     // Guard: Check if user was created successfully

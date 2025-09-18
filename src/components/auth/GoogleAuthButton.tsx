@@ -16,8 +16,16 @@ export default function GoogleAuthButton({
   className = '' 
 }: GoogleAuthButtonProps) {
   const [loading, setLoading] = useState(false);
+  
+  // Temporarily disabled - OAuth not configured yet
+  const isDisabled = true;
 
   const handleGoogleLogin = async () => {
+    if (isDisabled) {
+      onError?.('Google login is nog niet geconfigureerd. Gebruik email/wachtwoord om in te loggen.');
+      return;
+    }
+    
     setLoading(true);
     
     try {
@@ -40,7 +48,6 @@ export default function GoogleAuthButton({
         return;
       }
 
-      // OAuth will redirect, so this might not execute
       logger.info('Google OAuth initiated successfully');
       
     } catch (error) {
@@ -54,8 +61,12 @@ export default function GoogleAuthButton({
   return (
     <button
       onClick={handleGoogleLogin}
-      disabled={loading}
-      className={`w-full flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${className}`}
+      disabled={loading || isDisabled}
+      className={`w-full flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm ${
+        isDisabled 
+          ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed' 
+          : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+      } focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${className}`}
       aria-label="Inloggen met Google"
     >
       {loading ? (
@@ -83,7 +94,7 @@ export default function GoogleAuthButton({
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
             />
           </svg>
-          <span>Inloggen met Google</span>
+          <span>{isDisabled ? 'Google login (nog niet beschikbaar)' : 'Inloggen met Google'}</span>
         </div>
       )}
     </button>
