@@ -34,7 +34,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Listen for auth state changes
     const supabase = getSupabaseClient();
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      logger.debug(`🔐 Auth state changed: ${event, session?.user?.email}`);
+      logger.debug(`🔐 Auth state changed: ${event} ${session?.user?.email ?? ''}`);
       
       if (event === 'SIGNED_IN' && session?.user) {
         // Get user profile from our API
