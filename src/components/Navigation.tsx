@@ -90,7 +90,7 @@ export default function Navigation() {
                     <span className="sr-only">Open user menu</span>
                     <div className="h-8 w-8 rounded-full bg-white bg-opacity-20 flex items-center justify-center">
                       <span className="text-white text-sm font-medium">
-                        {user.full_name?.charAt(0) || user.email.charAt(0)}
+                        {user.name?.charAt(0) || user.email.charAt(0)}
                       </span>
                     </div>
                   </button>
