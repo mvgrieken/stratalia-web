@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
 import { normalizeError } from '@/lib/errors';
-import { contentCrawler } from '@/lib/content-crawler';
+import { getContentCrawler } from '@/lib/content-crawler';
 import { canModerateContent } from '@/lib/auth-roles';
 import type { UserRole } from '@/lib/auth-roles';
 
@@ -96,6 +96,7 @@ export async function POST(request: NextRequest) {
     logger.info(`Content crawl initiated by: ${triggeredBy}`);
 
     // Run the content crawler
+    const contentCrawler = getContentCrawler();
     const results = await contentCrawler.runDailyCrawl(triggeredBy);
 
     logger.info(`Content crawl completed: ${results.newProposals} new proposals from ${results.successfulSources}/${results.totalSources} sources`);

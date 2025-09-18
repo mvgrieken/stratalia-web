@@ -31,12 +31,25 @@ export interface CrawledContent {
 }
 
 export class ContentCrawler {
-  private supabase;
+  private supabase: any;
 
   constructor() {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-    this.supabase = createClient(supabaseUrl, supabaseServiceKey);
+    // Initialize Supabase client lazily to avoid build-time errors
+    this.supabase = null;
+  }
+
+  private getSupabaseClient() {
+    if (!this.supabase) {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      
+      if (!supabaseUrl || !supabaseServiceKey) {
+        throw new Error('Supabase environment variables not configured');
+      }
+      
+      this.supabase = createClient(supabaseUrl, supabaseServiceKey);
+    }
+    return this.supabase;
   }
 
   /**
@@ -54,7 +67,8 @@ export class ContentCrawler {
 
     try {
       // Get all active content sources
-      const { data: sources, error: sourcesError } = await this.supabase
+      const supabase = this.getSupabaseClient();
+      const { data: sources, error: sourcesError } = await supabase
         .from('content_sources')
         .select('*')
         .eq('is_active', true)
@@ -521,4 +535,16 @@ export async function initializeDefaultSources(): Promise<void> {
   }
 }
 
-export const contentCrawler = new ContentCrawler();
+// Export factory function instead of instance to avoid build-time initialization
+export function createContentCrawler(): ContentCrawler {
+  return new ContentCrawler();
+}
+
+// Lazy singleton for runtime use
+let _contentCrawler: ContentCrawler | null = null;
+export function getContentCrawler(): ContentCrawler {
+  if (!_contentCrawler) {
+    _contentCrawler = new ContentCrawler();
+  }
+  return _contentCrawler;
+}
