@@ -124,7 +124,7 @@ class MigrationService {
       const { error: sqlError } = await supabase.rpc('exec_sql', { sql: migration.down });
 
       if (sqlError) {
-        logger.error(`Migration rollback ${migration.name} failed ${error instanceof Error ? error.message : String(error)}`);
+        logger.error(`Migration rollback ${migration.name} failed ${sqlError instanceof Error ? sqlError.message : String(sqlError)}`);
         throw sqlError;
       }
 
@@ -135,7 +135,7 @@ class MigrationService {
         .eq('id', migration.id);
 
       if (recordError) {
-        logger.error(`Failed to remove migration record ${migration.name} ${error instanceof Error ? error.message : String(error)}`);
+        logger.error(`Failed to remove migration record ${migration.name} ${recordError instanceof Error ? recordError.message : String(recordError)}`);
         throw recordError;
       }
 
