@@ -28,5 +28,6 @@
       "path": "/api/refresh-knowledge",
       "schedule": "0 3 * * *"
     }
-  ]
+  ],
+  "buildCommand": "npm run build"
 }
