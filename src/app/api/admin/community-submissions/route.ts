@@ -190,7 +190,7 @@ export async function POST(request: NextRequest) {
           }
         }
       } catch (contentError) {
-        logger.error('❌ Error processing approved submission:', contentError);
+        logger.error('❌ Error processing approved submission:', contentError instanceof Error ? contentError : new Error(String(contentError)));
         // Don't fail the moderation, just log the error
       }
     }
