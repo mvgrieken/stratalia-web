@@ -18,9 +18,9 @@ export function usePerformance() {
     // In production, send to analytics service
     if (process.env.NODE_ENV === 'production') {
       // Example: send to Google Analytics, DataDog, etc.
-      console.log(`Performance metric: ${name}`, { value, id });
+      logger.debug(`Performance metric: ${name} - value: ${value}, id: ${id || 'none'}`);
     } else {
-      console.log(`[Performance] ${name}: ${value}ms`, id ? `(${id})` : '');
+      logger.debug(`[Performance] ${name}: ${value}ms ${id ? `(${id})` : ''}`);
     }
   }, []);
 
