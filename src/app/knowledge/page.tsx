@@ -35,7 +35,7 @@ export default async function KnowledgePage() {
       .order('created_at', { ascending: false });
 
     if (dbError) {
-      logger.error(`Database error: ${error instanceof Error ? error.message : String(error)}`);
+      logger.error(`Database error: ${dbError instanceof Error ? dbError.message : String(dbError)}`);
       // Don't set error, just use fallback items
       logger.debug('Using fallback items due to database error');
     } else if (knowledgeItems && knowledgeItems.length > 0) {
