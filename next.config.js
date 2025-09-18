@@ -12,7 +12,7 @@ const nextConfig = {
           'i.ytimg.com',
           'via.placeholder.com',
           'picsum.photos',
-          'trrsgvxoylhcudtiimvb.supabase.co', // Supabase storage
+          'ahcvmgwbvfgrnwuyxmzi.supabase.co', // Supabase storage
           'stratalia.nl',
           'www.stratalia.nl',
           'sample-videos.com',

@@ -32,7 +32,7 @@ Development Command: next dev
 
 #### 🔑 Supabase Configuration
 ```
-NEXT_PUBLIC_SUPABASE_URL=https://trrsgvxoylhcudtiimvb.supabase.co
+NEXT_PUBLIC_SUPABASE_URL=https://ahcvmgwbvfgrnwuyxmzi.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRycnNndnhveWxoY3VkdGlpbXZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxOTQ3OTIsImV4cCI6MjA3MTc3MDc5Mn0.PG4cDu5UVUwE4Kp7NejdTcxdJDypkpdpQSO97Ipl8kQ
 ```
 

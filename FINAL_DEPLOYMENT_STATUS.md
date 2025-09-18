@@ -63,7 +63,7 @@ Failed to load resource: Toegang tot de gevraagde resource is niet toegestaan
 ### **🔧 ENVIRONMENT CONFIGURATION NEEDED**
 ```bash
 # Required in Vercel/Production:
-NEXT_PUBLIC_SUPABASE_URL=https://trrsgvxoylhcudtiimvb.supabase.co
+NEXT_PUBLIC_SUPABASE_URL=https://ahcvmgwbvfgrnwuyxmzi.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIs...
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
