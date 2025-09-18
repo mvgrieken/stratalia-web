@@ -10,9 +10,9 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "test": "vitest",
-    "test:unit": "vitest",
+    "test:unit": "vitest run --coverage",
     "test:coverage": "vitest --coverage",
-    "test:e2e": "playwright test",
+    "test:e2e": "playwright test --reporter=dot",
     "clean": "rm -rf .next dist",
     "analyze": "ANALYZE=true npm run build",
     "build:analyze": "npm run analyze"
