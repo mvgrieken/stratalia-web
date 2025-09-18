@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
       .single();
     if (error) {
       const normalized = normalizeError(error);
-    logger.error('❌ Error fetching user points:', normalized);
+    logger.error(`❌ Error fetching user points: ${normalized}`);
       return NextResponse.json({
         error: 'Failed to fetch user points',
         details: error.message
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(userPoints);
   } catch (error) {
     const normalized = normalizeError(error);
-    logger.error('💥 Error in points API:', normalized);
+    logger.error(`💥 Error in points API: ${normalized}`);
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
       .eq('user_id', user_id)
       .single();
     if (fetchError && fetchError.code !== 'PGRST116') {
-      logger.error('❌ Error fetching current points:', fetchError);
+      logger.error(`❌ Error fetching current points: ${fetchError instanceof Error ? fetchError.message : String(fetchError)}`);
       return NextResponse.json({
         error: 'Failed to fetch current points',
         details: fetchError.message
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
       .select()
       .single();
     if (updateError) {
-      logger.error('❌ Error updating user points:', updateError);
+      logger.error(`❌ Error updating user points: ${updateError instanceof Error ? updateError.message : String(updateError)}`);
       return NextResponse.json({
         error: 'Failed to update user points',
         details: updateError.message
@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     const normalized = normalizeError(error);
-    logger.error('💥 Error in points update API:', normalized);
+    logger.error(`💥 Error in points update API: ${normalized}`);
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'

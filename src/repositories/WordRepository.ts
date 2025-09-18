@@ -54,14 +54,14 @@ class WordRepository {
         .order('word');
 
       if (error) {
-        logger.error('Database search error', error);
+        logger.error(`Database search error ${error instanceof Error ? error.message : String(error)}`);
         throw error;
       }
 
       logger.info("Database search successful");
       return data || [];
     } catch (error) {
-      logger.error('Word search failed', error instanceof Error ? error : new Error(String(error)));
+      logger.error(`Word search failed ${error instanceof Error ? error.message : String(error)}`);
       throw error;
     }
   }
@@ -87,14 +87,14 @@ class WordRepository {
           logger.info("Word not found");
           return null;
         }
-        logger.error('Database findById error', error);
+        logger.error(`Database findById error ${error instanceof Error ? error.message : String(error)}`);
         throw error;
       }
 
       logger.info("Word found by ID");
       return data;
     } catch (error) {
-      logger.error('Word findById failed', error instanceof Error ? error : new Error(String(error)));
+      logger.error(`Word findById failed ${error instanceof Error ? error.message : String(error)}`);
       throw error;
     }
   }
@@ -138,14 +138,14 @@ class WordRepository {
         .order(orderBy, { ascending: orderDirection === 'asc' });
 
       if (error) {
-        logger.error('Database findAll error', error);
+        logger.error(`Database findAll error ${error instanceof Error ? error.message : String(error)}`);
         throw error;
       }
 
       logger.info("Words found");
       return { words: data || [], total: count || 0 };
     } catch (error) {
-      logger.error('Word findAll failed', error instanceof Error ? error : new Error(String(error)));
+      logger.error(`Word findAll failed ${error instanceof Error ? error.message : String(error)}`);
       throw error;
     }
   }
@@ -165,7 +165,7 @@ class WordRepository {
         .limit(1);
 
       if (error) {
-        logger.error('Database findRandom error', error);
+        logger.error(`Database findRandom error ${error instanceof Error ? error.message : String(error)}`);
         throw error;
       }
 
@@ -181,7 +181,7 @@ class WordRepository {
       logger.info("Random word found: id=" + randomWord.id);
       return randomWord;
     } catch (error) {
-      logger.error('Word findRandom failed', error instanceof Error ? error : new Error(String(error)));
+      logger.error(`Word findRandom failed ${error instanceof Error ? error.message : String(error)}`);
       throw error;
     }
   }
@@ -226,7 +226,7 @@ class WordRepository {
       logger.info('No specific daily word, getting random word');
       return await this.findRandom();
     } catch (error) {
-      logger.error('Word findDailyWord failed', error instanceof Error ? error : new Error(String(error)));
+      logger.error(`Word findDailyWord failed ${error instanceof Error ? error.message : String(error)}`);
       throw error;
     }
   }
@@ -247,14 +247,14 @@ class WordRepository {
         .single();
 
       if (error) {
-        logger.error('Database create error', error);
+        logger.error(`Database create error ${error instanceof Error ? error.message : String(error)}`);
         throw error;
       }
 
       logger.info("Word created successfully");
       return data;
     } catch (error) {
-      logger.error('Word create failed', error instanceof Error ? error : new Error(String(error)));
+      logger.error(`Word create failed ${error instanceof Error ? error.message : String(error)}`);
       throw error;
     }
   }
@@ -276,14 +276,14 @@ class WordRepository {
         .single();
 
       if (error) {
-        logger.error('Database update error', error);
+        logger.error(`Database update error ${error instanceof Error ? error.message : String(error)}`);
         throw error;
       }
 
       logger.info("Word updated successfully");
       return data;
     } catch (error) {
-      logger.error('Word update failed', error instanceof Error ? error : new Error(String(error)));
+      logger.error(`Word update failed ${error instanceof Error ? error.message : String(error)}`);
       throw error;
     }
   }
@@ -303,14 +303,14 @@ class WordRepository {
         .eq('id', id);
 
       if (error) {
-        logger.error('Database delete error', error);
+        logger.error(`Database delete error ${error instanceof Error ? error.message : String(error)}`);
         throw error;
       }
 
       logger.info("Word deleted successfully");
       return true;
     } catch (error) {
-      logger.error('Word delete failed', error instanceof Error ? error : new Error(String(error)));
+      logger.error(`Word delete failed ${error instanceof Error ? error.message : String(error)}`);
       throw error;
     }
   }
@@ -330,7 +330,7 @@ class WordRepository {
         .not('category', 'is', null);
 
       if (error) {
-        logger.error('Database getCountByCategory error', error);
+        logger.error(`Database getCountByCategory error ${error instanceof Error ? error.message : String(error)}`);
         throw error;
       }
 
@@ -343,7 +343,7 @@ class WordRepository {
       logger.info("Word count by category retrieved");
       return counts;
     } catch (error) {
-      logger.error('Word getCountByCategory failed', error instanceof Error ? error : new Error(String(error)));
+      logger.error(`Word getCountByCategory failed ${error instanceof Error ? error.message : String(error)}`);
       throw error;
     }
   }

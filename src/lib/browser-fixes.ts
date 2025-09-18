@@ -36,7 +36,7 @@
     observe(target: any, options?: MutationObserverInit) {
       // CRITICAL: Block all observers until document is ready
       if (!documentReady) {
-        console.warn('MutationObserver blocked - document not ready, target:', target);
+        logger.warn(`MutationObserver blocked - document not ready, target: ${target}`);
         return; // Block completely until ready
       }
       
@@ -79,7 +79,7 @@
       try {
         return super.disconnect();
       } catch (error) {
-        console.warn('MutationObserver.disconnect error:', error);
+        logger.warn(`MutationObserver.disconnect error: ${error instanceof Error ? error.message : String(error)}`);
         return;
       }
     }
@@ -88,7 +88,7 @@
       try {
         return super.takeRecords();
       } catch (error) {
-        console.warn('MutationObserver.takeRecords error:', error);
+        logger.warn(`MutationObserver.takeRecords error: ${error instanceof Error ? error.message : String(error)}`);
         return [];
       }
     }
@@ -103,7 +103,7 @@
       try {
         callback(mutations, observer);
       } catch (error) {
-        console.warn('MutationObserver callback error:', error);
+        logger.warn(`MutationObserver callback error: ${error instanceof Error ? error.message : String(error)}`);
       }
     };
     
@@ -126,7 +126,7 @@
     const originalAddEventListener = element.addEventListener;
     element.addEventListener = function(type: string, listener: any, options?: any) {
       if (type === 'DOMNodeInserted' || type === 'DOMNodeRemoved' || type === 'DOMSubtreeModified') {
-        console.warn('Deprecated DOM mutation event listener detected:', type);
+        logger.warn(`Deprecated DOM mutation event listener detected: ${type}`);
         return;
       }
       return originalAddEventListener.call(this, type, listener, options);
@@ -147,7 +147,7 @@
             try {
               callback(entries, observer);
             } catch (error) {
-              console.warn('ResizeObserver callback error:', error);
+              logger.warn(`ResizeObserver callback error: ${error instanceof Error ? error.message : String(error)}`);
             }
           });
         };

@@ -61,7 +61,7 @@ export function withPerformanceTracking(
       performanceMiddleware.endTracking(requestId, response, normalizedError);
 
       // Log error
-      logger.error(`API route error: ${request.method} ${request.url} - requestId=${requestId}, method=${request.method}, url=${request.url}`, normalizedError);
+      logger.error(`API route error: ${request.method} ${request.url} - requestId=${requestId}, method=${request.method}, url=${request.url} ${error instanceof Error ? error.message : String(error)}`);
 
       return response;
     }
@@ -93,7 +93,7 @@ export function TrackPerformance(options: PerformanceTrackingOptions = {}) {
         const duration = Date.now() - startTime;
         const normalizedError = normalizeError(error);
         
-        logger.error(`Method failed: ${methodName} - duration=${duration}ms`, normalizedError);
+        logger.error(`Method failed: ${methodName} - duration=${duration}ms ${error instanceof Error ? error.message : String(error)}`);
 
         throw error;
       }
@@ -127,7 +127,7 @@ export async function trackPerformance<T>(
     const duration = Date.now() - startTime;
     const normalizedError = normalizeError(error);
     
-    logger.error(`Operation failed: ${operationName} - operationId=${operationId}, duration=${duration}ms`, normalizedError);
+    logger.error(`Operation failed: ${operationName} - operationId=${operationId}, duration=${duration}ms ${error instanceof Error ? error.message : String(error)}`);
 
     throw error;
   }

@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
     const { data: notifications, error } = await query;
     if (error) {
       const normalized = normalizeError(error);
-    logger.error('❌ Error fetching notifications:', normalized);
+    logger.error(`❌ Error fetching notifications: ${normalized}`);
       return NextResponse.json({
         error: 'Failed to fetch notifications',
         details: error.message
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
       .eq('user_id', userId)
       .is('read_at', null);
     if (countError) {
-      logger.error('❌ Error fetching unread count:', countError);
+      logger.error(`❌ Error fetching unread count: ${countError instanceof Error ? countError.message : String(countError)}`);
     }
     return NextResponse.json({
       notifications: notifications || [],
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     const normalized = normalizeError(error);
-    logger.error('💥 Error in notifications API:', normalized);
+    logger.error(`💥 Error in notifications API: ${normalized}`);
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'
@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
       .single();
     if (error) {
       const normalized = normalizeError(error);
-    logger.error('❌ Error creating notification:', normalized);
+    logger.error(`❌ Error creating notification: ${normalized}`);
       return NextResponse.json({
         error: 'Failed to create notification',
         details: error.message
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     const normalized = normalizeError(error);
-    logger.error('💥 Error in notification creation API:', normalized);
+    logger.error(`💥 Error in notification creation API: ${normalized}`);
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'
@@ -144,7 +144,7 @@ export async function PUT(request: NextRequest) {
       .single();
     if (error) {
       const normalized = normalizeError(error);
-    logger.error('❌ Error marking notification as read:', normalized);
+    logger.error(`❌ Error marking notification as read: ${normalized}`);
       return NextResponse.json({
         error: 'Failed to mark notification as read',
         details: error.message
@@ -156,7 +156,7 @@ export async function PUT(request: NextRequest) {
     });
   } catch (error) {
     const normalized = normalizeError(error);
-    logger.error('💥 Error in notification read API:', normalized);
+    logger.error(`💥 Error in notification read API: ${normalized}`);
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'

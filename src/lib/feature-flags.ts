@@ -53,5 +53,5 @@ export function getEnabledFeatures(): Partial<FeatureFlags> {
  * Development helper to log feature flag status
  */
 if (process.env.NODE_ENV === 'development') {
-  console.log('🚩 Feature Flags Status:', featureFlags);
+  logger.debug(`🚩 Feature Flags Status: ${featureFlags}`);
 }

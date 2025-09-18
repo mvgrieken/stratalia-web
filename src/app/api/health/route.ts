@@ -29,7 +29,7 @@ export async function GET() {
       new URL(supabaseUrl);
     } catch (urlError) {
       const normalizedUrlError = normalizeError(urlError);
-      logger.error('Health check failed: Invalid Supabase URL format', normalizedUrlError);
+      logger.error(`Health check failed: Invalid Supabase URL format ${error instanceof Error ? error.message : String(error)}`);
       return NextResponse.json({
         status: 'error',
         message: 'Health check failed',
@@ -48,7 +48,7 @@ export async function GET() {
 
     if (error) {
       const normalized = normalizeError(error);
-    logger.error('Health check failed: Database connection error', normalized);
+    logger.error(`Health check failed: Database connection error ${normalized}`);
       return NextResponse.json({
         status: 'error',
         message: 'Database connection failed',
@@ -78,7 +78,7 @@ export async function GET() {
   } catch (error) {
     const duration = Date.now() - startTime;
     const normalized = normalizeError(error);
-    logger.error('Health check failed: Unexpected error', normalized);
+    logger.error(`Health check failed: Unexpected error ${normalized}`);
     
     return NextResponse.json({
       status: 'error',

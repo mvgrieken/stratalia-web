@@ -4,6 +4,14 @@
     "@typescript-eslint/no-unused-vars": "warn",
     "no-unused-vars": "warn",
     "prefer-const": "off",
-    "react-hooks/exhaustive-deps": "warn"
+    "react-hooks/exhaustive-deps": "warn",
+    "no-console": ["error", { "allow": [] }],
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "CallExpression[callee.object.name='logger'][arguments.length>1]",
+        "message": "Logger methods (error, warn, info, debug) mogen maximaal 1 argument ontvangen. Gebruik string interpolation: logger.error(`message: ${variable}`) in plaats van logger.error('message:', variable)"
+      }
+    ]
   }
 }

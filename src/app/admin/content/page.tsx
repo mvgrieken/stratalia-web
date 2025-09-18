@@ -6,6 +6,7 @@ import RequireAdmin from '@/components/RequireAdmin';
 import { canModerateContent } from '@/lib/auth-roles';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import OptimizedImage from '@/components/OptimizedImage';
+import { logger } from '@/lib/logger';
 
 interface ContentProposal {
   id: string;
@@ -45,7 +46,7 @@ export default function AdminContentPage() {
       const data = await response.json();
       setProposals(data.proposals || []);
     } catch (err) {
-      console.error('Error loading proposals:', err);
+      logger.error(`Error loading proposals: ${err}`);
       setError('Fout bij laden van content voorstellen');
     } finally {
       setLoading(false);
@@ -87,7 +88,7 @@ export default function AdminContentPage() {
       setError(null);
       
     } catch (err) {
-      console.error('Error approving content:', err);
+      logger.error(`Error approving content: ${err}`);
       setError(err instanceof Error ? err.message : 'Fout bij goedkeuren van content');
     } finally {
       setActionLoading(null);
@@ -125,7 +126,7 @@ export default function AdminContentPage() {
       setError(null);
       
     } catch (err) {
-      console.error('Error rejecting content:', err);
+      logger.error(`Error rejecting content: ${err}`);
       setError(err instanceof Error ? err.message : 'Fout bij afwijzen van content');
     } finally {
       setActionLoading(null);

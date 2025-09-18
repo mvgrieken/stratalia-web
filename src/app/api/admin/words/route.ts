@@ -15,7 +15,7 @@ export async function GET() {
       .order('created_at', { ascending: false });
     if (error) {
       const normalized = normalizeError(error);
-    logger.error('❌ Error fetching words:', normalized);
+    logger.error(`❌ Error fetching words: ${normalized}`);
       return NextResponse.json(
         { error: 'Failed to fetch words' },
         { status: 500 }
@@ -28,7 +28,7 @@ export async function GET() {
     });
   } catch (error) {
     const normalized = normalizeError(error);
-    logger.error('❌ Error in admin words API:', normalized);
+    logger.error(`❌ Error in admin words API: ${normalized}`);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
       .single();
     if (error) {
       const normalized = normalizeError(error);
-    logger.error('❌ Error creating word:', normalized);
+    logger.error(`❌ Error creating word: ${normalized}`);
       return NextResponse.json(
         { error: 'Failed to create word' },
         { status: 500 }
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     const normalized = normalizeError(error);
-    logger.error('❌ Error in admin words POST API:', normalized);
+    logger.error(`❌ Error in admin words POST API: ${normalized}`);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

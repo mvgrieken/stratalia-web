@@ -38,13 +38,13 @@ class MigrationService {
       });
 
       if (error) {
-        logger.error('Failed to initialize migrations table', error);
+        logger.error(`Failed to initialize migrations table ${error instanceof Error ? error.message : String(error)}`);
         throw error;
       }
 
       logger.info('Migrations table initialized successfully');
     } catch (error) {
-      logger.error('Migration initialization failed', error instanceof Error ? error : new Error(String(error)));
+      logger.error(`Migration initialization failed ${error instanceof Error ? error.message : String(error)}`);
       throw error;
     }
   }
@@ -62,13 +62,13 @@ class MigrationService {
         .order('executed_at');
 
       if (error) {
-        logger.error('Failed to get executed migrations', error);
+        logger.error(`Failed to get executed migrations ${error instanceof Error ? error.message : String(error)}`);
         throw error;
       }
 
       return data?.map(m => m.id) || [];
     } catch (error) {
-      logger.error('Get executed migrations failed', error instanceof Error ? error : new Error(String(error)));
+      logger.error(`Get executed migrations failed ${error instanceof Error ? error.message : String(error)}`);
       return [];
     }
   }
@@ -86,7 +86,7 @@ class MigrationService {
       const { error: sqlError } = await supabase.rpc('exec_sql', { sql: migration.up });
 
       if (sqlError) {
-        logger.error(`Migration ${migration.name} failed`, sqlError);
+        logger.error(`Migration ${migration.name} failed ${error instanceof Error ? error.message : String(error)}`);
         throw sqlError;
       }
 
@@ -100,13 +100,13 @@ class MigrationService {
         }]);
 
       if (recordError) {
-        logger.error(`Failed to record migration ${migration.name}`, recordError);
+        logger.error(`Failed to record migration ${migration.name} ${error instanceof Error ? error.message : String(error)}`);
         throw recordError;
       }
 
       logger.info(`Migration ${migration.name} executed successfully`);
     } catch (error) {
-      logger.error(`Migration execution failed: ${migration.name}`, error instanceof Error ? error : new Error(String(error)));
+      logger.error(`Migration execution failed: ${migration.name} ${error instanceof Error ? error.message : String(error)}`);
       throw error;
     }
   }
@@ -124,7 +124,7 @@ class MigrationService {
       const { error: sqlError } = await supabase.rpc('exec_sql', { sql: migration.down });
 
       if (sqlError) {
-        logger.error(`Migration rollback ${migration.name} failed`, sqlError);
+        logger.error(`Migration rollback ${migration.name} failed ${error instanceof Error ? error.message : String(error)}`);
         throw sqlError;
       }
 
@@ -135,13 +135,13 @@ class MigrationService {
         .eq('id', migration.id);
 
       if (recordError) {
-        logger.error(`Failed to remove migration record ${migration.name}`, recordError);
+        logger.error(`Failed to remove migration record ${migration.name} ${error instanceof Error ? error.message : String(error)}`);
         throw recordError;
       }
 
       logger.info(`Migration ${migration.name} rolled back successfully`);
     } catch (error) {
-      logger.error(`Migration rollback failed: ${migration.name}`, error instanceof Error ? error : new Error(String(error)));
+      logger.error(`Migration rollback failed: ${migration.name} ${error instanceof Error ? error.message : String(error)}`);
       throw error;
     }
   }
@@ -171,7 +171,7 @@ class MigrationService {
 
       logger.info('All migrations completed successfully');
     } catch (error) {
-      logger.error('Migration run failed', error instanceof Error ? error : new Error(String(error)));
+      logger.error(`Migration run failed ${error instanceof Error ? error.message : String(error)}`);
       throw error;
     }
   }

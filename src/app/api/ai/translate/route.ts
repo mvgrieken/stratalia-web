@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     const normalized = normalizeError(error);
-    logger.error('Error in AI translation', normalized);
+    logger.error(`Error in AI translation ${normalized}`);
     
     // Return a helpful fallback response with better error handling
     return NextResponse.json({
@@ -81,7 +81,7 @@ async function generateTranslation(
   _context?: string,
   supabase?: any
 ): Promise<TranslationResponse> {
-  console.log(`🔄 Translating: "${text}" (${direction})`);
+  logger.debug(`🔄 Translating: "${text}" (${direction})`);
 
   // Try database lookup first
   if (supabase) {
@@ -124,7 +124,7 @@ async function generateTranslation(
         }
       }
     } catch (dbError) {
-      console.log('Database lookup failed, using fallback');
+      logger.debug('Database lookup failed, using fallback');
     }
   }
 
@@ -201,7 +201,7 @@ async function generateFallbackTranslation(
       : `[Geen formele vertaling gevonden voor "${text}"]`;
   }
 
-  console.log(`✅ Translation completed with confidence: ${confidence}`);
+  logger.debug(`✅ Translation completed with confidence: ${confidence}`);
 
   return {
     translation,

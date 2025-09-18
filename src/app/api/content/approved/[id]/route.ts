@@ -153,7 +153,7 @@ export async function GET(
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    logger.error('Error in content API:', error instanceof Error ? error : new Error(errorMessage));
+    logger.error(`Error in content API: ${error instanceof Error ? error.message : String(error)}`);
     return NextResponse.json({
       success: false,
       error: 'Internal server error'

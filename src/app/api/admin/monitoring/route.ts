@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
       .select('id, role, created_at');
 
     if (usersError) {
-      logger.error('Error fetching users:', usersError);
+      logger.error(`Error fetching users: ${usersError instanceof Error ? usersError.message : String(usersError)}`);
       return NextResponse.json({ error: 'Failed to fetch user statistics', details: usersError.message }, { status: 500 });
     }
 
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
       .select('id, created_at');
 
     if (wordsError) {
-      logger.error('Error fetching words:', wordsError);
+      logger.error(`Error fetching words: ${wordsError instanceof Error ? wordsError.message : String(wordsError)}`);
       return NextResponse.json({ error: 'Failed to fetch words statistics', details: wordsError.message }, { status: 500 });
     }
 
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
       .select('id, is_active, created_at');
 
     if (knowledgeError) {
-      logger.error('Error fetching knowledge items:', knowledgeError);
+      logger.error(`Error fetching knowledge items: ${knowledgeError instanceof Error ? knowledgeError.message : String(knowledgeError)}`);
       return NextResponse.json({ error: 'Failed to fetch knowledge items statistics', details: knowledgeError.message }, { status: 500 });
     }
 
@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
       .select('id, status, source_type, created_at');
 
     if (proposalsError) {
-      logger.error('Error fetching content proposals:', proposalsError);
+      logger.error(`Error fetching content proposals: ${proposalsError instanceof Error ? proposalsError.message : String(proposalsError)}`);
       return NextResponse.json({ error: 'Failed to fetch content proposals statistics', details: proposalsError.message }, { status: 500 });
     }
 
@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
       .select('id, status, created_at');
 
     if (submissionsError) {
-      logger.error('Error fetching community submissions:', submissionsError);
+      logger.error(`Error fetching community submissions: ${submissionsError instanceof Error ? submissionsError.message : String(submissionsError)}`);
       return NextResponse.json({ error: 'Failed to fetch community submissions statistics', details: submissionsError.message }, { status: 500 });
     }
 
@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
       .limit(50);
 
     if (actionsError) {
-      logger.error('Error fetching admin actions:', actionsError);
+      logger.error(`Error fetching admin actions: ${actionsError instanceof Error ? actionsError.message : String(actionsError)}`);
       return NextResponse.json({ error: 'Failed to fetch admin actions', details: actionsError.message }, { status: 500 });
     }
 
@@ -178,7 +178,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    logger.error('Error in /api/admin/monitoring GET:', error instanceof Error ? error : new Error(String(error)));
+    logger.error(`Error in /api/admin/monitoring GET: ${error instanceof Error ? error.message : String(error)}`);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

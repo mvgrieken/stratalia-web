@@ -280,13 +280,13 @@ class QuizService {
         .insert([quizData]);
 
       if (error) {
-        logger.error('Failed to save quiz result', error);
+        logger.error(`Failed to save quiz result ${error instanceof Error ? error.message : String(error)}`);
         throw error;
       }
 
       logger.info(`Quiz result saved successfully: userId=undefined`);
     } catch (error) {
-      logger.error('Save quiz result failed', error instanceof Error ? error : new Error(String(error)));
+      logger.error(`Save quiz result failed ${error instanceof Error ? error.message : String(error)}`);
       // Don't throw - this shouldn't break the quiz experience
     }
   }
@@ -308,7 +308,7 @@ class QuizService {
         .limit(limit);
 
       if (error) {
-        logger.error('Failed to get quiz history', error);
+        logger.error(`Failed to get quiz history ${error instanceof Error ? error.message : String(error)}`);
         throw error;
       }
 
@@ -325,7 +325,7 @@ class QuizService {
       logger.info(`Quiz history retrieved: userId=undefined, count=history.length`);
       return history;
     } catch (error) {
-      logger.error('Get quiz history failed', error instanceof Error ? error : new Error(String(error)));
+      logger.error(`Get quiz history failed ${error instanceof Error ? error.message : String(error)}`);
       return [];
     }
   }

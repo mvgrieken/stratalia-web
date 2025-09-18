@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       const normalized = normalizeError(error);
-      logger.error('❌ Error fetching community submissions:', normalized);
+      logger.error(`❌ Error fetching community submissions: ${normalized}`);
       return NextResponse.json({
         error: 'Database unavailable',
         details: error.message
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     const normalized = normalizeError(error);
-    logger.error('💥 Error in community submissions API:', normalized);
+    logger.error(`💥 Error in community submissions API: ${normalized}`);
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'
@@ -116,7 +116,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (fetchError || !submission) {
-      logger.error('❌ Submission not found:', submission_id);
+      logger.error(`❌ Submission not found: ${submission_id}`);
       return NextResponse.json({
         error: 'Submission not found'
       }, { status: 404 });
@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
 
     if (updateError) {
       const normalized = normalizeError(updateError);
-      logger.error('❌ Error updating submission:', normalized);
+      logger.error(`❌ Error updating submission: ${normalized}`);
       return NextResponse.json({
         error: 'Database unavailable',
         details: updateError.message
@@ -163,7 +163,7 @@ export async function POST(request: NextRequest) {
           .single();
 
         if (createError) {
-          logger.error('❌ Error creating word:', createError);
+          logger.error(`❌ Error creating word: ${createError instanceof Error ? createError.message : String(createError)}`);
           // Don't fail the moderation, just log the error
         } else {
           logger.info(`✅ Word added to database: ${newWord.id}`);
@@ -183,14 +183,14 @@ export async function POST(request: NextRequest) {
             });
 
           if (pointsError) {
-            logger.error('❌ Error awarding points:', pointsError);
+            logger.error(`❌ Error awarding points: ${pointsError instanceof Error ? pointsError.message : String(pointsError)}`);
             // Don't fail the moderation, just log the error
           } else {
             logger.info(`✅ Points awarded to user: ${submission.submitted_by}`);
           }
         }
       } catch (contentError) {
-        logger.error('❌ Error processing approved submission:', contentError instanceof Error ? contentError : new Error(String(contentError)));
+        logger.error(`❌ Error processing approved submission: ${contentError instanceof Error ? contentError.message : String(contentError)}`);
         // Don't fail the moderation, just log the error
       }
     }
@@ -205,7 +205,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     const normalized = normalizeError(error);
-    logger.error('💥 Error in community submissions moderation API:', normalized);
+    logger.error(`💥 Error in community submissions moderation API: ${normalized}`);
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'

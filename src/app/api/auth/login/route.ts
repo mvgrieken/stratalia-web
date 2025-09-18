@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (profileError) {
-      logger.error('❌ Profile fetch error', profileError);
+      logger.error(`❌ Profile fetch error ${profileError instanceof Error ? profileError.message : String(profileError)}`);
       // Create profile if it doesn't exist (use service client for profile creation)
       const { data: newProfile, error: createError } = await supabaseService
         .from('users')
@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
         .single();
 
       if (createError) {
-        logger.error('❌ Profile creation error', createError);
+        logger.error(`❌ Profile creation error ${createError instanceof Error ? createError.message : String(createError)}`);
         return NextResponse.json({
           error: 'Er is een probleem opgetreden bij het aanmaken van je profiel. Probeer het opnieuw.'
         }, { status: 500 });
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     const normalized = normalizeError(error);
-    logger.error('💥 Error in login API', normalized);
+    logger.error(`💥 Error in login API ${normalized}`);
     return NextResponse.json({
       error: 'Er is een onverwachte fout opgetreden. Probeer het later opnieuw.'
     }, { status: 500 });

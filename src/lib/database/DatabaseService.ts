@@ -123,7 +123,7 @@ export class DatabaseService {
       const duration = Date.now() - startTime;
       const normalizedError = normalizeError(error);
       
-      logger.error(`Query failed: ${queryId}`, normalizedError);
+      logger.error(`Query failed: ${queryId} ${error instanceof Error ? error.message : String(error)}`);
 
       throw new AppError(
         Errors.DATABASE_ERROR.code,

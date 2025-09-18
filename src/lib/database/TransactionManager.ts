@@ -66,7 +66,7 @@ export class TransactionManager {
       logger.info(`Transaction completed: ${transactionId}`);
       return result;
     } catch (error) {
-      logger.error(`Transaction failed: ${transactionId}`, normalizeError(error));
+      logger.error(`Transaction failed: ${transactionId} ${error instanceof Error ? error.message : String(error)}`);
       throw error;
     } finally {
       this.activeTransactions.delete(transactionId);

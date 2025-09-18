@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (fetchError || !proposal) {
-      logger.error('❌ Proposal not found:', proposal_id);
+      logger.error(`❌ Proposal not found: ${proposal_id}`);
       return NextResponse.json({
         error: 'Proposal not found'
       }, { status: 404 });
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
 
     if (updateError) {
       const normalized = normalizeError(updateError);
-      logger.error('❌ Error updating proposal:', normalized);
+      logger.error(`❌ Error updating proposal: ${normalized}`);
       return NextResponse.json({
         error: 'Database unavailable',
         details: updateError.message
@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
             .single();
 
           if (createError) {
-            logger.error('❌ Error creating knowledge item:', createError);
+            logger.error(`❌ Error creating knowledge item: ${createError instanceof Error ? createError.message : String(createError)}`);
             // Don't fail the moderation, just log the error
           } else {
             logger.info(`✅ Knowledge item created: ${newItem.id}`);
@@ -120,14 +120,14 @@ export async function POST(request: NextRequest) {
             .eq('id', proposedData.id);
 
           if (updateItemError) {
-            logger.error('❌ Error updating knowledge item:', updateItemError);
+            logger.error(`❌ Error updating knowledge item: ${updateItemError instanceof Error ? updateItemError.message : String(updateItemError)}`);
             // Don't fail the moderation, just log the error
           } else {
             logger.info(`✅ Knowledge item updated: ${proposedData.id}`);
           }
         }
       } catch (contentError) {
-        logger.error('❌ Error processing approved content:', contentError instanceof Error ? contentError : new Error(String(contentError)));
+        logger.error(`❌ Error processing approved content: ${contentError instanceof Error ? contentError.message : String(contentError)}`);
         // Don't fail the moderation, just log the error
       }
     }
@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     const normalized = normalizeError(error);
-    logger.error('💥 Error in moderate content API:', normalized);
+    logger.error(`💥 Error in moderate content API: ${normalized}`);
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'
@@ -182,7 +182,7 @@ export async function GET(request: NextRequest) {
 
     if (statusError) {
       const normalized = normalizeError(statusError);
-      logger.error('❌ Error fetching status counts:', normalized);
+      logger.error(`❌ Error fetching status counts: ${normalized}`);
       return NextResponse.json({
         error: 'Database unavailable',
         details: (statusError as any)?.message ?? 'Unknown error'
@@ -203,7 +203,7 @@ export async function GET(request: NextRequest) {
 
     if (typeError) {
       const normalized = normalizeError(typeError);
-      logger.error('❌ Error fetching type counts:', normalized);
+      logger.error(`❌ Error fetching type counts: ${normalized}`);
       return NextResponse.json({
         error: 'Database unavailable',
         details: (typeError as any)?.message ?? 'Unknown error'
@@ -219,7 +219,7 @@ export async function GET(request: NextRequest) {
 
     if (activityError) {
       const normalized = normalizeError(activityError);
-      logger.error('❌ Error fetching recent activity:', normalized);
+      logger.error(`❌ Error fetching recent activity: ${normalized}`);
       return NextResponse.json({
         error: 'Database unavailable',
         details: (activityError as any)?.message ?? 'Unknown error'
@@ -239,7 +239,7 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     const normalized = normalizeError(error);
-    logger.error('💥 Error in moderate content GET API:', normalized);
+    logger.error(`💥 Error in moderate content GET API: ${normalized}`);
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'

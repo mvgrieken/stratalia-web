@@ -176,7 +176,7 @@ export class IndexManager {
 
       return stats;
     } catch (error) {
-      logger.error('Failed to analyze index performance', normalizeError(error));
+      logger.error(`Failed to analyze index performance ${error instanceof Error ? error.message : String(error)}`);
       throw new AppError(
         Errors.DATABASE_ERROR.code,
         'Failed to analyze index performance',
@@ -193,7 +193,7 @@ export class IndexManager {
       const stats = await this.analyzeIndexPerformance();
       return stats.filter(stat => stat.usage < 10); // Less than 10% usage
     } catch (error) {
-      logger.error('Failed to get unused indexes', normalizeError(error));
+      logger.error(`Failed to get unused indexes ${error instanceof Error ? error.message : String(error)}`);
       throw new AppError(
         Errors.DATABASE_ERROR.code,
         'Failed to get unused indexes',
@@ -210,7 +210,7 @@ export class IndexManager {
       const stats = await this.analyzeIndexPerformance();
       return stats.filter(stat => stat.efficiency < 0.8); // Less than 80% efficiency
     } catch (error) {
-      logger.error('Failed to get inefficient indexes', normalizeError(error));
+      logger.error(`Failed to get inefficient indexes ${error instanceof Error ? error.message : String(error)}`);
       throw new AppError(
         Errors.DATABASE_ERROR.code,
         'Failed to get inefficient indexes',
@@ -240,7 +240,7 @@ export class IndexManager {
 
       return { unused, inefficient, missing };
     } catch (error) {
-      logger.error('Failed to get optimization recommendations', normalizeError(error));
+      logger.error(`Failed to get optimization recommendations ${error instanceof Error ? error.message : String(error)}`);
       throw new AppError(
         Errors.DATABASE_ERROR.code,
         'Failed to get optimization recommendations',
@@ -262,7 +262,7 @@ export class IndexManager {
       
       logger.info(`Index created successfully: ${index.name}`);
     } catch (error) {
-      logger.error(`Failed to create index: ${index.name}`, normalizeError(error));
+      logger.error(`Failed to create index: ${index.name} ${error instanceof Error ? error.message : String(error)}`);
       throw new AppError(
         Errors.DATABASE_ERROR.code,
         `Failed to create index: ${index.name}`,
@@ -284,7 +284,7 @@ export class IndexManager {
       
       logger.info(`Index dropped successfully: ${indexName}`);
     } catch (error) {
-      logger.error(`Failed to drop index: ${indexName}`, normalizeError(error));
+      logger.error(`Failed to drop index: ${indexName} ${error instanceof Error ? error.message : String(error)}`);
       throw new AppError(
         Errors.DATABASE_ERROR.code,
         `Failed to drop index: ${indexName}`,
@@ -305,7 +305,7 @@ export class IndexManager {
       
       logger.info(`Index rebuilt successfully: ${indexName}`);
     } catch (error) {
-      logger.error(`Failed to rebuild index: ${indexName}`, normalizeError(error));
+      logger.error(`Failed to rebuild index: ${indexName} ${error instanceof Error ? error.message : String(error)}`);
       throw new AppError(
         Errors.DATABASE_ERROR.code,
         `Failed to rebuild index: ${indexName}`,

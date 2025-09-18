@@ -49,20 +49,20 @@ function createSafeMutationObserver(callback: MutationCallback) {
   observer.observe = function(target: any, options?: MutationObserverInit) {
     // CRITICAL GUARD: Check if target is valid Node
     if (!(target instanceof Node)) {
-      console.warn('MutationObserver.observe called with invalid target - ignoring');
+      logger.warn('MutationObserver.observe called with invalid target - ignoring');
       return; // Silent fail instead of throwing
     }
     
     // Additional safety: Check if target has nodeType
     if (!target.nodeType) {
-      console.warn('MutationObserver.observe called with invalid nodeType - ignoring');
+      logger.warn('MutationObserver.observe called with invalid nodeType - ignoring');
       return;
     }
     
     // Check if target is still in document
     try {
       if (!document.contains(target)) {
-        console.warn('MutationObserver.observe called with detached Node - ignoring');
+        logger.warn('MutationObserver.observe called with detached Node - ignoring');
         return;
       }
     } catch (e) {

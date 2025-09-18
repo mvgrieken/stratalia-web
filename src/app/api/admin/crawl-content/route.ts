@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
       .eq('source_type', 'auto_discovery');
 
     if (existingError) {
-      logger.error('Error checking existing content proposals:', existingError);
+      logger.error(`Error checking existing content proposals: ${existingError instanceof Error ? existingError.message : String(existingError)}`);
       return NextResponse.json({ error: 'Failed to check existing proposals', details: existingError.message }, { status: 500 });
     }
 
@@ -162,7 +162,7 @@ export async function POST(request: NextRequest) {
       .select();
 
     if (insertError) {
-      logger.error('Error inserting content proposals:', insertError);
+      logger.error(`Error inserting content proposals: ${insertError instanceof Error ? insertError.message : String(insertError)}`);
       return NextResponse.json({ error: 'Failed to insert content proposals', details: insertError.message }, { status: 500 });
     }
 
@@ -197,7 +197,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    logger.error('Error in /api/admin/crawl-content POST:', error instanceof Error ? error : new Error(String(error)));
+    logger.error(`Error in /api/admin/crawl-content POST: ${error instanceof Error ? error.message : String(error)}`);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -232,7 +232,7 @@ export async function GET(request: NextRequest) {
       .limit(10);
 
     if (crawlError) {
-      logger.error('Error fetching crawl statistics:', crawlError);
+      logger.error(`Error fetching crawl statistics: ${crawlError instanceof Error ? crawlError.message : String(crawlError)}`);
       return NextResponse.json({ error: 'Failed to fetch crawl statistics', details: crawlError.message }, { status: 500 });
     }
 
@@ -246,7 +246,7 @@ export async function GET(request: NextRequest) {
       .limit(20);
 
     if (proposalsError) {
-      logger.error('Error fetching pending proposals:', proposalsError);
+      logger.error(`Error fetching pending proposals: ${proposalsError instanceof Error ? proposalsError.message : String(proposalsError)}`);
       return NextResponse.json({ error: 'Failed to fetch pending proposals', details: proposalsError.message }, { status: 500 });
     }
 
@@ -274,7 +274,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    logger.error('Error in /api/admin/crawl-content GET:', error instanceof Error ? error : new Error(String(error)));
+    logger.error(`Error in /api/admin/crawl-content GET: ${error instanceof Error ? error.message : String(error)}`);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

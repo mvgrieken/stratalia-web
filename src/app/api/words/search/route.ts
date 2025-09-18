@@ -124,7 +124,7 @@ export async function GET(request: NextRequest) {
         cacheService.set(cacheKey, results, CACHE_TTL.MEDIUM);
         
         } catch (dbError) {
-          logger.warn(`Database search failed, falling back to mock data: ${dbError instanceof Error ? dbError.message : String(dbError)}`);
+          logger.warn(`Database search failed, falling back to mock data: ${error instanceof Error ? error.message : String(error)}`);
           source = 'fallback';
           
           // Fallback to mock data
@@ -204,7 +204,7 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    logger.error('Search API error:', error instanceof Error ? error : new Error(errorMessage));
+    logger.error(`Search API error: ${error instanceof Error ? error.message : String(error)}`);
     
     // Return fallback response instead of error
     const { searchParams } = new URL(request.url);

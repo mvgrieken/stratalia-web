@@ -42,7 +42,7 @@ export default function AppleAuthButton({
       });
 
       if (error) {
-        logger.error('Apple OAuth error:', error);
+        logger.error(`Apple OAuth error: ${error instanceof Error ? error.message : String(error)}`);
         onError?.(error.message || 'Apple inloggen mislukt');
         return;
       }
@@ -50,7 +50,7 @@ export default function AppleAuthButton({
       logger.info('Apple OAuth initiated successfully');
       
     } catch (error) {
-      logger.error('Apple login error:', error instanceof Error ? error : new Error(String(error)));
+      logger.error(`Apple login error: ${error instanceof Error ? error.message : String(error)}`);
       onError?.('Er is een fout opgetreden bij Apple inloggen');
     } finally {
       setLoading(false);

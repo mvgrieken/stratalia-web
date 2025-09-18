@@ -41,7 +41,7 @@ export default function LazyQuizPage() {
         setError('Kon quiz vragen niet laden');
       }
     } catch (err) {
-      console.error('Error fetching quiz questions:', err);
+      logger.error(`Error fetching quiz questions: ${err}`);
       setError('Er is een fout opgetreden bij het laden van de quiz');
     } finally {
       setLoading(false);

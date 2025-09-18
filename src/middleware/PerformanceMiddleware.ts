@@ -150,7 +150,7 @@ export class PerformanceMiddleware {
       logger.info(`Request completed: ${metrics.requestId} - method=${metrics.method}, endpoint=${this.getEndpoint(metrics.url)}, duration=${metrics.duration}ms, statusCode=${metrics.statusCode}, responseSize=${metrics.responseSize ? `${metrics.responseSize} bytes` : 'unknown'}, memoryUsage=${metrics.memoryUsage ? `${Math.round(metrics.memoryUsage.heapUsed / 1024 / 1024)} MB` : 'unknown'}, error=${metrics.error || 'none'}`);
 
     } catch (error) {
-      logger.error('Failed to record performance metrics', error instanceof Error ? error : new Error(String(error)));
+      logger.error(`Failed to record performance metrics ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 

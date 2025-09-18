@@ -46,7 +46,7 @@ export function Cache(options: CacheOptions = {}) {
         logger.debug(`Cache set: ${key}`);
         return result;
       } catch (error) {
-        logger.error(`Method execution failed: ${className}.${propertyName}`, error instanceof Error ? error : new Error(String(error)));
+        logger.error(`Method execution failed: ${className}.${propertyName} ${error instanceof Error ? error.message : String(error)}`);
         throw error;
       }
     };
@@ -73,7 +73,7 @@ export function CacheInvalidate(tags: string[]) {
         
         return result;
       } catch (error) {
-        logger.error(`Method execution failed: ${className}.${propertyName}`, error instanceof Error ? error : new Error(String(error)));
+        logger.error(`Method execution failed: ${className}.${propertyName} ${error instanceof Error ? error.message : String(error)}`);
         throw error;
       }
     };

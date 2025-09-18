@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
       .eq('id', user_id);
 
     if (updateError) {
-      logger.error('Error updating user role:', updateError);
+      logger.error(`Error updating user role: ${updateError instanceof Error ? updateError.message : String(updateError)}`);
       return NextResponse.json({
         error: 'Fout bij wijzigen van rol'
       }, { status: 500 });
@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     const normalized = normalizeError(error);
-    logger.error('Error in update-role API:', normalized);
+    logger.error(`Error in update-role API: ${normalized}`);
     
     return NextResponse.json({
       error: 'Er is een fout opgetreden bij het wijzigen van de rol'

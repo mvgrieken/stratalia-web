@@ -43,7 +43,7 @@ export default function GoogleAuthButton({
       });
 
       if (error) {
-        logger.error('Google OAuth error:', error);
+        logger.error(`Google OAuth error: ${error instanceof Error ? error.message : String(error)}`);
         onError?.(error.message || 'Google inloggen mislukt');
         return;
       }
@@ -51,7 +51,7 @@ export default function GoogleAuthButton({
       logger.info('Google OAuth initiated successfully');
       
     } catch (error) {
-      logger.error('Google login error:', error instanceof Error ? error : new Error(String(error)));
+      logger.error(`Google login error: ${error instanceof Error ? error.message : String(error)}`);
       onError?.('Er is een fout opgetreden bij Google inloggen');
     } finally {
       setLoading(false);

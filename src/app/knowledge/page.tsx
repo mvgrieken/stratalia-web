@@ -34,9 +34,9 @@ export default async function KnowledgePage() {
       .order('created_at', { ascending: false });
 
     if (dbError) {
-      console.error('Database error:', dbError);
+      logger.error(`Database error: ${error instanceof Error ? error.message : String(error)}`);
       // Don't set error, just use fallback items
-      console.log('Using fallback items due to database error');
+      logger.debug('Using fallback items due to database error');
     } else if (knowledgeItems && knowledgeItems.length > 0) {
       items = knowledgeItems.map((item: any) => ({
         id: item.id,
@@ -153,9 +153,9 @@ export default async function KnowledgePage() {
       ];
     }
   } catch (err) {
-    console.error('Error fetching knowledge items:', err);
+    logger.error(`Error fetching knowledge items: ${err}`);
     // Don't set error, just use fallback items
-    console.log('Using fallback items due to fetch error');
+    logger.debug('Using fallback items due to fetch error');
   }
 
   // Always show fallback items if no items loaded - use full mock dataset

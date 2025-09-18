@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     const normalized = normalizeError(error);
-    logger.error('💥 Error in community submission API:', normalized);
+    logger.error(`💥 Error in community submission API: ${normalized}`);
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'
@@ -167,7 +167,7 @@ export async function GET(request: NextRequest) {
     
     if (error) {
       const normalized = normalizeError(error);
-      logger.error('❌ Error fetching community submissions:', normalized);
+      logger.error(`❌ Error fetching community submissions: ${normalized}`);
       return NextResponse.json({
         error: 'Database unavailable',
         details: error.message
@@ -179,7 +179,7 @@ export async function GET(request: NextRequest) {
     
   } catch (error) {
     const normalized = normalizeError(error);
-    logger.error('💥 Error in community submissions API:', normalized);
+    logger.error(`💥 Error in community submissions API: ${normalized}`);
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'

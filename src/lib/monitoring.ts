@@ -73,7 +73,7 @@ class MonitoringService {
       this.errors = this.errors.slice(-this.maxErrors);
     }
 
-    logger.error(`Error recorded: ${error.message}`, new Error(error.message));
+    logger.error(`Error recorded: ${error.message} ${error instanceof Error ? error.message : String(error)}`);
   }
 
   /**

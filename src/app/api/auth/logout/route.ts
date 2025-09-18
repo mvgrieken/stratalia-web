@@ -8,7 +8,7 @@ export async function POST() {
     return NextResponse.json({ message: 'Logged out successfully' });
   } catch (error) {
     const normalized = normalizeError(error);
-    logger.error('Error in logout:', normalized);
+    logger.error(`Error in logout: ${normalized}`);
     return NextResponse.json({ error: 'Logout failed' }, { status: 500 });
   }
 }

@@ -18,13 +18,13 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('❌ Supabase environment variables are missing!')
-  console.error('Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your .env.local file')
-  console.error('Current values:', { supabaseUrl, supabaseAnonKey: supabaseAnonKey ? 'SET' : 'MISSING' })
+  logger.error('❌ Supabase environment variables are missing!')
+  logger.error('Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your .env.local file')
+  logger.error(`Current values: ${{ supabaseUrl, supabaseAnonKey: supabaseAnonKey ? 'SET' : 'MISSING' }}`)
   throw new Error('Supabase configuration is incomplete')
 }
 
-console.log('✅ Supabase client initialized with URL:', supabaseUrl)
+logger.debug(`✅ Supabase client initialized with URL: ${supabaseUrl}`)
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {

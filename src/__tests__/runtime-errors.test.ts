@@ -89,15 +89,15 @@ describe('Runtime Error Fixes', () => {
       console.error = mockError;
 
       // Simulate the error messages we want to suppress
-      console.error('TypeError: Argument 1 (\'target\') to MutationObserver.observe must be an instance of Node');
-      console.error('Something from credentials-library.js');
-      console.error('Toegang tot de gevraagde resource is niet toegestaan');
+      logger.error('TypeError: Argument 1 (\'target\') to MutationObserver.observe must be an instance of Node');
+      logger.error('Something from credentials-library.js');
+      logger.error('Toegang tot de gevraagde resource is niet toegestaan');
 
       // These should be suppressed (not called)
       expect(mockError).not.toHaveBeenCalled();
 
       // But legitimate errors should still work
-      console.error('This is a legitimate error');
+      logger.error('This is a legitimate error');
       expect(mockError).toHaveBeenCalledWith('This is a legitimate error');
 
       console.error = originalError;

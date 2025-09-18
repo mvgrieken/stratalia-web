@@ -15,7 +15,7 @@ export async function GET() {
       .order('created_at', { ascending: false });
     if (error) {
       const normalized = normalizeError(error);
-    logger.error('❌ Error fetching quiz questions:', normalized);
+    logger.error(`❌ Error fetching quiz questions: ${normalized}`);
       return NextResponse.json(
         { error: 'Failed to fetch quiz questions' },
         { status: 500 }
@@ -28,7 +28,7 @@ export async function GET() {
     });
   } catch (error) {
     const normalized = normalizeError(error);
-    logger.error('❌ Error in admin quiz API:', normalized);
+    logger.error(`❌ Error in admin quiz API: ${normalized}`);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
       .single();
     if (error) {
       const normalized = normalizeError(error);
-    logger.error('❌ Error creating quiz question:', normalized);
+    logger.error(`❌ Error creating quiz question: ${normalized}`);
       return NextResponse.json(
         { error: 'Failed to create quiz question' },
         { status: 500 }
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     const normalized = normalizeError(error);
-    logger.error('❌ Error in admin quiz POST API:', normalized);
+    logger.error(`❌ Error in admin quiz POST API: ${normalized}`);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

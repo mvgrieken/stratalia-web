@@ -353,7 +353,7 @@ Straattaal blijft evolueren:
           setError('Item niet gevonden');
         }
       } catch (err) {
-        console.error('Error fetching knowledge item:', err);
+        logger.error(`Error fetching knowledge item: ${err}`);
         setError('Er is een fout opgetreden bij het laden van het item');
       } finally {
         setLoading(false);

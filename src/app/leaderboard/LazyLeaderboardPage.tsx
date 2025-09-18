@@ -49,7 +49,7 @@ export default function LazyLeaderboardPage() {
         });
       }
     } catch (err) {
-      console.error('Error fetching leaderboard:', err);
+      logger.error(`Error fetching leaderboard: ${err}`);
       setError('Fout bij het laden van de leaderboard');
       
       // Set fallback data so the page is still usable

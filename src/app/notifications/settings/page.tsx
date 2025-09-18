@@ -45,7 +45,7 @@ export default function NotificationSettingsPage() {
         setSettings(JSON.parse(savedSettings));
       }
     } catch (error) {
-      console.error('Error loading settings:', error);
+      logger.error(`Error loading settings: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setLoading(false);
     }

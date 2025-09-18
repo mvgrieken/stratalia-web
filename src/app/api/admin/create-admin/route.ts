@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (authError) {
-      logger.error('❌ Admin registration error:', authError);
+      logger.error(`❌ Admin registration error: ${authError instanceof Error ? authError.message : String(authError)}`);
       
       let errorMessage = 'Registratie mislukt. Probeer het opnieuw.';
       
@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
       });
 
     if (profileError) {
-      logger.error('❌ Admin profile creation error:', profileError);
+      logger.error(`❌ Admin profile creation error: ${profileError instanceof Error ? profileError.message : String(profileError)}`);
       return NextResponse.json({
         error: 'Er is een probleem opgetreden bij het aanmaken van het admin profiel.'
       }, { status: 500 });
@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
       });
 
     if (pointsError) {
-      logger.error('❌ Admin points initialization error:', pointsError);
+      logger.error(`❌ Admin points initialization error: ${pointsError instanceof Error ? pointsError.message : String(pointsError)}`);
       // Don't fail registration for this, just log it
     }
 
@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     const normalized = normalizeError(error);
-    logger.error('💥 Error in admin creation API:', normalized);
+    logger.error(`💥 Error in admin creation API: ${normalized}`);
     return NextResponse.json({
       error: 'Er is een onverwachte fout opgetreden. Probeer het later opnieuw.'
     }, { status: 500 });

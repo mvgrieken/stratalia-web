@@ -52,7 +52,7 @@ class LazyErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Lazy component error:', error, errorInfo);
+    logger.error(`Lazy component error: ${error.message}, ${errorInfo.componentStack}`);
   }
 
   render() {

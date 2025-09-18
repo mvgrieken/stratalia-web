@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import RequireAdmin from '@/components/RequireAdmin';
+import { logger } from '@/lib/logger';
 
 interface AdminStats {
   totalUsers: number;
@@ -26,7 +27,7 @@ export default function AdminPage() {
         setStats(data);
       }
     } catch (error) {
-      console.error('Failed to load stats:', error);
+      logger.error(`Failed to load stats: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setLoading(false);
     }

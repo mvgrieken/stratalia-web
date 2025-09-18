@@ -92,7 +92,7 @@ export function createErrorResponse(
   const timestamp = new Date().toISOString();
   
   if (error instanceof AppError) {
-    logger.error(`API Error: ${error.message}`, error);
+    logger.error(`API Error: ${error.message} ${error instanceof Error ? error.message : String(error)}`);
 
     return NextResponse.json(
       {
@@ -115,7 +115,7 @@ export function createErrorResponse(
   }
 
   // Handle unexpected errors
-  logger.error('Unexpected error', error);
+  logger.error(`Unexpected error ${error instanceof Error ? error.message : String(error)}`);
   
   return NextResponse.json(
     {
@@ -196,7 +196,7 @@ export function withErrorHandling<T extends any[], R>(
         throw error;
       }
       
-      logger.error('Unhandled error in async function', error as Error);
+      logger.error(`Unhandled error in async function ${error instanceof Error ? error.message : String(error)}`);
       throw new AppError(
         ErrorCode.INTERNAL_ERROR,
         'An unexpected error occurred',

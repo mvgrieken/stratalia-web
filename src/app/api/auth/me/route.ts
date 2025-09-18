@@ -54,7 +54,7 @@ export async function GET() {
     });
   } catch (error) {
     const normalized = normalizeError(error);
-    logger.error('Error in /api/auth/me:', normalized);
+    logger.error(`Error in /api/auth/me: ${normalized}`);
     return NextResponse.json({ user: null });
   }
 }

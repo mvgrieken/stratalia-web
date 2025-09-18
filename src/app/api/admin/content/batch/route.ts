@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       .select();
     if (error) {
       const normalized = normalizeError(error);
-    logger.error('❌ Error batch updating content:', normalized);
+    logger.error(`❌ Error batch updating content: ${normalized}`);
       return NextResponse.json({
         error: 'Database unavailable',
         details: error.message
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     const normalized = normalizeError(error);
-    logger.error('💥 Error in batch content API:', normalized);
+    logger.error(`💥 Error in batch content API: ${normalized}`);
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'

@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(learningResponse);
   } catch (error) {
     const normalized = normalizeError(error);
-    logger.error('Error in adaptive learning:', normalized);
+    logger.error(`Error in adaptive learning: ${normalized}`);
     return NextResponse.json({ error: 'Learning analysis failed' }, { status: 500 });
   }
 }
@@ -95,7 +95,7 @@ async function generateRecommendedWords(masteryScore: number, difficulty: string
       .limit(10);
     if (error) {
       const normalized = normalizeError(error);
-    logger.error('❌ Error fetching recommended words:', normalized);
+    logger.error(`❌ Error fetching recommended words: ${normalized}`);
       return [];
     }
     if (!words || words.length === 0) {
@@ -113,7 +113,7 @@ async function generateRecommendedWords(masteryScore: number, difficulty: string
     }
   } catch (error) {
     const normalized = normalizeError(error);
-    logger.error('❌ Error in generateRecommendedWords:', normalized);
+    logger.error(`❌ Error in generateRecommendedWords: ${normalized}`);
     return [];
   }
 }

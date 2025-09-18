@@ -71,7 +71,7 @@ export default function SubmissionsPage() {
         setUserPoints(data);
       }
     } catch (err) {
-      console.error('Failed to fetch user points:', err);
+      logger.error(`Failed to fetch user points: ${err}`);
     }
   };
 

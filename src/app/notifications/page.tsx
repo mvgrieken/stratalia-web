@@ -112,7 +112,7 @@ export default function NotificationsPage() {
 
       setNotifications(notifications);
     } catch (error) {
-      console.error('Error fetching notifications:', error);
+      logger.error(`Error fetching notifications: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setLoading(false);
     }

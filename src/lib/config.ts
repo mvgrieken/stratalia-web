@@ -43,7 +43,7 @@ function getConfig(): Config {
     supabaseAnonKey !== 'your_supabase_anon_key';
 
   if (!hasValidSupabase) {
-    console.warn('⚠️ [CONFIG] Supabase environment variables missing or invalid. Using fallback mode.');
+    logger.warn('⚠️ [CONFIG] Supabase environment variables missing or invalid. Using fallback mode.');
   }
 
   return {

@@ -62,7 +62,7 @@ export default function DashboardPage() {
         return;
       }
     } catch (err) {
-      console.error('Error fetching dashboard data:', err);
+      logger.error(`Error fetching dashboard data: ${err}`);
     }
 
     // Fallback to demo data

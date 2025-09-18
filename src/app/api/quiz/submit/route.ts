@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     const normalized = normalizeError(error);
-    logger.error('Error in quiz submit API:', normalized);
+    logger.error(`Error in quiz submit API: ${normalized}`);
     return NextResponse.json({ 
       error: 'Failed to process quiz result',
       details: process.env.NODE_ENV === 'development' ? normalized.message : undefined

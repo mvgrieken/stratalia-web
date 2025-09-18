@@ -33,7 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Listen for auth state changes
     const supabase = getSupabaseClient();
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('🔐 Auth state changed:', event, session?.user?.email);
+      logger.debug(`🔐 Auth state changed: ${event, session?.user?.email}`);
       
       if (event === 'SIGNED_IN' && session?.user) {
         // Get user profile from our API
@@ -73,7 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { data: { session }, error } = await supabase.auth.getSession();
       
       if (error) {
-        console.error('Session check failed:', error);
+        logger.error(`Session check failed: ${error instanceof Error ? error.message : String(error)}`);
         setUser(null);
       } else if (session?.user) {
         // Get user profile from our API
@@ -94,7 +94,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(null);
       }
     } catch (error) {
-      console.error('Session check failed:', error);
+      logger.error(`Session check failed: ${error instanceof Error ? error.message : String(error)}`);
       setUser(null);
     } finally {
       setLoading(false);
@@ -103,7 +103,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      console.log('🔐 AuthProvider: Attempting login for:', email);
+      logger.debug(`🔐 AuthProvider: Attempting login for: ${email}`);
       
       const supabase = getSupabaseClient();
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -112,7 +112,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (error) {
-        console.error('❌ AuthProvider: Login failed:', error.message);
+        logger.error(`❌ AuthProvider: Login failed: ${error instanceof Error ? error.message : String(error)}`);
         return { error: error.message || 'Inloggen mislukt. Probeer het opnieuw.' };
       }
 
@@ -131,18 +131,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             role: 'user'
           });
         }
-        console.log('✅ AuthProvider: Login successful, user set');
+        logger.debug('✅ AuthProvider: Login successful, user set');
         return {};
       }
     } catch (error) {
-      console.error('💥 AuthProvider: Network error during login:', error);
+      logger.error(`💥 AuthProvider: Network error during login: ${error instanceof Error ? error.message : String(error)}`);
       return { error: 'Verbindingsprobleem. Controleer je internetverbinding en probeer het opnieuw.' };
     }
   };
 
   const signUp = async (email: string, password: string, full_name: string) => {
     try {
-      console.log('🔐 AuthProvider: Attempting registration for:', email);
+      logger.debug(`🔐 AuthProvider: Attempting registration for: ${email}`);
       
       const supabase = getSupabaseClient();
       const { data, error } = await supabase.auth.signUp({
@@ -156,7 +156,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (error) {
-        console.error('❌ AuthProvider: Registration failed:', error.message);
+        logger.error(`❌ AuthProvider: Registration failed: ${error instanceof Error ? error.message : String(error)}`);
         return { error: error.message || 'Registratie mislukt. Probeer het opnieuw.' };
       }
 
@@ -175,11 +175,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             role: 'user'
           });
         }
-        console.log('✅ AuthProvider: Registration successful, user set');
+        logger.debug('✅ AuthProvider: Registration successful, user set');
         return {};
       }
     } catch (error) {
-      console.error('💥 AuthProvider: Network error during registration:', error);
+      logger.error(`💥 AuthProvider: Network error during registration: ${error instanceof Error ? error.message : String(error)}`);
       return { error: 'Verbindingsprobleem. Controleer je internetverbinding en probeer het opnieuw.' };
     }
   };
@@ -190,7 +190,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await supabase.auth.signOut();
       setUser(null);
     } catch (error) {
-      console.error('Logout failed:', error);
+      logger.error(`Logout failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import RequireAdmin from '@/components/RequireAdmin';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import { logger } from '@/lib/logger';
 
 interface MonitoringData {
   overview: {
@@ -68,7 +69,7 @@ export default function AdminMonitoringPage() {
       const monitoringData = await response.json();
       setData(monitoringData);
     } catch (err) {
-      console.error('Error loading monitoring data:', err);
+      logger.error(`Error loading monitoring data: ${err}`);
       setError('Fout bij laden van monitoring data');
     } finally {
       setLoading(false);

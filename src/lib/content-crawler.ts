@@ -530,7 +530,7 @@ export async function initializeDefaultSources(): Promise<void> {
       .upsert(source, { onConflict: 'base_url' });
 
     if (error) {
-      logger.error(`Failed to initialize source ${source.name}:`, error);
+      logger.error(`Failed to initialize source ${source.name}: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 }

@@ -149,7 +149,7 @@ export async function GET(request: NextRequest) {
       });
     if (error) {
       const normalized = normalizeError(error);
-    logger.error('❌ Error fetching leaderboard:', normalized);
+    logger.error(`❌ Error fetching leaderboard: ${normalized}`);
       // Fallback: simple query without RPC - use RPC to avoid RLS issues
       const { data: fallbackData, error: fallbackError } = await supabase
         .rpc('get_simple_leaderboard', { limit_count: limit });
@@ -199,7 +199,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     const normalized = normalizeError(error);
-    logger.error('💥 Error in leaderboard API:', normalized);
+    logger.error(`💥 Error in leaderboard API: ${normalized}`);
     // Return emergency fallback
     const emergencyData = MOCK_LEADERBOARD.slice(0, 5);
     return NextResponse.json({

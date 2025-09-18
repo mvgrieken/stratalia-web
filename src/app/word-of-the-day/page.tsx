@@ -94,7 +94,7 @@ export default function WordOfTheDayPage() {
       
       setWeeklyProgress(weekProgress);
     } catch (err) {
-      console.error('Error fetching weekly progress:', err);
+      logger.error(`Error fetching weekly progress: ${err}`);
     }
   };
 
@@ -113,13 +113,13 @@ export default function WordOfTheDayPage() {
       };
       
       utterance.onerror = (event) => {
-        console.warn('Speech synthesis error:', event.error);
+        logger.warn(`Speech synthesis error: ${error instanceof Error ? error.message : String(error)}`);
         setIsPlaying(false);
       };
       
       window.speechSynthesis.speak(utterance);
     } catch (error) {
-      console.error('Error speaking word:', error);
+      logger.error(`Error speaking word: ${error instanceof Error ? error.message : String(error)}`);
       setIsPlaying(false);
     }
   };
@@ -131,14 +131,14 @@ export default function WordOfTheDayPage() {
         utterance.lang = 'nl-NL';
         utterance.rate = 0.8;
         utterance.onerror = (event) => {
-          console.warn('Speech synthesis error:', event.error);
+          logger.warn(`Speech synthesis error: ${error instanceof Error ? error.message : String(error)}`);
         };
         window.speechSynthesis.speak(utterance);
       } else {
-        console.warn('Speech synthesis not supported in this browser');
+        logger.warn('Speech synthesis not supported in this browser');
       }
     } catch (error) {
-      console.error('Error speaking meaning:', error);
+      logger.error(`Error speaking meaning: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 

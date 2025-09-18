@@ -27,7 +27,7 @@ export default function HomePage() {
         setDailyWord(data);
       }
     } catch (error) {
-      console.error('Error fetching daily word:', error);
+      logger.error(`Error fetching daily word: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setLoading(false);
     }

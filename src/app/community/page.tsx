@@ -107,7 +107,7 @@ export default function CommunityPage() {
         setError(errorData.error || 'Er is een fout opgetreden bij het indienen. Probeer het opnieuw.');
       }
     } catch (error) {
-      console.error('Error submitting word:', error);
+      logger.error(`Error submitting word: ${error instanceof Error ? error.message : String(error)}`);
       setError('Er is een netwerkfout opgetreden. Controleer je internetverbinding en probeer het opnieuw.');
     } finally {
       setIsSubmitting(false);

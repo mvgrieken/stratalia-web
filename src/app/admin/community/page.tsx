@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import RequireAdmin from '@/components/RequireAdmin';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import { logger } from '@/lib/logger';
 
 interface CommunitySubmission {
   id: string;
@@ -43,7 +44,7 @@ export default function AdminCommunityPage() {
       const data = await response.json();
       setSubmissions(data.submissions || []);
     } catch (err) {
-      console.error('Error loading submissions:', err);
+      logger.error(`Error loading submissions: ${err}`);
       setError('Fout bij laden van community inzendingen');
     } finally {
       setLoading(false);
@@ -86,7 +87,7 @@ export default function AdminCommunityPage() {
       setError(null);
       
     } catch (err) {
-      console.error('Error approving submission:', err);
+      logger.error(`Error approving submission: ${err}`);
       setError(err instanceof Error ? err.message : 'Fout bij goedkeuren van inzending');
     } finally {
       setActionLoading(null);
@@ -124,7 +125,7 @@ export default function AdminCommunityPage() {
       setError(null);
       
     } catch (err) {
-      console.error('Error rejecting submission:', err);
+      logger.error(`Error rejecting submission: ${err}`);
       setError(err instanceof Error ? err.message : 'Fout bij afwijzen van inzending');
     } finally {
       setActionLoading(null);
@@ -177,7 +178,7 @@ export default function AdminCommunityPage() {
       setError(null);
       
     } catch (err) {
-      console.error('Error in bulk action:', err);
+      logger.error(`Error in bulk action: ${err}`);
       setError(err instanceof Error ? err.message : 'Fout bij bulk actie');
     } finally {
       setActionLoading(null);

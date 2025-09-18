@@ -196,7 +196,7 @@ export async function POST(request: NextRequest) {
       revalidatePath('/knowledge');
       revalidatePath('/knowledge/[id]', 'page');
     } catch (error) {
-      logger.warn(`Failed to revalidate cache: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      logger.warn(`Failed to revalidate cache: ${error instanceof Error ? error.message : String(error)}`);
     }
 
     logger.info(`Knowledge refresh completed (refreshCount: ${refreshCount}, errors: ${errors.length}, type: ${type})`);
@@ -212,7 +212,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    logger.error(`Error in knowledge refresh: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    logger.error(`Error in knowledge refresh: ${error instanceof Error ? error.message : String(error)}`);
     return NextResponse.json(
       { 
         success: false, 

@@ -112,7 +112,7 @@ class EventBus {
       try {
         await handler(processedEvent);
       } catch (error) {
-        logger.error(`Event handler failed: eventType=${event.type}, eventId=${event.id}`, error instanceof Error ? error : new Error(String(error)));
+        logger.error(`Event handler failed: eventType=${event.type}, eventId=${event.id} ${error instanceof Error ? error.message : String(error)}`);
       }
     });
 

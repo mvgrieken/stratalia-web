@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { logger } from '@/lib/logger';
 
 describe('Logger - Simple Tests', () => {
   let originalEnv: string | undefined;
@@ -52,7 +53,7 @@ describe('Logger - Simple Tests', () => {
     
     // These should not throw
     expect(() => logger.error('Test message')).not.toThrow();
-    expect(() => logger.error('Test message', testError)).not.toThrow();
+    expect(() => logger.error(`Test message ${error instanceof Error ? error.message : String(error)}`)).not.toThrow();
   });
 
   it('should handle context parameter correctly', async () => {
@@ -62,6 +63,6 @@ describe('Logger - Simple Tests', () => {
     
     // These should not throw
     expect(() => logger.info('Test message')).not.toThrow();
-    expect(() => logger.info('Test message', context)).not.toThrow();
+    expect(() => logger.info(`Test message ${context}`)).not.toThrow();
   });
 });

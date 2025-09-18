@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
         name: full_name || ''
       });
     if (profileError) {
-      logger.error('❌ Profile creation error:', profileError);
+      logger.error(`❌ Profile creation error: ${profileError instanceof Error ? profileError.message : String(profileError)}`);
       return NextResponse.json({
         error: 'Er is een probleem opgetreden bij het aanmaken van je profiel. Probeer het opnieuw.'
       }, { status: 500 });
@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
         level: 1
       });
     if (pointsError) {
-      logger.error('❌ User points initialization error:', pointsError);
+      logger.error(`❌ User points initialization error: ${pointsError instanceof Error ? pointsError.message : String(pointsError)}`);
       // Don't fail registration for this, just log it
     }
     return NextResponse.json({
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     const normalized = normalizeError(error);
-    logger.error('💥 Error in registration API:', normalized);
+    logger.error(`💥 Error in registration API: ${normalized}`);
     return NextResponse.json({
       error: 'Er is een onverwachte fout opgetreden. Probeer het later opnieuw.'
     }, { status: 500 });

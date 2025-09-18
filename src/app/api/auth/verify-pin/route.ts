@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (sessionError) {
-      logger.error('Failed to generate session for PIN login:', sessionError);
+      logger.error(`Failed to generate session for PIN login: ${sessionError instanceof Error ? sessionError.message : String(sessionError)}`);
       return NextResponse.json({
         error: 'Sessie aanmaken mislukt. Probeer opnieuw.'
       }, { status: 500 });
@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     const normalized = normalizeError(error);
-    logger.error('PIN verification error:', normalized);
+    logger.error(`PIN verification error: ${normalized}`);
     
     return NextResponse.json({
       error: 'Er is een fout opgetreden bij PIN verificatie'

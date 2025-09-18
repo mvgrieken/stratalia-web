@@ -121,7 +121,7 @@ export default function PinLoginForm({
         });
 
         if (sessionError) {
-          logger.error('Session restoration error:', sessionError);
+          logger.error(`Session restoration error: ${error instanceof Error ? error.message : String(error)}`);
           onError?.('Sessie herstellen mislukt. Log opnieuw in met je wachtwoord.');
           return;
         }
@@ -136,7 +136,7 @@ export default function PinLoginForm({
       }
 
     } catch (error) {
-          logger.error('PIN login error:', error instanceof Error ? error : new Error(String(error)));
+          logger.error(`PIN login error: ${error instanceof Error ? error.message : String(error)}`);
       onError?.('Er is een fout opgetreden bij PIN inloggen');
     } finally {
       setLoading(false);

@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
       .select('title');
 
     if (existingError) {
-      logger.error('Error checking existing knowledge items:', existingError);
+      logger.error(`Error checking existing knowledge items: ${existingError instanceof Error ? existingError.message : String(existingError)}`);
       return NextResponse.json({ error: 'Failed to check existing items', details: existingError.message }, { status: 500 });
     }
 
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
       .select();
 
     if (insertError) {
-      logger.error('Error inserting knowledge items:', insertError);
+      logger.error(`Error inserting knowledge items: ${insertError instanceof Error ? insertError.message : String(insertError)}`);
       return NextResponse.json({ error: 'Failed to insert knowledge items', details: insertError.message }, { status: 500 });
     }
 
@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    logger.error('Error in /api/admin/refresh-knowledge POST:', error instanceof Error ? error : new Error(String(error)));
+    logger.error(`Error in /api/admin/refresh-knowledge POST: ${error instanceof Error ? error.message : String(error)}`);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -171,7 +171,7 @@ export async function GET(request: NextRequest) {
       .select('id, title, type, difficulty, is_active, created_at');
 
     if (itemsError) {
-      logger.error('Error fetching knowledge items:', itemsError);
+      logger.error(`Error fetching knowledge items: ${itemsError instanceof Error ? itemsError.message : String(itemsError)}`);
       return NextResponse.json({ error: 'Failed to fetch knowledge items', details: itemsError.message }, { status: 500 });
     }
 
@@ -198,7 +198,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    logger.error('Error in /api/admin/refresh-knowledge GET:', error instanceof Error ? error : new Error(String(error)));
+    logger.error(`Error in /api/admin/refresh-knowledge GET: ${error instanceof Error ? error.message : String(error)}`);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

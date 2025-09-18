@@ -97,7 +97,7 @@ export default function ContentSubmissionForm({ onSuccess, onCancel }: ContentSu
       onSuccess?.();
 
     } catch (err) {
-      console.error('Submission error:', err);
+      logger.error(`Submission error: ${err}`);
       setError(err instanceof Error ? err.message : 'Er is een fout opgetreden');
     } finally {
       setLoading(false);

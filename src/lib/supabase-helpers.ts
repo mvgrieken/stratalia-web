@@ -27,7 +27,7 @@ export function createSupabaseClient() {
     logger.info('Supabase client created successfully');
     return client;
   } catch (error) {
-    logger.error('Failed to create Supabase client:', error instanceof Error ? error : new Error(String(error)));
+    logger.error(`Failed to create Supabase client: ${error instanceof Error ? error.message : String(error)}`);
     throw new Error('Failed to initialize Supabase client');
   }
 }
@@ -49,7 +49,7 @@ export function createSupabaseServiceClient() {
     logger.info('Supabase service client created successfully');
     return client;
   } catch (error) {
-    logger.error('Failed to create Supabase service client:', error instanceof Error ? error : new Error(String(error)));
+    logger.error(`Failed to create Supabase service client: ${error instanceof Error ? error.message : String(error)}`);
     throw new Error('Failed to initialize Supabase service client');
   }
 }
@@ -66,7 +66,7 @@ export async function executeSupabaseQuery<T>(
     const result = await queryFn(client);
     return result;
   } catch (error) {
-    logger.error('Supabase query failed:', error instanceof Error ? error : new Error(String(error)));
+    logger.error(`Supabase query failed: ${error instanceof Error ? error.message : String(error)}`);
     throw error;
   }
 }
@@ -104,7 +104,7 @@ export function getSupabaseErrorMessage(error: any): string {
  */
 export function validateSupabaseResponse<T>(response: { data: T | null; error: any }): T {
   if (response.error) {
-    logger.error('Supabase response error:', response.error);
+    logger.error(`Supabase response error: ${error instanceof Error ? error.message : String(error)}`);
     throw new Error(getSupabaseErrorMessage(response.error));
   }
   

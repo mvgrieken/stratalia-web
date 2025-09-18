@@ -51,7 +51,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     const { errorId } = this.state;
 
     // Log error
-    logger.error(`Error boundary caught error: ${level}`, error);
+    logger.error(`Error boundary caught error: ${level} ${error instanceof Error ? error.message : String(error)}`);
 
     // Record error in monitoring
     monitoringService.recordError({

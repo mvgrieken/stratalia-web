@@ -122,7 +122,7 @@ export async function GET() {
           return response;
         }
       } catch (dbError) {
-        console.log('Database unavailable, using fallback word');
+        logger.debug('Database unavailable, using fallback word');
       }
     }
 
@@ -144,7 +144,7 @@ export async function GET() {
 
   } catch (error) {
     const normalized = normalizeError(error);
-    logger.error('❌ [DAILY-API] Unexpected error', normalized);
+    logger.error(`❌ [DAILY-API] Unexpected error ${normalized}`);
     
     // Even on error, return a fallback word
     const emergencyWord = FALLBACK_WORDS[0];

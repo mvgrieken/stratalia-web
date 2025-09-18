@@ -135,7 +135,7 @@ export class QueryCache {
       this.set(key, value, ttl, tags);
       return value;
     } catch (error) {
-      logger.error(`Cache fetcher failed for key: ${key}`, normalizeError(error));
+      logger.error(`Cache fetcher failed for key: ${key} ${error instanceof Error ? error.message : String(error)}`);
       throw error;
     }
   }

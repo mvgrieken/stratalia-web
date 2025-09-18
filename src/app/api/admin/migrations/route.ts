@@ -57,7 +57,7 @@ export const POST = withErrorHandling(async (_request: NextRequest) => {
     }
   } catch (error) {
     const normalized = normalizeError(error);
-    logger.error('Migration operation failed', normalized);
+    logger.error(`Migration operation failed ${normalized}`);
     return createErrorResponse(normalized);
   }
 });

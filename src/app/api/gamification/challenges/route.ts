@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     }
     const { data: challenges, error: challengesError } = await query;
     if (challengesError) {
-      logger.error('❌ Error fetching challenges:', challengesError);
+      logger.error(`❌ Error fetching challenges: ${challengesError instanceof Error ? challengesError.message : String(challengesError)}`);
       return NextResponse.json({
         error: 'Failed to fetch challenges',
         details: challengesError.message
@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     const normalized = normalizeError(error);
-    logger.error('💥 Error in challenges API:', normalized);
+    logger.error(`💥 Error in challenges API: ${normalized}`);
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
       .select()
       .single();
     if (updateError) {
-      logger.error('❌ Error updating user challenge:', updateError);
+      logger.error(`❌ Error updating user challenge: ${updateError instanceof Error ? updateError.message : String(updateError)}`);
       return NextResponse.json({
         error: 'Failed to update challenge progress',
         details: updateError.message
@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     const normalized = normalizeError(error);
-    logger.error('💥 Error in challenge update API:', normalized);
+    logger.error(`💥 Error in challenge update API: ${normalized}`);
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'

@@ -47,7 +47,7 @@ export default function ChallengesPage() {
         setChallenges([]);
       }
     } catch (err) {
-      console.error('Error fetching challenges:', err);
+      logger.error(`Error fetching challenges: ${err}`);
       setError('Fout bij het laden van challenges');
       setChallenges([]);
     } finally {

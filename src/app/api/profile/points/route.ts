@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
       .eq('submitted_by', userId);
 
     if (submissionsError) {
-      logger.error('Error fetching user submission stats:', submissionsError);
+      logger.error(`Error fetching user submission stats: ${submissionsError instanceof Error ? submissionsError.message : String(submissionsError)}`);
       return NextResponse.json({ error: 'Failed to fetch submission stats', details: submissionsError.message }, { status: 500 });
     }
 
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    logger.error('Error in /api/profile/points GET:', error instanceof Error ? error : new Error(String(error)));
+    logger.error(`Error in /api/profile/points GET: ${error instanceof Error ? error.message : String(error)}`);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

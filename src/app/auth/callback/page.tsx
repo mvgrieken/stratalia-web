@@ -21,7 +21,7 @@ function AuthCallbackContent() {
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
-          logger.error('Auth callback error:', error);
+          logger.error(`Auth callback error: ${error instanceof Error ? error.message : String(error)}`);
           setStatus('error');
           setMessage('Inloggen mislukt. Probeer het opnieuw.');
           return;
@@ -47,7 +47,7 @@ function AuthCallbackContent() {
           setMessage('Geen geldige sessie gevonden. Probeer opnieuw in te loggen.');
         }
       } catch (error) {
-        logger.error('Auth callback processing error:', error instanceof Error ? error : new Error(String(error)));
+        logger.error(`Auth callback processing error: ${error instanceof Error ? error.message : String(error)}`);
         setStatus('error');
         setMessage('Er is een fout opgetreden bij het verwerken van je login.');
       }

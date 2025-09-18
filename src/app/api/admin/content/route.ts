@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     const { data: content, error } = await query;
     if (error) {
       const normalized = normalizeError(error);
-    logger.error('❌ Error fetching content updates:', normalized);
+    logger.error(`❌ Error fetching content updates: ${normalized}`);
       return NextResponse.json({
         error: 'Database unavailable',
         details: error.message
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(content || []);
   } catch (error) {
     const normalized = normalizeError(error);
-    logger.error('💥 Error in content API:', normalized);
+    logger.error(`💥 Error in content API: ${normalized}`);
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
       .single();
     if (error) {
       const normalized = normalizeError(error);
-    logger.error('❌ Error adding content:', normalized);
+    logger.error(`❌ Error adding content: ${normalized}`);
       return NextResponse.json({
         error: 'Database unavailable',
         details: error.message
@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(content, { status: 201 });
   } catch (error) {
     const normalized = normalizeError(error);
-    logger.error('💥 Error in content POST API:', normalized);
+    logger.error(`💥 Error in content POST API: ${normalized}`);
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'

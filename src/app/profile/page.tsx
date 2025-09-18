@@ -75,7 +75,7 @@ export default function ProfilePage() {
 
       setStats(userStats);
     } catch (error) {
-      console.error('Error fetching user stats:', error);
+      logger.error(`Error fetching user stats: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
@@ -171,7 +171,7 @@ export default function ProfilePage() {
 
       setAchievements(achievements);
     } catch (error) {
-      console.error('Error fetching achievements:', error);
+      logger.error(`Error fetching achievements: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setLoading(false);
     }

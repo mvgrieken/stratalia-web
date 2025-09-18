@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    logger.error(`Error in knowledge items API: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    logger.error(`Error in knowledge items API: ${error instanceof Error ? error.message : String(error)}`);
     return NextResponse.json(
       { 
         success: false, 

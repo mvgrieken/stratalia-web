@@ -137,6 +137,6 @@ export const cacheService = new CacheService();
 setInterval(() => {
   const cleaned = cacheService.cleanup();
   if (cleaned > 0) {
-    console.log(`Cache cleanup: removed ${cleaned} expired entries`);
+    logger.debug(`Cache cleanup: removed ${cleaned} expired entries`);
   }
 }, 10 * 60 * 1000);

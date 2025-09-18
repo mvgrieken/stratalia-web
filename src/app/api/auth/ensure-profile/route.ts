@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = not found
-      logger.error('Error checking existing profile:', checkError);
+      logger.error(`Error checking existing profile: ${checkError instanceof Error ? checkError.message : String(checkError)}`);
       return NextResponse.json({
         error: 'Fout bij controleren van profiel'
       }, { status: 500 });
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (createError) {
-      logger.error('Error creating OAuth profile:', createError);
+      logger.error(`Error creating OAuth profile: ${createError instanceof Error ? createError.message : String(createError)}`);
       return NextResponse.json({
         error: 'Fout bij aanmaken van profiel'
       }, { status: 500 });
@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     const normalized = normalizeError(error);
-    logger.error('Error in ensure-profile API:', normalized);
+    logger.error(`Error in ensure-profile API: ${normalized}`);
     
     return NextResponse.json({
       error: 'Er is een fout opgetreden bij het verwerken van je profiel'
