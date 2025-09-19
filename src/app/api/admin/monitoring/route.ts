@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceClient } from '@/lib/supabase-client';
 import { logger } from '@/lib/logger';
+import { withApiError } from '@/lib/api-wrapper';
 
-export async function GET(request: NextRequest) {
-  try {
+export const GET = withApiError(async (request: NextRequest) => {
     // Get current user from session for admin check
     const supabase = getSupabaseServiceClient();
     
@@ -176,9 +176,4 @@ export async function GET(request: NextRequest) {
       },
       lastRefresh: new Date().toISOString()
     });
-
-  } catch (error) {
-    logger.error(`Error in /api/admin/monitoring GET: ${error instanceof Error ? error.message : String(error)}`);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
+});

@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
+import { withApiError, withZod } from '@/lib/api-wrapper';
+import { z } from 'zod';
 
-export async function POST(request: Request, context: any) {
-  try {
+const schema = z.object({ reason: z.string().optional() });
+
+export const POST = withApiError(withZod(schema, async (request: Request, context: any) => {
     const proposalId = context?.params?.id as string;
     const { reason } = await (request as any).json().catch(() => ({ reason: null }));
 
@@ -33,8 +36,4 @@ export async function POST(request: Request, context: any) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    logger.error(`Reject knowledge-proposal error: ${error instanceof Error ? error.message : String(error)}`);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
+}));

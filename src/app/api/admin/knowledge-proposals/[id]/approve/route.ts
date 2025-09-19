@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
+import { withApiError } from '@/lib/api-wrapper';
 
-export async function POST(_request: Request, context: any) {
-  try {
+export const POST = withApiError(async (_request: Request, context: any) => {
     const proposalId = context?.params?.id as string;
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -30,8 +30,4 @@ export async function POST(_request: Request, context: any) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    logger.error(`Approve knowledge-proposal error: ${error instanceof Error ? error.message : String(error)}`);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
+});
