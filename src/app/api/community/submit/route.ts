@@ -95,8 +95,8 @@ export const POST = withApiError(withZod(submitSchema, async (request: NextReque
           .single();
 
         if (error) {
-          const normalized = normalizeError(error);
-          logger.warn(`Database save failed, using fallback: ${normalized.message}`);
+          const msg = error instanceof Error ? error.message : String(error);
+          logger.warn(`Database save failed, using fallback: ${msg}`);
         } else {
           logger.info(`✅ Community submission created with ID: ${data.id}`);
           return NextResponse.json({
@@ -107,8 +107,8 @@ export const POST = withApiError(withZod(submitSchema, async (request: NextReque
           });
         }
       } catch (dbError) {
-        const normalized = normalizeError(dbError);
-        logger.warn(`Database unavailable, using fallback: ${normalized.message}`);
+        const msg = dbError instanceof Error ? dbError.message : String(dbError);
+        logger.warn(`Database unavailable, using fallback: ${msg}`);
       }
     } else {
       logger.info('Supabase not configured, using fallback mode');
