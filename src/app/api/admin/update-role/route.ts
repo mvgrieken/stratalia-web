@@ -4,9 +4,15 @@ import { logger } from '@/lib/logger';
 import { normalizeError } from '@/lib/errors';
 import { canChangeRole, canManageUsers } from '@/lib/auth-roles';
 import type { UserRole } from '@/lib/auth-roles';
+import { withApiError, withZod } from '@/lib/api-wrapper';
+import { z } from 'zod';
 
-export async function POST(request: NextRequest) {
-  try {
+const schema = z.object({
+  user_id: z.string().min(1),
+  new_role: z.enum(['user', 'moderator', 'admin'])
+});
+
+export const POST = withApiError(withZod(schema, async (request: NextRequest) => {
     const { user_id, new_role } = await request.json();
 
     if (!user_id || !new_role) {
@@ -112,10 +118,4 @@ export async function POST(request: NextRequest) {
         new_role: new_role
       }
     });
-
-  } catch (error) {
-    const normalized = normalizeError(error);
-    logger.error(`Error in update-role API: ${normalized}`);
-    return NextResponse.json({ error: 'Er is een fout opgetreden bij het wijzigen van de rol' }, { status: 500 });
-  }
-}
+}));
