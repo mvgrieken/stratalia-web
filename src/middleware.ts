@@ -16,62 +16,7 @@ export async function middleware(request: NextRequest) {
   //   "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; worker-src 'self'; manifest-src 'self';"
   // )
   
-  // Protected routes that require authentication
-  const protectedRoutes = ['/quiz', '/community', '/leaderboard', '/challenges', '/dashboard', '/profile', '/notifications']
-  const adminPrefix = '/admin'
-  const currentPath = request.nextUrl.pathname
-  
-  // Check if the current path is a protected route
-  const isProtectedRoute = protectedRoutes.some(route => currentPath.startsWith(route))
-  const isAdminRoute = currentPath.startsWith(adminPrefix)
-  
-  if (isProtectedRoute || isAdminRoute) {
-    // Check for Supabase authentication session
-    const supabaseAccessToken = request.cookies.get('sb-ahcvmgwbvfgrnwuyxmzi-auth-token')
-    
-    // Also check for generic Supabase cookies
-    const hasAuthSession = request.cookies.getAll().some(cookie => 
-      cookie.name.includes('sb-') && cookie.name.includes('auth-token')
-    )
-    
-    if (!hasAuthSession && !supabaseAccessToken) {
-      // Redirect to login with the current path as redirect_to parameter
-      const loginUrl = new URL('/login', request.url)
-      loginUrl.searchParams.set('redirect_to', currentPath)
-      return NextResponse.redirect(loginUrl)
-    }
-
-    // Additional role check for /admin routes
-    if (isAdminRoute) {
-      try {
-        const meUrl = new URL('/api/auth/me', request.url)
-        const meRes = await fetch(meUrl.toString(), {
-          headers: {
-            cookie: request.headers.get('cookie') || ''
-          },
-        })
-
-        if (!meRes.ok) {
-          const loginUrl = new URL('/login', request.url)
-          loginUrl.searchParams.set('redirect_to', currentPath)
-          return NextResponse.redirect(loginUrl)
-        }
-
-        const me = await meRes.json() as { user?: { role?: string } }
-        const role = me?.user?.role
-        const allowed = role === 'admin' || role === 'moderator'
-        if (!allowed) {
-          const redirectUrl = new URL('/dashboard', request.url)
-          redirectUrl.searchParams.set('unauthorized', '1')
-          return NextResponse.redirect(redirectUrl)
-        }
-      } catch {
-        const loginUrl = new URL('/login', request.url)
-        loginUrl.searchParams.set('redirect_to', currentPath)
-        return NextResponse.redirect(loginUrl)
-      }
-    }
-  }
+  // Note: Auth gating is handled client-side for now; admin APIs enforce server checks.
   
   // Handle CORS for API routes
   if (request.nextUrl.pathname.startsWith('/api/')) {
