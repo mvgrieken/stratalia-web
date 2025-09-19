@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
-import { normalizeError } from '@/lib/errors';
+// removed unused normalizeError import
 import { canChangeRole, canManageUsers } from '@/lib/auth-roles';
 import type { UserRole } from '@/lib/auth-roles';
 import { withApiError, withZod } from '@/lib/api-wrapper';
@@ -35,7 +35,6 @@ export const POST = withApiError(withZod(schema, async (request: NextRequest) =>
       return NextResponse.json({ error: 'Database configuratie ontbreekt' }, { status: 500 });
     }
 
-    const supabaseAnon = createClient(supabaseUrl, supabaseAnonKey, { auth: { persistSession: false } });
     const supabaseService = createClient(supabaseUrl, supabaseServiceKey, { auth: { persistSession: false } });
 
     // Get current admin from cookies-based session

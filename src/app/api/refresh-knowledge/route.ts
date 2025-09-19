@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { logger } from '@/lib/logger';
 import { revalidatePath } from 'next/cache';
-import { withApiError, withZod } from '@/lib/api-wrapper';
-import { z } from 'zod';
+import { withApiError } from '@/lib/api-wrapper';
+// zod not used here
 
 // Mock external content sources
 const EXTERNAL_SOURCES = {
@@ -51,8 +51,6 @@ const EXTERNAL_SOURCES = {
     }
   ]
 };
-
-const schema = z.object({}); // no body; validate query via code below
 
 export const POST = withApiError(async (request: NextRequest) => {
     // Check for cron secret or admin authentication
