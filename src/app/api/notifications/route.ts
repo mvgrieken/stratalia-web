@@ -69,7 +69,7 @@ const createSchema = z.object({
   notification_type: z.string().min(1),
   title: z.string().min(1),
   message: z.string().min(1),
-  data: z.record(z.any()).optional()
+  data: z.record(z.string(), z.any()).optional()
 });
 
 export const POST = withApiError(withZod(createSchema, async (request: NextRequest) => {
