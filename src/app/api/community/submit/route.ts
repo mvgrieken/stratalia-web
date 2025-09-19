@@ -167,11 +167,11 @@ export const GET = withApiError(async (request: NextRequest) => {
     const { data: submissions, error } = await query;
     
     if (error) {
-      const normalized = normalizeError(error);
-      logger.error(`❌ Error fetching community submissions: ${normalized}`);
+      const msg = error instanceof Error ? error.message : String(error);
+      logger.error(`❌ Error fetching community submissions: ${msg}`);
       return NextResponse.json({
         error: 'Database unavailable',
-        details: error.message
+        details: msg
       }, { status: 500 });
     }
     
