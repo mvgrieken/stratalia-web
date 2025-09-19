@@ -33,6 +33,9 @@ export default defineConfig({
         '**/*.config.js',
         '**/*.config.ts',
       ]
+    },
+    deps: {
+      inline: ['@sentry/node']
     }
   },
   resolve: {
