@@ -33,7 +33,7 @@ export default function RegisterPage() {
       if (result.error) {
         setError(result.error);
       } else {
-        setInfo('Account aangemaakt. Check je e-mail om je account te activeren.');
+        setInfo('Account aangemaakt. Check je e-mail om je account te activeren. Klik op de verificatielink en log daarna in.');
       }
     } catch (err) {
       setError('Er is een onverwachte fout opgetreden');
@@ -125,6 +125,19 @@ export default function RegisterPage() {
             {info && (
               <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-md">
                 {info}
+                <div className="mt-2 text-sm">
+                  <p>Geen mail ontvangen? Controleer je spamfolder of</p>
+                  <p>
+                    <button
+                      type="button"
+                      onClick={() => router.push('/login')}
+                      className="underline text-blue-700 hover:text-blue-800"
+                    >
+                      ga naar inloggen
+                    </button>
+                    
+                  </p>
+                </div>
               </div>
             )}
 
