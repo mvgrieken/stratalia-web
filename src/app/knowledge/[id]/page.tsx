@@ -8,7 +8,7 @@ import NotFoundState from './NotFoundState';
 
 interface KnowledgeItem {
   id: string;
-  type: 'article' | 'video' | 'podcast' | 'infographic';
+  type: 'article' | 'video' | 'podcast' | 'infographic' | 'book' | 'music';
   title: string;
   content: string;
   author: string;
@@ -455,7 +455,15 @@ Straattaal blijft evolueren:
                   <div 
                     className="whitespace-pre-line"
                     dangerouslySetInnerHTML={{ 
-                      __html: item.content.replace(/\n/g, '<br>').replace(/## /g, '<h2 class="text-2xl font-bold mt-6 mb-4">').replace(/# /g, '<h1 class="text-3xl font-bold mt-8 mb-6">').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>')
+                      __html: item.content
+                        // Headings and basic emphasis
+                        .replace(/\n/g, '<br>')
+                        .replace(/## /g, '<h2 class="text-2xl font-bold mt-6 mb-4">')
+                        .replace(/# /g, '<h1 class="text-3xl font-bold mt-8 mb-6">')
+                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                        // Markdown links [text](url)
+                        .replace(/\[([^\]]+)\]\(((?:https?:\/\/)[^\s)]+)\)/g, '<a href="$2" class="text-blue-600 underline" target="_blank" rel="noopener noreferrer">$1</a>')
                     }}
                   />
                 ) : item.type === 'video' ? (
@@ -513,6 +521,34 @@ Straattaal blijft evolueren:
                     <div className="text-left">
                       <p className="text-gray-700">{item.content}</p>
                     </div>
+                  </div>
+                ) : item.type === 'book' ? (
+                  <div className="space-y-4">
+                    {/^https?:\/\//.test(item.content) ? (
+                      <a href={item.content} className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700" target="_blank" rel="noopener noreferrer">
+                        📥 Download boek / Open link
+                      </a>
+                    ) : (
+                      <p className="text-gray-700 whitespace-pre-line">{item.content}</p>
+                    )}
+                  </div>
+                ) : item.type === 'music' ? (
+                  <div className="space-y-4">
+                    {item.audio_url ? (
+                      <audio controls className="w-full max-w-2xl mx-auto">
+                        <source src={item.audio_url} type="audio/mpeg" />
+                        <p className="text-gray-600 p-8">
+                          Je browser ondersteunt geen audio element. 
+                          <a href={item.audio_url} className="text-blue-600 underline ml-2">Download de track</a>
+                        </p>
+                      </audio>
+                    ) : /^https?:\/\//.test(item.content) ? (
+                      <a href={item.content} className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700" target="_blank" rel="noopener noreferrer">
+                        🎵 Open muzieklink
+                      </a>
+                    ) : (
+                      <p className="text-gray-700 whitespace-pre-line">{item.content}</p>
+                    )}
                   </div>
                 ) : (
                   <p className="text-gray-700">{item.content}</p>
