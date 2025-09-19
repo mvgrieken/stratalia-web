@@ -6,8 +6,16 @@ import { logger } from '@/lib/logger';
 import { getTranslationMap, getReverseTranslationMap } from '@/data/translations';
 import { cacheService, cacheKeys, CACHE_TTL } from '@/lib/cache-service';
 import type { TranslationRequest, TranslationResponse } from '@/types/api';
+import { withApiError, withZod } from '@/lib/api-wrapper';
+import { z } from 'zod';
 
-export async function POST(request: NextRequest) {
+const translateSchema = z.object({
+  text: z.string().min(1),
+  direction: z.enum(['to_slang', 'to_formal']),
+  context: z.string().optional()
+});
+
+export const POST = withApiError(withZod(translateSchema, async (request: NextRequest) => {
   let cleanText = '';
   
   try {
@@ -80,7 +88,7 @@ export async function POST(request: NextRequest) {
       message: 'Vertaling niet beschikbaar - probeer het later opnieuw of dien het woord in via de community'
     }, { status: 200 }); // Return 200 to avoid frontend error handling
   }
-}
+}));
 
 // Use imported translation data
 const STRAATTAAL_TO_NL = getTranslationMap();

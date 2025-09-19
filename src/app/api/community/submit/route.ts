@@ -4,6 +4,8 @@ import { logger } from '@/lib/logger';
 import { normalizeError } from '@/lib/errors';
 import { applyRateLimit } from '@/middleware/rateLimiter';
 import { isSupabaseConfigured } from '@/lib/config';
+import { withApiError, withZod } from '@/lib/api-wrapper';
+import { z } from 'zod';
 interface CommunitySubmission {
   word: string;
   definition: string;
@@ -12,8 +14,16 @@ interface CommunitySubmission {
   source?: string;
   notes?: string;
 }
-export async function POST(request: NextRequest) {
-  try {
+const submitSchema = z.object({
+  word: z.string().min(2).max(50),
+  definition: z.string().min(10).max(500),
+  example: z.string().min(10).max(200).optional(),
+  context: z.string().optional(),
+  source: z.string().optional(),
+  notes: z.string().optional()
+});
+
+export const POST = withApiError(withZod(submitSchema, async (request: NextRequest) => {
     // Apply rate limiting to prevent spam
     const rateLimitCheck = applyRateLimit(request, 'community');
     if (!rateLimitCheck.allowed) {
@@ -115,17 +125,8 @@ export async function POST(request: NextRequest) {
       submission_id: fallbackId,
       source: 'fallback'
     });
-  } catch (error) {
-    const normalized = normalizeError(error);
-    logger.error(`💥 Error in community submission API: ${normalized}`);
-    return NextResponse.json({
-      error: 'Internal server error',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
-  }
-}
-export async function GET(request: NextRequest) {
-  try {
+}));
+export const GET = withApiError(async (request: NextRequest) => {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') || 'approved';
     const userId = searchParams.get('user_id');
@@ -176,13 +177,4 @@ export async function GET(request: NextRequest) {
     
     logger.info(`✅ Found ${submissions?.length || 0} community submissions`);
     return NextResponse.json(submissions || []);
-    
-  } catch (error) {
-    const normalized = normalizeError(error);
-    logger.error(`💥 Error in community submissions API: ${normalized}`);
-    return NextResponse.json({
-      error: 'Internal server error',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
-  }
-}
+});

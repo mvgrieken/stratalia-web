@@ -2,9 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
 import { normalizeError } from '@/lib/errors';
+import { withApiError, withZod } from '@/lib/api-wrapper';
+import { z } from 'zod';
 
-export async function POST(request: NextRequest) {
-  try {
+const schema = z.object({
+  user_id: z.string().min(1),
+  email: z.string().email(),
+  full_name: z.string().optional(),
+  avatar_url: z.string().url().optional(),
+  auth_provider: z.string().optional()
+});
+
+export const POST = withApiError(withZod(schema, async (request: NextRequest) => {
     const body = await request.json();
     const { user_id, email, full_name, avatar_url, auth_provider } = body;
 
@@ -118,13 +127,4 @@ export async function POST(request: NextRequest) {
       message: 'Profile created successfully',
       profile: newProfile
     });
-
-  } catch (error) {
-    const normalized = normalizeError(error);
-    logger.error(`Error in ensure-profile API: ${normalized}`);
-    
-    return NextResponse.json({
-      error: 'Er is een fout opgetreden bij het verwerken van je profiel'
-    }, { status: 500 });
-  }
-}
+}));
