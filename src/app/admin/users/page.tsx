@@ -13,9 +13,6 @@ interface User {
   is_active: boolean;
 }
 
-// _UserManagementProps reserved for future props extension
-interface _UserManagementProps {}
-
 export default function UserManagementPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);

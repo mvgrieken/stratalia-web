@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars, @typescript-eslint/no-unused-vars */
 /**
  * Unit tests for MutationObserver safety guards
  * Ensures that observer.observe() only runs with valid Node targets
