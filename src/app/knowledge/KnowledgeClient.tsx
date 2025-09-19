@@ -35,7 +35,8 @@ export default function KnowledgeClient({ initialItems }: KnowledgeClientProps) 
   const [filters, setFilters] = useState({
     searchQuery: '',
     selectedType: 'all',
-    selectedDifficulty: 'all'
+    selectedDifficulty: 'all',
+    selectedTags: [] as string[]
   });
 
   const filterItems = useCallback(() => {
@@ -55,6 +56,12 @@ export default function KnowledgeClient({ initialItems }: KnowledgeClientProps) 
         item.content.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
         item.category.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
         item.tags.some(tag => tag.toLowerCase().includes(filters.searchQuery.toLowerCase()))
+      );
+    }
+
+    if (filters.selectedTags && filters.selectedTags.length > 0) {
+      filtered = filtered.filter(item =>
+        filters.selectedTags!.every(tag => item.tags.map(t => t.toLowerCase()).includes(tag.toLowerCase()))
       );
     }
 
@@ -146,7 +153,8 @@ export default function KnowledgeClient({ initialItems }: KnowledgeClientProps) 
             onClearFilters={() => setFilters({
               searchQuery: '',
               selectedType: 'all',
-              selectedDifficulty: 'all'
+              selectedDifficulty: 'all',
+              selectedTags: []
             })}
           />
         ) : (

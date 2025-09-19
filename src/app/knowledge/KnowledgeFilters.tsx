@@ -7,6 +7,7 @@ interface KnowledgeFiltersProps {
     searchQuery: string;
     selectedType: string;
     selectedDifficulty: string;
+    selectedTags?: string[];
   }) => void;
 }
 
@@ -14,17 +15,20 @@ export default function KnowledgeFilters({ onFiltersChange }: KnowledgeFiltersPr
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState('all');
   const [selectedDifficulty, setSelectedDifficulty] = useState('all');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
-  const handleFilterChange = (newSearchQuery?: string, newSelectedType?: string, newSelectedDifficulty?: string) => {
+  const handleFilterChange = (newSearchQuery?: string, newSelectedType?: string, newSelectedDifficulty?: string, newSelectedTags?: string[]) => {
     const updatedSearchQuery = newSearchQuery !== undefined ? newSearchQuery : searchQuery;
     const updatedSelectedType = newSelectedType !== undefined ? newSelectedType : selectedType;
     const updatedSelectedDifficulty = newSelectedDifficulty !== undefined ? newSelectedDifficulty : selectedDifficulty;
+    const updatedSelectedTags = newSelectedTags !== undefined ? newSelectedTags : selectedTags;
     
     onFiltersChange({
       searchQuery: updatedSearchQuery,
       selectedType: updatedSelectedType,
-      selectedDifficulty: updatedSelectedDifficulty
+      selectedDifficulty: updatedSelectedDifficulty,
+      selectedTags: updatedSelectedTags
     });
   };
 
@@ -32,10 +36,12 @@ export default function KnowledgeFilters({ onFiltersChange }: KnowledgeFiltersPr
     setSearchQuery('');
     setSelectedType('all');
     setSelectedDifficulty('all');
+    setSelectedTags([]);
     onFiltersChange({
       searchQuery: '',
       selectedType: 'all',
-      selectedDifficulty: 'all'
+      selectedDifficulty: 'all',
+      selectedTags: []
     });
   };
 
@@ -121,6 +127,33 @@ export default function KnowledgeFilters({ onFiltersChange }: KnowledgeFiltersPr
             <option value="intermediate">Gemiddeld</option>
             <option value="advanced">Gevorderd</option>
           </select>
+        </div>
+
+        {/* Tags Filter (simple multi-select via checkboxes) */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Tags
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {['introductie','video','podcast','sociale-media','woordenlijst','geschiedenis','beginners','intermediate','advanced'].map(tag => (
+              <label key={tag} className={`px-3 py-1 rounded-full cursor-pointer border ${selectedTags.includes(tag) ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 text-gray-700 border-gray-300'}`}>
+                <input
+                  type="checkbox"
+                  className="hidden"
+                  checked={selectedTags.includes(tag)}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    const newTags = checked
+                      ? [...selectedTags, tag]
+                      : selectedTags.filter(t => t !== tag);
+                    setSelectedTags(newTags);
+                    handleFilterChange(undefined, undefined, undefined, newTags);
+                  }}
+                />
+                #{tag}
+              </label>
+            ))}
+          </div>
         </div>
 
         {/* Clear Filters */}
