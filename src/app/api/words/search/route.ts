@@ -6,9 +6,15 @@ import { cacheService, cacheKeys, CACHE_TTL } from '@/lib/cache-service';
 import { getSupabaseServiceClient } from '@/lib/supabase-client';
 import { isSupabaseConfigured } from '@/lib/config';
 import type { SearchResult } from '@/types/api';
+import { withApiError, withZod } from '@/lib/api-wrapper';
+import { z } from 'zod';
 
-export async function GET(request: NextRequest) {
-  try {
+const searchSchema = z.object({
+  query: z.string().trim().min(1).optional(),
+  limit: z.string().optional()
+});
+
+export const GET = withApiError(withZod(searchSchema, async (request: NextRequest) => {
     // Apply rate limiting
     const rateLimitCheck = applyRateLimit(request, 'search');
     if (!rateLimitCheck.allowed) {
@@ -201,21 +207,4 @@ export async function GET(request: NextRequest) {
 
     logger.info(`Search completed successfully: resultCount=${results.length}, source=${responseData.source}`);
     return createSuccessResponse(responseData, 200);
-
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    logger.error(`Search API error: ${error instanceof Error ? error.message : String(error)}`);
-    
-    // Return fallback response instead of error
-    const { searchParams } = new URL(request.url);
-    const query = searchParams.get('query') || '';
-    
-    return createSuccessResponse({
-      results: [],
-      message: `Zoeken mislukt voor "${query}". Probeer het opnieuw.`,
-      suggestions: ['skeer', 'breezy', 'flexen', 'chill', 'dope', 'lit', 'waggi', 'bro', 'sick'],
-      total: 0,
-      source: 'fallback'
-    }, 200);
-  }
-}
+}));

@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { normalizeError } from '@/lib/errors';
 import { logger } from '@/lib/logger';
 import { validateLogin } from '@/lib/validation';
 import { applyRateLimit } from '@/middleware/rateLimiter';
 import { isAuthConfigured, getConfigErrorMessage } from '@/lib/environment-check';
+import { withApiError } from '@/lib/api-wrapper';
 
-export async function POST(request: NextRequest) {
-  try {
+export const POST = withApiError(async (request: NextRequest) => {
     // Apply rate limiting for auth endpoints
     const rateLimitCheck = applyRateLimit(request, 'auth');
     if (!rateLimitCheck.allowed) {
@@ -130,11 +129,4 @@ export async function POST(request: NextRequest) {
       session: authData.session
     });
 
-  } catch (error) {
-    const normalized = normalizeError(error);
-    logger.error(`💥 Error in login API ${normalized}`);
-    return NextResponse.json({
-      error: 'Er is een onverwachte fout opgetreden. Probeer het later opnieuw.'
-    }, { status: 500 });
-  }
-}
+});

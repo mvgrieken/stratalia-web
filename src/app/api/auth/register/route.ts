@@ -4,8 +4,8 @@ import { logger } from '@/lib/logger';
 import { normalizeError } from '@/lib/errors';
 // import { validateRegistration } from '@/lib/validation'; // Temporarily disabled for debugging
 import { applyRateLimit } from '@/middleware/rateLimiter';
-export async function POST(request: NextRequest) {
-  try {
+import { withApiError } from '@/lib/api-wrapper';
+export const POST = withApiError(async (request: NextRequest) => {
     // Apply rate limiting for auth endpoints
     const rateLimitCheck = applyRateLimit(request, 'auth');
     if (!rateLimitCheck.allowed) {
@@ -109,12 +109,5 @@ export async function POST(request: NextRequest) {
         name: full_name
       }
     });
-  } catch (error) {
-    const normalized = normalizeError(error);
-    logger.error(`💥 Error in registration API: ${normalized}`);
-    return NextResponse.json({
-      error: 'Er is een onverwachte fout opgetreden. Probeer het later opnieuw.'
-    }, { status: 500 });
-  }
-}
+});
 // Email validation now handled by Zod schema in validateRegistration
