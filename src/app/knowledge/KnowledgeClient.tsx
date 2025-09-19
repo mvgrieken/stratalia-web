@@ -39,6 +39,15 @@ export default function KnowledgeClient({ initialItems }: KnowledgeClientProps) 
     selectedTags: [] as string[]
   });
 
+  const handleFiltersChange = useCallback((f: { searchQuery: string; selectedType: string; selectedDifficulty: string; selectedTags?: string[] }) => {
+    setFilters({
+      searchQuery: f.searchQuery,
+      selectedType: f.selectedType,
+      selectedDifficulty: f.selectedDifficulty,
+      selectedTags: f.selectedTags ?? [],
+    });
+  }, []);
+
   const filterItems = useCallback(() => {
     let filtered = items;
 
@@ -138,7 +147,7 @@ export default function KnowledgeClient({ initialItems }: KnowledgeClientProps) 
         </div>
 
         {/* Filters */}
-        <KnowledgeFilters onFiltersChange={setFilters} />
+        <KnowledgeFilters onFiltersChange={handleFiltersChange} />
 
         {/* Results */}
         <div className="mb-6">
