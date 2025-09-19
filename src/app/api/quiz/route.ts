@@ -1,9 +1,16 @@
 import { NextRequest } from 'next/server';
 import { quizService } from '@/services/QuizService';
-import { createSuccessResponse, withErrorHandling, Errors, AppError } from '@/lib/errors';
+import { createSuccessResponse, Errors, AppError } from '@/lib/errors';
 import { logger } from '@/lib/logger';
+import { withApiError, withZod } from '@/lib/api-wrapper';
+import { z } from 'zod';
 
-export const GET = withErrorHandling(async (request: NextRequest) => {
+const querySchema = z.object({
+  difficulty: z.enum(['easy', 'medium', 'hard']).optional(),
+  limit: z.string().optional().default('5')
+});
+
+export const GET = withApiError(withZod(querySchema, async (request: NextRequest) => {
   const { searchParams } = new URL(request.url);
   const difficulty = searchParams.get('difficulty') as 'easy' | 'medium' | 'hard' | undefined;
   const limit = parseInt(searchParams.get('limit') || '5');
@@ -47,4 +54,4 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
   }, 200, { 
     source: questions[0]?.id.startsWith('fallback') ? 'fallback' : 'database' 
   });
-});
+}));
