@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: Request, context: any) {
   try {
-    const proposalId = params.id;
-    const { reason } = await request.json().catch(() => ({ reason: null }));
+    const proposalId = context?.params?.id as string;
+    const { reason } = await (request as any).json().catch(() => ({ reason: null }));
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
