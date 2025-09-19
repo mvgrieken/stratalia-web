@@ -28,6 +28,7 @@ export const POST = withApiError(async (request: NextRequest) => {
     }
     
     const { email, password } = validatedData;
+    const redirectTo = (body?.redirect_to as string) || '/dashboard';
 
     // Check environment configuration
     if (!isAuthConfigured()) {
@@ -122,23 +123,9 @@ export const POST = withApiError(async (request: NextRequest) => {
         }, { status: 500, headers: response.headers });
       }
 
-      return NextResponse.json({
-        user: {
-          id: authData.user.id,
-          email: authData.user.email,
-          name: newProfile.name
-        },
-        session: authData.session
-      }, { headers: response.headers });
+      return NextResponse.redirect(new URL(redirectTo, request.url), { headers: response.headers, status: 303 });
     }
 
-    return NextResponse.json({
-      user: {
-        id: authData.user.id,
-        email: authData.user.email,
-        name: profile.name
-      },
-      session: authData.session
-    }, { headers: response.headers });
+    return NextResponse.redirect(new URL(redirectTo, request.url), { headers: response.headers, status: 303 });
 
 });

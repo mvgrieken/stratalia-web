@@ -109,7 +109,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password, redirect_to: '/dashboard' })
       });
 
       if (!res.ok) {
@@ -125,12 +125,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         return { error: message };
       }
-      // Success: fetch profile and set user
-      const response = await fetch('/api/auth/me');
-      if (response.ok) {
-        const userData = await response.json();
-        setUser(userData.user);
-      }
+      // Success: on 303 redirect, browser will navigate. For SPA feel, also fetch user.
+      try {
+        const response = await fetch('/api/auth/me', { cache: 'no-store' });
+        if (response.ok) {
+          const userData = await response.json();
+          setUser(userData.user);
+        }
+      } catch {}
       logger.debug('✅ AuthProvider: Login successful via server route');
       return {};
     } catch (error) {
