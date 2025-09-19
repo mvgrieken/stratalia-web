@@ -8,7 +8,7 @@ const mockTakeRecords = vi.fn();
 
 // Mock MutationObserver
 class MockMutationObserver {
-  constructor(public callback: MutationCallback) {}
+  constructor(public _callback: MutationCallback) {}
   observe = mockObserve;
   disconnect = mockDisconnect;
   takeRecords = mockTakeRecords;

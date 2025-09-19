@@ -5,7 +5,7 @@ import React from 'react';
 import { useState, useEffect, useRef } from 'react';
 
 interface KnowledgeFiltersProps {
-  onFiltersChange: (filters: {
+  onFiltersChange: (_filters: {
     searchQuery: string;
     selectedType: string;
     selectedDifficulty: string;
