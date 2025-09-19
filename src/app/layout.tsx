@@ -16,7 +16,6 @@ export const metadata: Metadata = {
   description: 'Leer straattaal met onze interactieve app. Vertaal woorden, doe quizzen en draag bij aan de community.',
   keywords: 'straattaal, nederlands, vertalen, quiz, community',
   authors: [{ name: 'Stratalia Team' }],
-  viewport: 'width=device-width, initial-scale=1',
   icons: {
     icon: [
       { url: '/favicon.svg', type: 'image/svg+xml' }
@@ -31,6 +30,11 @@ export const metadata: Metadata = {
     'X-XSS-Protection': '1; mode=block',
   },
 }
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+} satisfies import('next').Viewport
 
 export default function RootLayout({
   children,
