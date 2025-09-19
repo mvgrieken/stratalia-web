@@ -2,8 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
 import { normalizeError } from '@/lib/errors';
-export async function GET(request: NextRequest) {
-  try {
+import { withApiError, withZod } from '@/lib/api-wrapper';
+import { z } from 'zod';
+const getSchema = z.object({
+  user_id: z.string().min(1),
+  unread_only: z.string().optional(),
+  limit: z.string().optional()
+});
+
+export const GET = withApiError(withZod(getSchema, async (request: NextRequest) => {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('user_id');
     const unreadOnly = searchParams.get('unread_only') === 'true';
@@ -56,17 +63,16 @@ export async function GET(request: NextRequest) {
       unread_count: unreadCount || 0,
       total_count: notifications?.length || 0
     });
-  } catch (error) {
-    const normalized = normalizeError(error);
-    logger.error(`💥 Error in notifications API: ${normalized}`);
-    return NextResponse.json({
-      error: 'Internal server error',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
-  }
-}
-export async function POST(request: NextRequest) {
-  try {
+}));
+const createSchema = z.object({
+  user_id: z.string().min(1),
+  notification_type: z.string().min(1),
+  title: z.string().min(1),
+  message: z.string().min(1),
+  data: z.record(z.any()).optional()
+});
+
+export const POST = withApiError(withZod(createSchema, async (request: NextRequest) => {
     const { user_id, notification_type, title, message, data } = await request.json();
     if (!user_id || !notification_type || !title || !message) {
       return NextResponse.json({
@@ -107,17 +113,13 @@ export async function POST(request: NextRequest) {
       success: true,
       notification
     });
-  } catch (error) {
-    const normalized = normalizeError(error);
-    logger.error(`💥 Error in notification creation API: ${normalized}`);
-    return NextResponse.json({
-      error: 'Internal server error',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
-  }
-}
-export async function PUT(request: NextRequest) {
-  try {
+}));
+const putSchema = z.object({
+  notification_id: z.string().min(1),
+  user_id: z.string().min(1)
+});
+
+export const PUT = withApiError(withZod(putSchema, async (request: NextRequest) => {
     const { notification_id, user_id } = await request.json();
     if (!notification_id || !user_id) {
       return NextResponse.json({
@@ -154,12 +156,4 @@ export async function PUT(request: NextRequest) {
       success: true,
       notification
     });
-  } catch (error) {
-    const normalized = normalizeError(error);
-    logger.error(`💥 Error in notification read API: ${normalized}`);
-    return NextResponse.json({
-      error: 'Internal server error',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
-  }
-}
+}));

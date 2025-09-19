@@ -4,9 +4,15 @@ import { logger } from '@/lib/logger';
 import { normalizeError } from '@/lib/errors';
 import { applyRateLimit } from '@/middleware/rateLimiter';
 import bcrypt from 'bcryptjs';
+import { withApiError, withZod } from '@/lib/api-wrapper';
+import { z } from 'zod';
 
-export async function POST(request: NextRequest) {
-  try {
+const schema = z.object({
+  email: z.string().email(),
+  pin: z.string().regex(/^\d{4,6}$/)
+});
+
+export const POST = withApiError(withZod(schema, async (request: NextRequest) => {
     // Apply rate limiting for PIN attempts
     const rateLimitCheck = applyRateLimit(request, 'auth');
     if (!rateLimitCheck.allowed) {
@@ -150,13 +156,4 @@ export async function POST(request: NextRequest) {
       // This is a simplified approach for demonstration
       session_url: sessionData.properties?.action_link // Magic link for session
     });
-
-  } catch (error) {
-    const normalized = normalizeError(error);
-    logger.error(`PIN verification error: ${normalized}`);
-    
-    return NextResponse.json({
-      error: 'Er is een fout opgetreden bij PIN verificatie'
-    }, { status: 500 });
-  }
-}
+}));

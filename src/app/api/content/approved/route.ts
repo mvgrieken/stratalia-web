@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { logger } from '@/lib/logger';
+import { withApiError, withZod } from '@/lib/api-wrapper';
+import { z } from 'zod';
 
-export async function GET(request: NextRequest) {
-  try {
+const schema = z.object({
+  type: z.string().optional(),
+  category: z.string().optional(),
+  difficulty: z.string().optional(),
+  search: z.string().optional(),
+  limit: z.string().optional(),
+  offset: z.string().optional()
+});
+
+export const GET = withApiError(withZod(schema, async (request: NextRequest) => {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type');
     const category = searchParams.get('category');
@@ -107,16 +117,4 @@ export async function GET(request: NextRequest) {
         statistics
       }
     });
-
-  } catch (error) {
-    logger.error(`Error in knowledge items API: ${error instanceof Error ? error.message : String(error)}`);
-    return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Internal server error',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    );
-  }
-}
+}));
