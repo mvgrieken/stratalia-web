@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceClient } from '@/lib/supabase-client';
 import { logger } from '@/lib/logger';
+import { withApiError } from '@/lib/api-wrapper';
 
-export async function GET(request: NextRequest) {
-  try {
+export const GET = withApiError(async (request: NextRequest) => {
     // Get current user from session
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -50,9 +50,4 @@ export async function GET(request: NextRequest) {
       rejected_count: submissions?.filter(s => s.status === 'rejected').length || 0,
       pending_count: submissions?.filter(s => s.status === 'pending').length || 0
     });
-
-  } catch (error) {
-    logger.error(`Error in /api/profile/points GET: ${error instanceof Error ? error.message : String(error)}`);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
+});

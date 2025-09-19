@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceClient } from '@/lib/supabase-client';
 import { logger } from '@/lib/logger';
+import { withApiError, withZod } from '@/lib/api-wrapper';
+import { z } from 'zod';
 
-export async function GET(request: NextRequest) {
-  try {
+const schema = z.object({
+  limit: z.string().optional(),
+  offset: z.string().optional(),
+  status: z.string().optional(),
+});
+
+export const GET = withApiError(withZod(schema, async (request: NextRequest) => {
     // Get current user from session
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -51,9 +58,4 @@ export async function GET(request: NextRequest) {
       limit,
       offset
     });
-
-  } catch (error) {
-    logger.error(`Error in /api/profile/submissions GET: ${error instanceof Error ? error.message : String(error)}`);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
+}));
