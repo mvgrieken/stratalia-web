@@ -150,7 +150,7 @@ export const POST = withApiError(withZod(postSchema, async (request: NextRequest
 }));
 
 // GET /api/admin/moderate-content - Get moderation statistics
-export const GET = withApiError(async (request: NextRequest) => {
+export const GET = withApiError(async (_request: NextRequest) => {
     logger.info('📊 Fetching moderation statistics');
 
     // Initialize Supabase client

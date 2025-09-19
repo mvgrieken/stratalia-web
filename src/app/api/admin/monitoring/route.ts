@@ -3,7 +3,7 @@ import { getSupabaseServiceClient } from '@/lib/supabase-client';
 import { logger } from '@/lib/logger';
 import { withApiError } from '@/lib/api-wrapper';
 
-export const GET = withApiError(async (request: NextRequest) => {
+export const GET = withApiError(async (_request: NextRequest) => {
     // Get current user from session for admin check
     const supabase = getSupabaseServiceClient();
     

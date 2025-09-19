@@ -203,7 +203,7 @@ export const POST = withApiError(withZod(postSchema, async (request: NextRequest
     });
 }));
 
-export const GET = withApiError(async (request: NextRequest) => {
+export const GET = withApiError(async (_request: NextRequest) => {
     // Get current user from session for admin check
     const supabase = getSupabaseServiceClient();
     
