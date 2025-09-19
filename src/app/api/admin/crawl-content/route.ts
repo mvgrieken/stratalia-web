@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceClient } from '@/lib/supabase-client';
 import { logger } from '@/lib/logger';
+import { withApiError, withZod } from '@/lib/api-wrapper';
+import { z } from 'zod';
 
 // Mock content sources for demonstration
 const CONTENT_SOURCES = [
@@ -82,8 +84,12 @@ const MOCK_DISCOVERED_CONTENT = [
   }
 ];
 
-export async function POST(request: NextRequest) {
-  try {
+const postSchema = z.object({
+  source_types: z.array(z.string()).optional(),
+  force_update: z.boolean().optional()
+});
+
+export const POST = withApiError(withZod(postSchema, async (request: NextRequest) => {
     // Get current user from session for admin check
     const supabase = getSupabaseServiceClient();
     
@@ -195,15 +201,9 @@ export async function POST(request: NextRequest) {
         proposals: insertedProposals?.map(p => ({ id: p.id, title: p.proposed_data.title })) || []
       }
     });
+}));
 
-  } catch (error) {
-    logger.error(`Error in /api/admin/crawl-content POST: ${error instanceof Error ? error.message : String(error)}`);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
-
-export async function GET(request: NextRequest) {
-  try {
+export const GET = withApiError(async (request: NextRequest) => {
     // Get current user from session for admin check
     const supabase = getSupabaseServiceClient();
     
@@ -272,9 +272,4 @@ export async function GET(request: NextRequest) {
         created_at: p.created_at
       })) || []
     });
-
-  } catch (error) {
-    logger.error(`Error in /api/admin/crawl-content GET: ${error instanceof Error ? error.message : String(error)}`);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
+});
