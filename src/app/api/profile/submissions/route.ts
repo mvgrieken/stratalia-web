@@ -24,7 +24,7 @@ export const GET = withApiError(withZod(schema, async (_request: NextRequest) =>
     logger.info(`User ${session.user.email} fetching their submissions`);
 
     // Get query parameters
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = new URL(_request.url);
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = parseInt(searchParams.get('offset') || '0');
     const status = searchParams.get('status') || 'all';
