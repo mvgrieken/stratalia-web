@@ -21,63 +21,45 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Get current user from auth
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader) {
-      return NextResponse.json({
-        error: 'Authenticatie vereist'
-      }, { status: 401 });
-    }
-
-    const token = authHeader.replace('Bearer ', '');
-    
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    
-    if (!supabaseUrl || !supabaseServiceKey) {
-      return NextResponse.json({
-        error: 'Database configuratie ontbreekt'
-      }, { status: 500 });
+
+    if (!supabaseUrl || !supabaseServiceKey || !supabaseAnonKey) {
+      return NextResponse.json({ error: 'Database configuratie ontbreekt' }, { status: 500 });
     }
 
-    const supabaseAnon = createClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
-    const supabaseService = createClient(supabaseUrl, supabaseServiceKey);
+    const supabaseAnon = createClient(supabaseUrl, supabaseAnonKey, { auth: { persistSession: false } });
+    const supabaseService = createClient(supabaseUrl, supabaseServiceKey, { auth: { persistSession: false } });
 
-    // Verify current user
-    const { data: currentUserData, error: userError } = await supabaseAnon.auth.getUser(token);
-    
-    if (userError || !currentUserData.user) {
-      return NextResponse.json({
-        error: 'Ongeldige authenticatie'
-      }, { status: 401 });
+    // Get current admin from cookies-based session
+    const { data: sessionData, error: sessionError } = await supabaseService.auth.getSession();
+    if (sessionError || !sessionData.session?.user) {
+      return NextResponse.json({ error: 'Authenticatie vereist' }, { status: 401 });
     }
 
-    // Get current user's profile and target user's profile
+    const currentUserId = sessionData.session.user.id;
+
+    // Fetch profiles
     const { data: profiles, error: profilesError } = await supabaseService
       .from('users')
       .select('id, role, email, name')
-      .in('id', [currentUserData.user.id, user_id]);
+      .in('id', [currentUserId, user_id]);
 
     if (profilesError || !profiles || profiles.length !== 2) {
-      return NextResponse.json({
-        error: 'Gebruikersprofielen niet gevonden'
-      }, { status: 404 });
+      return NextResponse.json({ error: 'Gebruikersprofielen niet gevonden' }, { status: 404 });
     }
 
-    const currentProfile = profiles.find(p => p.id === currentUserData.user.id);
+    const currentProfile = profiles.find(p => p.id === currentUserId);
     const targetProfile = profiles.find(p => p.id === user_id);
 
     if (!currentProfile || !targetProfile) {
-      return NextResponse.json({
-        error: 'Profiel niet gevonden'
-      }, { status: 404 });
+      return NextResponse.json({ error: 'Profiel niet gevonden' }, { status: 404 });
     }
 
     // Check permissions
     if (!canManageUsers(currentProfile.role as UserRole)) {
-      return NextResponse.json({
-        error: 'Onvoldoende rechten voor gebruikersbeheer'
-      }, { status: 403 });
+      return NextResponse.json({ error: 'Onvoldoende rechten voor gebruikersbeheer' }, { status: 403 });
     }
 
     // Validate role change
@@ -85,35 +67,29 @@ export async function POST(request: NextRequest) {
       currentProfile.role as UserRole,
       targetProfile.role as UserRole,
       new_role as UserRole,
-      user_id === currentUserData.user.id
+      user_id === currentUserId
     );
 
     if (!roleCheck.allowed) {
-      return NextResponse.json({
-        error: roleCheck.reason || 'Rol wijziging niet toegestaan'
-      }, { status: 403 });
+      return NextResponse.json({ error: roleCheck.reason || 'Rol wijziging niet toegestaan' }, { status: 403 });
     }
 
     // Update role
     const { error: updateError } = await supabaseService
       .from('users')
-      .update({ 
-        role: new_role
-      })
+      .update({ role: new_role })
       .eq('id', user_id);
 
     if (updateError) {
       logger.error(`Error updating user role: ${updateError instanceof Error ? updateError.message : String(updateError)}`);
-      return NextResponse.json({
-        error: 'Fout bij wijzigen van rol'
-      }, { status: 500 });
+      return NextResponse.json({ error: 'Fout bij wijzigen van rol' }, { status: 500 });
     }
 
     // Log admin action
     await supabaseService
       .from('admin_actions')
       .insert({
-        admin_user_id: currentUserData.user.id,
+        admin_user_id: currentUserId,
         action_type: 'update_user_role',
         target_user_id: user_id,
         action_details: {
@@ -140,9 +116,6 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const normalized = normalizeError(error);
     logger.error(`Error in update-role API: ${normalized}`);
-    
-    return NextResponse.json({
-      error: 'Er is een fout opgetreden bij het wijzigen van de rol'
-    }, { status: 500 });
+    return NextResponse.json({ error: 'Er is een fout opgetreden bij het wijzigen van de rol' }, { status: 500 });
   }
 }

@@ -25,6 +25,7 @@ export default function UserManagementPage() {
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [updateRole, setUpdateRole] = useState<'user' | 'moderator' | 'admin'>('user');
   const [updateNotes, setUpdateNotes] = useState('');
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
   // Fetch users on component mount
   useEffect(() => {
@@ -77,6 +78,53 @@ export default function UserManagementPage() {
       setUpdateNotes('');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update roles');
+    }
+  };
+
+  const blockUsers = async (ids: string[], reason?: string) => {
+    const res = await Promise.all(
+      ids.map((id) => fetch('/api/admin/block-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: id, reason })
+      }))
+    );
+    const failed = res.filter(r => !r.ok);
+    if (failed.length) throw new Error(`${failed.length} blokkeringen mislukt`);
+  };
+
+  const unblockUsers = async (ids: string[]) => {
+    const res = await Promise.all(
+      ids.map((id) => fetch('/api/admin/unblock-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: id })
+      }))
+    );
+    const failed = res.filter(r => !r.ok);
+    if (failed.length) throw new Error(`${failed.length} deblokkeringen mislukt`);
+  };
+
+  const handleBlockSelected = async () => {
+    if (selectedUsers.length === 0) return;
+    try {
+      const reason = window.prompt('Reden voor blokkeren (optioneel):') || undefined;
+      await blockUsers(selectedUsers, reason);
+      await fetchUsers();
+      setSelectedUsers([]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Blokkeren mislukt');
+    }
+  };
+
+  const handleUnblockSelected = async () => {
+    if (selectedUsers.length === 0) return;
+    try {
+      await unblockUsers(selectedUsers);
+      await fetchUsers();
+      setSelectedUsers([]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Deblokkeren mislukt');
     }
   };
 
@@ -161,6 +209,18 @@ export default function UserManagementPage() {
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   Rollen bijwerken ({selectedUsers.length})
+                </button>
+                <button
+                  onClick={handleBlockSelected}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Blokkeren ({selectedUsers.length})
+                </button>
+                <button
+                  onClick={handleUnblockSelected}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  Deblokkeren ({selectedUsers.length})
                 </button>
                 <button
                   onClick={() => setSelectedUsers([])}
@@ -271,11 +331,50 @@ export default function UserManagementPage() {
                       {user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleDateString('nl-NL') : 'Nooit'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        user.is_active ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                      }`}>
-                        {user.is_active ? 'Actief' : 'Inactief'}
-                      </span>
+                      <div className="flex items-center gap-3">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          user.is_active ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                        }`}>
+                          {user.is_active ? 'Actief' : 'Inactief'}
+                        </span>
+                        {user.is_active ? (
+                          <button
+                            onClick={async () => {
+                              setActionLoadingId(user.id);
+                              try {
+                                await blockUsers([user.id]);
+                                await fetchUsers();
+                              } catch (err) {
+                                setError(err instanceof Error ? err.message : 'Blokkeren mislukt');
+                              } finally {
+                                setActionLoadingId(null);
+                              }
+                            }}
+                            disabled={actionLoadingId === user.id}
+                            className="px-3 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+                          >
+                            {actionLoadingId === user.id ? '...' : 'Blokkeer'}
+                          </button>
+                        ) : (
+                          <button
+                            onClick={async () => {
+                              setActionLoadingId(user.id);
+                              try {
+                                await unblockUsers([user.id]);
+                                await fetchUsers();
+                              } catch (err) {
+                                setError(err instanceof Error ? err.message : 'Deblokkeren mislukt');
+                              } finally {
+                                setActionLoadingId(null);
+                              }
+                            }}
+                            disabled={actionLoadingId === user.id}
+                            className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+                          >
+                            {actionLoadingId === user.id ? '...' : 'Deblokkeer'}
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
