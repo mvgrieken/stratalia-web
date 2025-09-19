@@ -43,6 +43,17 @@ export async function POST(request: NextRequest) {
         const normalized = normalizeError(dbError);
         logger.warn(`Database translation failed, using fallback: ${normalized.message}`);
         translation = await generateFallbackTranslation(cleanText, direction);
+        // Store AI translation for analytics
+        try {
+          const supabaseStore = createClient(config.supabase.url, config.supabase.anonKey);
+          await supabaseStore
+            .from('ai_translations')
+            .upsert({ phrase: cleanText, translation: translation.translation, score: translation.confidence })
+            .select()
+            .single();
+        } catch (storeErr) {
+          logger.debug('Storing AI translation failed (non-critical).');
+        }
       }
     } else {
       logger.info('Supabase not configured, using fallback translation');
