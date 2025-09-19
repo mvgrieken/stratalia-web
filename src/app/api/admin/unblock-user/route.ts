@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      await supabaseService.auth.admin.updateUserById(user_id, { banned_until: null as any });
+      await supabaseService.auth.admin.updateUserById(user_id, { ban_duration: 'none' as any });
     } catch (authErr) {
       logger.warn(`Auth unban failed for ${user_id}: ${authErr instanceof Error ? authErr.message : String(authErr)}`);
     }

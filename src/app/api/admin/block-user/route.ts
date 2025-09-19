@@ -10,7 +10,6 @@ export async function POST(request: NextRequest) {
     }
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
     const supabaseService = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
@@ -43,9 +42,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Kon gebruikersprofiel niet bijwerken' }, { status: 500 });
     }
 
-    // Disable authentication (if using Auth Admin)
+    // Disable authentication (Admin ban)
     try {
-      await supabaseService.auth.admin.updateUserById(user_id, { banned_until: '2999-12-31T23:59:59Z' as any });
+      await supabaseService.auth.admin.updateUserById(user_id, { ban_duration: 'forever' });
     } catch (authErr) {
       logger.warn(`Auth ban failed for ${user_id}: ${authErr instanceof Error ? authErr.message : String(authErr)}`);
     }
