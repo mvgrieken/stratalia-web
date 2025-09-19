@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { logger } from '@/lib/logger';
 import { validateLogin } from '@/lib/validation';
 import { applyRateLimit } from '@/middleware/rateLimiter';
@@ -42,10 +43,21 @@ export const POST = withApiError(async (request: NextRequest) => {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
+    // Prepare response so we can write cookies emitted by Supabase SSR
+    const response = NextResponse.next();
+
+    // Server-side Supabase client that reads/writes cookies on the response
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value;
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          response.cookies.set({ name, value, ...options });
+        },
+        remove(name: string, options: CookieOptions) {
+          response.cookies.set({ name, value: '', ...options, maxAge: 0 });
+        },
       },
     });
     
@@ -76,7 +88,7 @@ export const POST = withApiError(async (request: NextRequest) => {
       
       return NextResponse.json({
         error: errorMessage
-      }, { status: 401 });
+      }, { status: 401, headers: response.headers });
     }
 
     // Get user profile with role (use service client for profile access)
@@ -107,7 +119,7 @@ export const POST = withApiError(async (request: NextRequest) => {
         logger.error(`❌ Profile creation error ${createError instanceof Error ? createError.message : String(createError)}`);
         return NextResponse.json({
           error: 'Er is een probleem opgetreden bij het aanmaken van je profiel. Probeer het opnieuw.'
-        }, { status: 500 });
+        }, { status: 500, headers: response.headers });
       }
 
       return NextResponse.json({
@@ -117,7 +129,7 @@ export const POST = withApiError(async (request: NextRequest) => {
           name: newProfile.name
         },
         session: authData.session
-      });
+      }, { headers: response.headers });
     }
 
     return NextResponse.json({
@@ -127,6 +139,6 @@ export const POST = withApiError(async (request: NextRequest) => {
         name: profile.name
       },
       session: authData.session
-    });
+    }, { headers: response.headers });
 
 });

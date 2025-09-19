@@ -105,16 +105,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signIn = async (email: string, password: string) => {
     try {
       logger.debug(`🔐 AuthProvider: Attempting login for: ${email}`);
-      
-      const supabase = getSupabaseClient();
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
+
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
       });
 
-      if (error) {
-        logger.error(`❌ AuthProvider: Login failed: ${error instanceof Error ? error.message : String(error)}`);
-        const raw = (error as any)?.message ? String((error as any).message) : String(error);
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({ error: 'Inloggen mislukt. Probeer het opnieuw.' }));
+        const raw = String(body?.error || 'Inloggen mislukt. Probeer het opnieuw.');
         let message = 'Inloggen mislukt. Controleer je gegevens.';
         if (raw.includes('Invalid login credentials')) {
           message = 'Ongeldige inloggegevens. Controleer je e-mail en wachtwoord.';
@@ -125,25 +125,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         return { error: message };
       }
-
-      if (data.user) {
-        // Get user profile from our API
-        const response = await fetch('/api/auth/me');
-        if (response.ok) {
-          const userData = await response.json();
-          setUser(userData.user);
-        } else {
-          // Fallback to session user data
-          setUser({
-            id: data.user.id,
-            email: data.user.email || '',
-            name: data.user.user_metadata?.full_name || '',
-            role: 'user'
-          });
-        }
-        logger.debug('✅ AuthProvider: Login successful, user set');
-        return {};
+      // Success: fetch profile and set user
+      const response = await fetch('/api/auth/me');
+      if (response.ok) {
+        const userData = await response.json();
+        setUser(userData.user);
       }
+      logger.debug('✅ AuthProvider: Login successful via server route');
+      return {};
     } catch (error) {
       logger.error(`💥 AuthProvider: Network error during login: ${error instanceof Error ? error.message : String(error)}`);
       return { error: 'Verbindingsprobleem. Controleer je internetverbinding en probeer het opnieuw.' };
