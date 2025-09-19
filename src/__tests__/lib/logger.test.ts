@@ -47,13 +47,8 @@ describe('Logger - Simple Tests', () => {
 
   it('should handle error parameter correctly', async () => {
     const { logger } = await import('@/lib/logger');
-    
-    // Test that error method accepts optional Error parameter
-    const _testError = new Error('Test error');
-    
-    // These should not throw
     expect(() => logger.error('Test message')).not.toThrow();
-    expect(() => (await import('@/lib/logger')).logger.error('Test message with error')).not.toThrow();
+    expect(() => logger.error('Test message with error')).not.toThrow();
   });
 
   it('should handle context parameter correctly', async () => {

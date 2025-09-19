@@ -26,7 +26,7 @@ describe('Runtime Error Fixes', () => {
 
   describe('MutationObserver Protection', () => {
     it('should not crash when observe is called with null target', () => {
-      const observer = new MockMutationObserver(() => {});
+      const observer = new MockMutationObserver((_mutations, _observer) => {});
       
       // This should not throw an error after our fixes
       expect(() => {
@@ -35,7 +35,7 @@ describe('Runtime Error Fixes', () => {
     });
 
     it('should not crash when observe is called with undefined target', () => {
-      const observer = new MockMutationObserver(() => {});
+      const observer = new MockMutationObserver((_mutations, _observer) => {});
       
       expect(() => {
         observer.observe(undefined as any);
@@ -43,7 +43,7 @@ describe('Runtime Error Fixes', () => {
     });
 
     it('should not crash when observe is called with non-Node target', () => {
-      const observer = new MockMutationObserver(() => {});
+      const observer = new MockMutationObserver((_mutations, _observer) => {});
       
       expect(() => {
         observer.observe('not-a-node' as any);
@@ -59,7 +59,7 @@ describe('Runtime Error Fixes', () => {
     });
 
     it('should handle valid DOM node targets', () => {
-      const observer = new MockMutationObserver(() => {});
+      const observer = new MockMutationObserver((_mutations, _observer) => {});
       const mockNode = { nodeType: 1, ownerDocument: document } as any;
       
       // Mock document.contains
