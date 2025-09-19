@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-vars, @typescript-eslint/no-unused-vars */
+/* eslint-disable no-unused-vars */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 // _logger imported in dynamic tests below; top-level import not needed
 
