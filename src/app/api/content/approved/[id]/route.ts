@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceClient } from '@/lib/supabase-client';
 import { logger } from '@/lib/logger';
+import { withApiError } from '@/lib/api-wrapper';
 
-export async function GET(
+export const GET = withApiError(async (
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
-  try {
+) => {
     const { id } = await params;
 
     if (!id) {
@@ -150,13 +150,4 @@ export async function GET(
       success: false,
       error: 'Item not found'
     }, { status: 404 });
-
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    logger.error(`Error in content API: ${error instanceof Error ? error.message : String(error)}`);
-    return NextResponse.json({
-      success: false,
-      error: 'Internal server error'
-    }, { status: 500 });
-  }
-}
+});
