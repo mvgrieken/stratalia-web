@@ -2,10 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
 import { normalizeError } from '@/lib/errors';
+import { withApiError, withZod } from '@/lib/api-wrapper';
+import { z } from 'zod';
 
 // POST /api/admin/moderate-content - Moderate content proposals (approve/reject)
-export async function POST(request: NextRequest) {
-  try {
+const postSchema = z.object({
+  proposal_id: z.string().min(1),
+  action: z.enum(['approve', 'reject']),
+  review_notes: z.string().optional(),
+  reviewer_id: z.string().min(1)
+});
+
+export const POST = withApiError(withZod(postSchema, async (request: NextRequest) => {
     const body = await request.json();
     const { proposal_id, action, review_notes, reviewer_id } = body;
 
@@ -139,20 +147,10 @@ export async function POST(request: NextRequest) {
       proposal: updatedProposal,
       action: action
     });
-
-  } catch (error) {
-    const normalized = normalizeError(error);
-    logger.error(`💥 Error in moderate content API: ${normalized}`);
-    return NextResponse.json({
-      error: 'Internal server error',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
-  }
-}
+}));
 
 // GET /api/admin/moderate-content - Get moderation statistics
-export async function GET(request: NextRequest) {
-  try {
+export const GET = withApiError(async (request: NextRequest) => {
     logger.info('📊 Fetching moderation statistics');
 
     // Initialize Supabase client
@@ -236,13 +234,4 @@ export async function GET(request: NextRequest) {
       },
       recent_activity: recentActivity || []
     });
-
-  } catch (error) {
-    const normalized = normalizeError(error);
-    logger.error(`💥 Error in moderate content GET API: ${normalized}`);
-    return NextResponse.json({
-      error: 'Internal server error',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
-  }
-}
+});
