@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { logger } from '@/lib/logger';
 import { revalidatePath } from 'next/cache';
+import { withApiError, withZod } from '@/lib/api-wrapper';
+import { z } from 'zod';
 
 // Mock external content sources
 const EXTERNAL_SOURCES = {
@@ -50,8 +52,9 @@ const EXTERNAL_SOURCES = {
   ]
 };
 
-export async function POST(request: NextRequest) {
-  try {
+const schema = z.object({}); // no body; validate query via code below
+
+export const POST = withApiError(async (request: NextRequest) => {
     // Check for cron secret or admin authentication
     const authHeader = request.headers.get('authorization');
     const cronSecret = request.headers.get('x-cron-secret');
@@ -210,25 +213,13 @@ export async function POST(request: NextRequest) {
         timestamp: new Date().toISOString()
       }
     });
-
-  } catch (error) {
-    logger.error(`Error in knowledge refresh: ${error instanceof Error ? error.message : String(error)}`);
-    return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Internal server error',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    );
-  }
-}
+});
 
 // Allow GET for health checks
-export async function GET() {
+export const GET = withApiError(async () => {
   return NextResponse.json({
     success: true,
     message: 'Knowledge refresh API is running',
     timestamp: new Date().toISOString()
   });
-}
+});

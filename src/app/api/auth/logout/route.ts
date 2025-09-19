@@ -1,14 +1,9 @@
 import { NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { normalizeError } from '@/lib/errors';
-export async function POST() {
-  try {
-    // For now, just return success
-    // In a real implementation, you might want to invalidate the session
-    return NextResponse.json({ message: 'Logged out successfully' });
-  } catch (error) {
-    const normalized = normalizeError(error);
-    logger.error(`Error in logout: ${normalized}`);
-    return NextResponse.json({ error: 'Logout failed' }, { status: 500 });
-  }
-}
+import { withApiError } from '@/lib/api-wrapper';
+
+export const POST = withApiError(async () => {
+  // For now, just return success; session invalidation can be added later
+  return NextResponse.json({ message: 'Logged out successfully' });
+});
