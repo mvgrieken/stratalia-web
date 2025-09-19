@@ -1,23 +1,9 @@
-import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-// logger not used here
+import { NextRequest, NextResponse } from 'next/server';
 import { withApiError } from '@/lib/api-wrapper';
-export const GET = withApiError(async () => {
-    // Initialize Supabase client
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    if (!supabaseUrl || !supabaseAnonKey) {
-      return NextResponse.json({ user: null });
-    }
-    
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-      },
-    });
-    
-    // Get session from cookies
+import { getServerSupabase } from '@/lib/supabase-server';
+
+export const GET = withApiError(async (request: NextRequest) => {
+    const supabase = getServerSupabase(request);
     const { data: { session }, error } = await supabase.auth.getSession();
     if (error || !session?.user) {
       return NextResponse.json({ user: null });
