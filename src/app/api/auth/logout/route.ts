@@ -1,6 +1,4 @@
 import { NextResponse } from 'next/server';
-import { logger } from '@/lib/logger';
-import { normalizeError } from '@/lib/errors';
 import { withApiError } from '@/lib/api-wrapper';
 
 export const POST = withApiError(async () => {

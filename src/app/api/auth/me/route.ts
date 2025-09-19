@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
-import { normalizeError } from '@/lib/errors';
 import { withApiError } from '@/lib/api-wrapper';
 export const GET = withApiError(async () => {
     // Initialize Supabase client
