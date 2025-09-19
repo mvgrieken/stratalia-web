@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
-import { normalizeError } from '@/lib/errors';
+// removed unused normalizeError import where not needed
 import { applyRateLimit } from '@/middleware/rateLimiter';
 import { isSupabaseConfigured } from '@/lib/config';
 import { withApiError, withZod } from '@/lib/api-wrapper';
@@ -31,7 +31,7 @@ export const POST = withApiError(withZod(submitSchema, async (request: NextReque
     }
 
     const body: CommunitySubmission = await request.json();
-    const { word, definition, example, context, source, notes } = body;
+    const { word, definition, example, context, source } = body;
     
     logger.info(`📝 Community submission received for word: "${word}"`);
     

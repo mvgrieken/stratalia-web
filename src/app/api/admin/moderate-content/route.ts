@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
-import { normalizeError } from '@/lib/errors';
+// removed unused normalizeError import
 import { withApiError, withZod } from '@/lib/api-wrapper';
 import { z } from 'zod';
 
@@ -75,8 +75,7 @@ export const POST = withApiError(withZod(postSchema, async (request: NextRequest
       .single();
 
     if (updateError) {
-      const normalized = normalizeError(updateError);
-      logger.error(`❌ Error updating proposal: ${normalized}`);
+      logger.error(`❌ Error updating proposal: ${(updateError as any)?.message ?? 'Unknown error'}`);
       return NextResponse.json({
         error: 'Database unavailable',
         details: updateError.message
@@ -179,8 +178,7 @@ export const GET = withApiError(async (_request: NextRequest) => {
       });
 
     if (statusError) {
-      const normalized = normalizeError(statusError);
-      logger.error(`❌ Error fetching status counts: ${normalized}`);
+      logger.error(`❌ Error fetching status counts: ${(statusError as any)?.message ?? 'Unknown error'}`);
       return NextResponse.json({
         error: 'Database unavailable',
         details: (statusError as any)?.message ?? 'Unknown error'
@@ -200,8 +198,7 @@ export const GET = withApiError(async (_request: NextRequest) => {
       });
 
     if (typeError) {
-      const normalized = normalizeError(typeError);
-      logger.error(`❌ Error fetching type counts: ${normalized}`);
+      logger.error(`❌ Error fetching type counts: ${(typeError as any)?.message ?? 'Unknown error'}`);
       return NextResponse.json({
         error: 'Database unavailable',
         details: (typeError as any)?.message ?? 'Unknown error'
@@ -216,8 +213,7 @@ export const GET = withApiError(async (_request: NextRequest) => {
       .limit(10);
 
     if (activityError) {
-      const normalized = normalizeError(activityError);
-      logger.error(`❌ Error fetching recent activity: ${normalized}`);
+      logger.error(`❌ Error fetching recent activity: ${(activityError as any)?.message ?? 'Unknown error'}`);
       return NextResponse.json({
         error: 'Database unavailable',
         details: (activityError as any)?.message ?? 'Unknown error'

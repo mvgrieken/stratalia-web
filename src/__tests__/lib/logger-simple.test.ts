@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { logger } from '@/lib/logger';
+// _logger imported in dynamic tests below; top-level import not needed
 
 describe('Logger - Simple Tests', () => {
   let originalEnv: string | undefined;
@@ -49,11 +49,12 @@ describe('Logger - Simple Tests', () => {
     const { logger } = await import('@/lib/logger');
     
     // Test that error method accepts optional Error parameter
-    const testError = new Error('Test error');
+    const _testError = new Error('Test error');
     
     // These should not throw
     expect(() => logger.error('Test message')).not.toThrow();
-    expect(() => logger.error(`Test message ${error instanceof Error ? error.message : String(error)}`)).not.toThrow();
+    // No variable named `error` in scope; keep single-arg rule
+    expect(() => logger.error('Test message with error')).not.toThrow();
   });
 
   it('should handle context parameter correctly', async () => {

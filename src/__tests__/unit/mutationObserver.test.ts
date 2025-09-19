@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { logger } from '@/lib/logger';
+// Use test-local logger mock if needed; avoid unused import
 
 // Mock browser environment
 const mockObserve = vi.fn();

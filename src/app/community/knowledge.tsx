@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 type KnowledgeType = 'article' | 'video' | 'podcast' | 'infographic' | 'book' | 'music';
 
 export default function KnowledgeProposalForm() {
-  const router = useRouter();
+  const _router = useRouter();
   const [type, setType] = useState<KnowledgeType>('article');
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');

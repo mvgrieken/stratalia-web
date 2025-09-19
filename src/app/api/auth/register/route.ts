@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
-import { normalizeError } from '@/lib/errors';
+// removed unused normalizeError import
 // import { validateRegistration } from '@/lib/validation'; // Temporarily disabled for debugging
 import { applyRateLimit } from '@/middleware/rateLimiter';
 import { withApiError } from '@/lib/api-wrapper';

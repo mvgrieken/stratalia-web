@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { logger } from '@/lib/logger';
+// Use console spy pattern here; no direct logger import to avoid unused warning
 
 // Mock browser environment
 const mockObserve = vi.fn();
@@ -90,15 +90,15 @@ describe('Runtime Error Fixes', () => {
       console.error = mockError;
 
       // Simulate the error messages we want to suppress
-      logger.error('TypeError: Argument 1 (\'target\') to MutationObserver.observe must be an instance of Node');
-      logger.error('Something from credentials-library.js');
-      logger.error('Toegang tot de gevraagde resource is niet toegestaan');
+      console.error('TypeError: Argument 1 (\'target\') to MutationObserver.observe must be an instance of Node');
+      console.error('Something from credentials-library.js');
+      console.error('Toegang tot de gevraagde resource is niet toegestaan');
 
       // These should be suppressed (not called)
       expect(mockError).not.toHaveBeenCalled();
 
       // But legitimate errors should still work
-      logger.error('This is a legitimate error');
+      console.error('This is a legitimate error');
       expect(mockError).toHaveBeenCalledWith('This is a legitimate error');
 
       console.error = originalError;

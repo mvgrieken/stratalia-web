@@ -86,7 +86,7 @@ const MOCK_DISCOVERED_CONTENT = [
 
 const postSchema = z.object({
   source_types: z.array(z.string()).optional(),
-  force_update: z.boolean().optional()
+  _force_update: z.boolean().optional()
 });
 
 export const POST = withApiError(withZod(postSchema, async (request: NextRequest) => {
@@ -110,7 +110,7 @@ export const POST = withApiError(withZod(postSchema, async (request: NextRequest
     }
 
     const body = await request.json();
-    const { source_types = ['rss', 'youtube_channel', 'podcast_feed'], force_update = false } = body;
+    const { source_types = ['rss', 'youtube_channel', 'podcast_feed'] } = body;
 
     logger.info(`Admin ${session.user.email} starting content crawl for types: ${source_types.join(', ')}`);
 

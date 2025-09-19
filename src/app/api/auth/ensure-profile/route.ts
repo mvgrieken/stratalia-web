@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
-import { normalizeError } from '@/lib/errors';
+// removed unused normalizeError import
 import { withApiError, withZod } from '@/lib/api-wrapper';
 import { z } from 'zod';
 

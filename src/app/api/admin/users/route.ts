@@ -12,8 +12,8 @@ const schema = z.object({
 
 export const GET = withApiError(withZod(schema, async (request: NextRequest) => {
     // Get current user from session
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const _supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const _supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     const supabase = getSupabaseServiceClient();
     
     // Get session from cookies
