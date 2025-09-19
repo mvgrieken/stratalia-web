@@ -61,10 +61,11 @@ export default function KnowledgeFilters({ onFiltersChange }: KnowledgeFiltersPr
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {/* Search */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="knowledge-search" className="block text-sm font-medium text-gray-700 mb-2">
             Zoeken
           </label>
           <input
+            id="knowledge-search"
             type="text"
             value={searchQuery}
             onChange={(e) => {
@@ -88,10 +89,11 @@ export default function KnowledgeFilters({ onFiltersChange }: KnowledgeFiltersPr
 
         {/* Type Filter */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="knowledge-type" className="block text-sm font-medium text-gray-700 mb-2">
             Type
           </label>
           <select
+            id="knowledge-type"
             value={selectedType}
             onChange={(e) => {
               const value = e.target.value;
@@ -112,10 +114,11 @@ export default function KnowledgeFilters({ onFiltersChange }: KnowledgeFiltersPr
 
         {/* Difficulty Filter */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="knowledge-level" className="block text-sm font-medium text-gray-700 mb-2">
             Niveau
           </label>
           <select
+            id="knowledge-level"
             value={selectedDifficulty}
             onChange={(e) => {
               const value = e.target.value;
