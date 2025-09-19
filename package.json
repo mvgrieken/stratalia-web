@@ -15,6 +15,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:unit": "vitest run --coverage",
+    "test:smoke": "vitest run src/__tests__/api-content.filters.test.ts src/__tests__/knowledge-filters.client.test.ts",
     "test:coverage": "vitest --coverage",
     "test:e2e": "playwright test --reporter=dot",
     "clean": "rm -rf .next dist",
