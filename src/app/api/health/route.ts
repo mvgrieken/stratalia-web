@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
 import { normalizeError } from '@/lib/errors';
+import { monitoringService, performance } from '@/lib/monitoring';
+import { captureException, isSentryEnabled } from '@/lib/sentry';
 
 export async function GET() {
   const startTime = Date.now();
@@ -30,6 +32,7 @@ export async function GET() {
     } catch (urlError) {
       const normalizedUrlError = normalizeError(urlError);
       logger.error(`Health check failed: Invalid Supabase URL format ${urlError instanceof Error ? urlError.message : String(urlError)}`);
+      if (isSentryEnabled()) captureException(urlError, { scope: 'healthcheck', kind: 'invalid_url' });
       return NextResponse.json({
         status: 'error',
         message: 'Health check failed',
@@ -41,14 +44,14 @@ export async function GET() {
 
     // Test database connection
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
-    const { error } = await supabase
-      .from('words')
-      .select('count')
-      .limit(1);
+    const { error } = await performance.measureAsync(async () => {
+      return await supabase.from('words').select('count').limit(1);
+    }, 'health.db_ping', { endpoint: '/api/health' });
 
     if (error) {
       const normalized = normalizeError(error);
-    logger.error(`Health check failed: Database connection error ${normalized}`);
+      logger.error(`Health check failed: Database connection error ${normalized}`);
+      if (isSentryEnabled()) captureException(error, { scope: 'healthcheck', kind: 'db_error' });
       return NextResponse.json({
         status: 'error',
         message: 'Database connection failed',
@@ -59,6 +62,7 @@ export async function GET() {
 
     const duration = Date.now() - startTime;
     logger.info(`Health check completed in ${duration}ms`);
+    monitoringService.recordMetric({ name: 'health.total_time', value: duration, unit: 'ms', tags: { endpoint: '/api/health' } });
 
     // Return healthy status
     return NextResponse.json({
@@ -79,6 +83,8 @@ export async function GET() {
     const duration = Date.now() - startTime;
     const normalized = normalizeError(error);
     logger.error(`Health check failed: Unexpected error ${normalized}`);
+    if (isSentryEnabled()) captureException(error, { scope: 'healthcheck', kind: 'unexpected' });
+    monitoringService.recordMetric({ name: 'health.total_time', value: duration, unit: 'ms', tags: { endpoint: '/api/health', error: 'true' } });
     
     return NextResponse.json({
       status: 'error',
