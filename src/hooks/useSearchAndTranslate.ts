@@ -8,6 +8,7 @@ export interface TranslateResult {
   source_language: string;
   target_language: string;
   alternatives?: string[];
+  source?: 'database' | 'fallback' | 'error-fallback';
 }
 
 export type ResultType = 'search' | 'translate' | null;
@@ -19,6 +20,7 @@ export function useSearchAndTranslate() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [translateResult, setTranslateResult] = useState<TranslateResult | null>(null);
   const [resultType, setResultType] = useState<ResultType>(null);
+  const [direction, setDirection] = useState<'to_slang' | 'to_formal'>('to_formal');
 
   const isSingleWord = useCallback((text: string) => {
     const trimmed = text.trim();
@@ -36,7 +38,7 @@ export function useSearchAndTranslate() {
     return data.results || [];
   }, []);
 
-  const performTranslate = useCallback(async (text: string): Promise<TranslateResult> => {
+  const performTranslate = useCallback(async (text: string, dir: 'to_slang' | 'to_formal'): Promise<TranslateResult> => {
     const response = await fetch('/api/ai/translate', {
       method: 'POST',
       headers: {
@@ -44,7 +46,7 @@ export function useSearchAndTranslate() {
       },
       body: JSON.stringify({ 
         text,
-        direction: 'to_formal' // Default to translating slang to formal Dutch
+        direction: dir
       }),
     });
     
@@ -54,14 +56,16 @@ export function useSearchAndTranslate() {
       throw new Error(data.error || 'Translation failed');
     }
     
+    const isToFormal = dir === 'to_formal';
     // Transform API response to expected format
     return {
       original_text: text,
       translated_text: data.translation || text,
       confidence: data.confidence || 0.5,
-      source_language: 'straattaal',
-      target_language: 'nederlands',
-      alternatives: data.alternatives || []
+      source_language: isToFormal ? 'straattaal' : 'nederlands',
+      target_language: isToFormal ? 'nederlands' : 'straattaal',
+      alternatives: data.alternatives || [],
+      source: data.source,
     };
   }, []);
 
@@ -94,14 +98,14 @@ export function useSearchAndTranslate() {
           }
           
           // No search results, try translation
-          const translateData = await performTranslate(trimmedQuery);
+          const translateData = await performTranslate(trimmedQuery, direction);
           setTranslateResult(translateData);
           setResultType('translate');
           
         } catch (searchError) {
           // Search failed, try translation as fallback
           try {
-            const translateData = await performTranslate(trimmedQuery);
+            const translateData = await performTranslate(trimmedQuery, direction);
             setTranslateResult(translateData);
             setResultType('translate');
           } catch (translateError) {
@@ -111,7 +115,7 @@ export function useSearchAndTranslate() {
       } else {
         // For multiple words or sentences, try translation first
         try {
-          const translateData = await performTranslate(trimmedQuery);
+          const translateData = await performTranslate(trimmedQuery, direction);
           setTranslateResult(translateData);
           setResultType('translate');
         } catch (translateError) {
@@ -141,7 +145,7 @@ export function useSearchAndTranslate() {
     } finally {
       setLoading(false);
     }
-  }, [isSingleWord, performSearch, performTranslate]);
+  }, [isSingleWord, performSearch, performTranslate, direction]);
 
   const handleInputChange = useCallback((value: string) => {
     setQuery(value);
@@ -162,11 +166,13 @@ export function useSearchAndTranslate() {
     results,
     translateResult,
     resultType,
+    direction,
     
     // Actions
     handleSearch,
     handleInputChange,
     clearResults,
+    setDirection,
     
     // Utilities
     isSingleWord,

@@ -9,23 +9,33 @@ interface TranslateResultsProps {
   hasSearchResults: boolean;
 }
 
+async function sendFeedback(payload: { phrase: string; translation: string; upvote?: boolean; downvote?: boolean }) {
+  try {
+    await fetch('/api/translations/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  } catch {}
+}
+
 export default function TranslateResults({ translateResult, query, hasSearchResults }: TranslateResultsProps) {
   if (!translateResult) return null;
 
+  const isDb = translateResult.source === 'database';
+  const isAi = translateResult.source === 'fallback' || translateResult.source === 'error-fallback';
+
   return (
     <div className="space-y-4">
-      <div className="bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
+      <div className={`border rounded-lg p-4 ${isDb ? 'bg-green-50 border-green-200' : 'bg-blue-50 border-blue-200'}`}>
         <div className="flex items-center gap-2 mb-2">
-          <span className="text-blue-600 dark:text-blue-400">🤖</span>
-          <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-200">
-            AI Vertaling
+          <span className={`${isDb ? 'text-green-600' : 'text-blue-600'}`}>{isDb ? '📚' : '🤖'}</span>
+          <h3 className={`text-lg font-semibold ${isDb ? 'text-green-800' : 'text-blue-800'}`}>
+            {isDb ? 'Database‑vertaling' : 'AI‑vertaling'}
           </h3>
         </div>
-        <p className="text-blue-700 dark:text-blue-300">
-          {!hasSearchResults 
-            ? `Niet gevonden in de database, automatisch vertaald`
-            : `Vertaling van "${query}"`
-          }
+        <p className={`${isDb ? 'text-green-700' : 'text-blue-700'}`}>
+          {isDb ? `Gevonden in de database` : (!hasSearchResults ? 'Niet gevonden in de database, automatisch vertaald' : `Vertaling van "${query}"`)}
         </p>
       </div>
 
@@ -56,6 +66,23 @@ export default function TranslateResults({ translateResult, query, hasSearchResu
             <span>
               {translateResult.source_language} → {translateResult.target_language}
             </span>
+          </div>
+
+          <div className="flex items-center gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => sendFeedback({ phrase: translateResult.original_text, translation: translateResult.translated_text, upvote: true })}
+              className="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-700"
+            >
+              👍 Nuttig
+            </button>
+            <button
+              type="button"
+              onClick={() => sendFeedback({ phrase: translateResult.original_text, translation: translateResult.translated_text, downvote: true })}
+              className="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-700"
+            >
+              👎 Onnauwkeurig
+            </button>
           </div>
           
           {translateResult.alternatives && translateResult.alternatives.length > 0 && (
@@ -89,7 +116,7 @@ export default function TranslateResults({ translateResult, query, hasSearchResu
                     Andere gebruikers kunnen dan ook profiteren van jouw kennis!
                   </p>
                   <a
-                    href="/community"
+                    href={`/community?prefill=${encodeURIComponent(translateResult.original_text)}`}
                     className="inline-flex items-center px-4 py-2 bg-yellow-600 text-white text-sm font-medium rounded-lg hover:bg-yellow-700 transition-colors"
                   >
                     Woord indienen

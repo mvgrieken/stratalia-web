@@ -21,8 +21,10 @@ export default function SearchAndTranslate({ onWordClick, className = '' }: Sear
     results,
     translateResult,
     resultType,
+    direction,
     handleSearch,
     handleInputChange,
+    setDirection,
   } = useSearchAndTranslate();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -38,6 +40,24 @@ export default function SearchAndTranslate({ onWordClick, className = '' }: Sear
         onInputChange={handleInputChange}
         onSubmit={handleSubmit}
       />
+
+      <div className="flex items-center gap-3 text-sm">
+        <span className="text-gray-600">Richting:</span>
+        <button
+          type="button"
+          className={`px-3 py-1 rounded ${direction === 'to_formal' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+          onClick={() => setDirection('to_formal')}
+        >
+          Straattaal → Nederlands
+        </button>
+        <button
+          type="button"
+          className={`px-3 py-1 rounded ${direction === 'to_slang' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+          onClick={() => setDirection('to_slang')}
+        >
+          Nederlands → Straattaal
+        </button>
+      </div>
 
       {error && (
         <div className="bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-lg p-4">

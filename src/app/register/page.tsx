@@ -11,6 +11,7 @@ export default function RegisterPage() {
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [info, setInfo] = useState('');
   const { signUp } = useAuth();
   const router = useRouter();
 
@@ -32,7 +33,7 @@ export default function RegisterPage() {
       if (result.error) {
         setError(result.error);
       } else {
-        router.push('/dashboard');
+        setInfo('Account aangemaakt. Check je e-mail om je account te activeren.');
       }
     } catch (err) {
       setError('Er is een onverwachte fout opgetreden');
@@ -118,6 +119,12 @@ export default function RegisterPage() {
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
                 {error}
+              </div>
+            )}
+
+            {info && (
+              <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-md">
+                {info}
               </div>
             )}
 

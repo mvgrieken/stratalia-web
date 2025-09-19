@@ -18,6 +18,8 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams?.get('redirect_to') || '/dashboard';
+  const showGoogle = process.env.NEXT_PUBLIC_GOOGLE_OAUTH_ENABLED === 'true';
+  const showApple = process.env.NEXT_PUBLIC_APPLE_OAUTH_ENABLED === 'true';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,6 +100,10 @@ function LoginForm() {
                 {error}
               </div>
             )}
+            {/* Optionally hint about email verification */}
+            {error && error.toLowerCase().includes('bevestigd') && (
+              <p className="mt-2 text-xs text-gray-600">Geen mail ontvangen? Controleer je spamfolder of vraag een nieuwe verificatiemail aan.</p>
+            )}
 
             <div>
               <button
@@ -162,19 +168,25 @@ function LoginForm() {
             </div>
 
             <div className="mt-6 space-y-3">
-              <GoogleAuthButton
-                onSuccess={() => {
-                  router.push(redirectTo);
-                }}
-                onError={(error) => setError(error)}
-              />
-              
-              <AppleAuthButton
-                onSuccess={() => {
-                  router.push(redirectTo);
-                }}
-                onError={(error) => setError(error)}
-              />
+              {showGoogle && (
+                <GoogleAuthButton
+                  onSuccess={() => {
+                    router.push(redirectTo);
+                  }}
+                  onError={(error) => setError(error)}
+                />
+              )}
+              {showApple && (
+                <AppleAuthButton
+                  onSuccess={() => {
+                    router.push(redirectTo);
+                  }}
+                  onError={(error) => setError(error)}
+                />
+              )}
+              {!showGoogle && !showApple && (
+                <p className="text-xs text-gray-500 text-center">Social logins zijn nog niet geconfigureerd.</p>
+              )}
             </div>
           </div>
 

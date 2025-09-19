@@ -114,7 +114,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         logger.error(`❌ AuthProvider: Login failed: ${error instanceof Error ? error.message : String(error)}`);
-        return { error: error.message || 'Inloggen mislukt. Probeer het opnieuw.' };
+        const raw = (error as any)?.message ? String((error as any).message) : String(error);
+        let message = 'Inloggen mislukt. Controleer je gegevens.';
+        if (raw.includes('Invalid login credentials')) {
+          message = 'Ongeldige inloggegevens. Controleer je e-mail en wachtwoord.';
+        } else if (raw.includes('Email not confirmed') || raw.toLowerCase().includes('not confirmed')) {
+          message = 'Je e-mailadres is nog niet bevestigd. Controleer je inbox.';
+        } else if (raw.includes('Too many requests')) {
+          message = 'Te veel pogingen. Wacht even voordat je opnieuw probeert.';
+        }
+        return { error: message };
       }
 
       if (data.user) {
@@ -151,6 +160,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email,
         password,
         options: {
+          emailRedirectTo: typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : undefined,
           data: {
             full_name
           }
