@@ -27,12 +27,15 @@ export default function LazyQuizPage() {
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
+  const [previewMode, setPreviewMode] = useState<boolean>(false);
 
   const fetchQuizQuestions = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch('/api/quiz?difficulty=medium&limit=5');
+      const limit = previewMode ? 3 : 5;
+      const response = await fetch(`/api/quiz?difficulty=${difficulty}&limit=${limit}`);
       if (response.ok) {
         const data = await response.json();
         setQuestions(data.data?.questions || []);
@@ -47,7 +50,7 @@ export default function LazyQuizPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [difficulty, previewMode]);
 
   useEffect(() => {
     fetchQuizQuestions();
@@ -156,6 +159,36 @@ export default function LazyQuizPage() {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             🧠 Straattaal Quiz
           </h1>
+          {/* Controls */}
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <label className="text-sm text-gray-700">
+              Moeilijkheid:
+              <select
+                value={difficulty}
+                onChange={(e) => setDifficulty(e.target.value as 'easy' | 'medium' | 'hard')}
+                className="ml-2 px-2 py-1 border rounded"
+              >
+                <option value="easy">Makkelijk</option>
+                <option value="medium">Gemiddeld</option>
+                <option value="hard">Moeilijk</option>
+              </select>
+            </label>
+            <label className="text-sm text-gray-700 inline-flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={previewMode}
+                onChange={(e) => setPreviewMode(e.target.checked)}
+                className="h-4 w-4"
+              />
+              Voorbeeld (3 vragen)
+            </label>
+            <button
+              onClick={fetchQuizQuestions}
+              className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+            >
+              Vernieuwen
+            </button>
+          </div>
           <p className="text-gray-600">
             Vraag {currentQuestion + 1} van {questions.length}
           </p>
