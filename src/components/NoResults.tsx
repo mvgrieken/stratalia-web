@@ -26,6 +26,11 @@ export default function NoResults({ hasResults, hasTranslateResult, loading, err
       <p className="text-gray-600 dark:text-gray-400">
         Probeer een ander woord of controleer je spelling.
       </p>
+      <div className="mt-4">
+        <a href="/community" className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+          Dien dit woord in voor de community
+        </a>
+      </div>
     </div>
   );
 }

@@ -29,7 +29,16 @@ function LoginForm() {
     try {
       const result = await signIn(email, password);
       if (result.error) {
-        setError(result.error);
+        const lower = result.error.toLowerCase();
+        if (lower.includes('email') && (lower.includes('verify') || lower.includes('bevestig'))) {
+          setError('Je e-mailadres is nog niet bevestigd. Check je e-mail voor de verificatielink.');
+        } else if (lower.includes('invalid') || lower.includes('ongeldig')) {
+          setError('Onjuiste inloggegevens. Probeer het opnieuw.');
+        } else if (lower.includes('rate') || lower.includes('te veel')) {
+          setError('Te veel pogingen. Wacht even en probeer later opnieuw.');
+        } else {
+          setError(result.error);
+        }
       } else {
         router.push(redirectTo);
       }
@@ -101,7 +110,7 @@ function LoginForm() {
               </div>
             )}
             {/* Optionally hint about email verification */}
-            {error && error.toLowerCase().includes('bevestigd') && (
+            {error && error.toLowerCase().includes('bevestig') && (
               <p className="mt-2 text-xs text-gray-600">Geen mail ontvangen? Controleer je spamfolder of vraag een nieuwe verificatiemail aan.</p>
             )}
 
