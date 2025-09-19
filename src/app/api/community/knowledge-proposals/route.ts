@@ -3,9 +3,19 @@ import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
 import { normalizeError } from '@/lib/errors';
 import { applyRateLimit } from '@/middleware/rateLimiter';
+import { withApiError, withZod } from '@/lib/api-wrapper';
+import { z } from 'zod';
 
-export async function POST(request: NextRequest) {
-  try {
+const proposalSchema = z.object({
+  type: z.string().min(1),
+  title: z.string().min(1),
+  content: z.string().optional(),
+  url: z.string().url().optional(),
+  tags: z.array(z.string()).optional(),
+  difficulty: z.string().optional(),
+});
+
+export const POST = withApiError(withZod(proposalSchema, async (request: NextRequest) => {
     const rate = applyRateLimit(request, 'community');
     if (!rate.allowed) return rate.response!;
 
@@ -42,9 +52,4 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    const normalized = normalizeError(error);
-    logger.error(`Knowledge proposal API error: ${normalized}`);
-    return NextResponse.json({ error: 'Onverwachte fout' }, { status: 500 });
-  }
-}
+}));

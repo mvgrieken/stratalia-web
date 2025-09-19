@@ -3,9 +3,17 @@ import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
 import { normalizeError } from '@/lib/errors';
 import { applyRateLimit } from '@/middleware/rateLimiter';
+import { withApiError, withZod } from '@/lib/api-wrapper';
+import { z } from 'zod';
 
-export async function POST(request: NextRequest) {
-  try {
+const feedbackSchema = z.object({
+  phrase: z.string().min(1),
+  translation: z.string().min(1),
+  upvote: z.boolean().optional(),
+  downvote: z.boolean().optional(),
+});
+
+export const POST = withApiError(withZod(feedbackSchema, async (request: NextRequest) => {
     const rate = applyRateLimit(request, 'community');
     if (!rate.allowed) return rate.response!;
 
@@ -49,9 +57,4 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    const normalized = normalizeError(error);
-    logger.error(`Feedback API error: ${normalized}`);
-    return NextResponse.json({ error: 'Onverwachte fout' }, { status: 500 });
-  }
-}
+}));

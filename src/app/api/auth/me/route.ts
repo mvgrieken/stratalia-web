@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
 import { normalizeError } from '@/lib/errors';
-export async function GET() {
-  try {
+import { withApiError } from '@/lib/api-wrapper';
+export const GET = withApiError(async () => {
     // Initialize Supabase client
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -52,9 +52,4 @@ export async function GET() {
         role: profile.role || 'user'
       }
     });
-  } catch (error) {
-    const normalized = normalizeError(error);
-    logger.error(`Error in /api/auth/me: ${normalized}`);
-    return NextResponse.json({ user: null });
-  }
-}
+});
