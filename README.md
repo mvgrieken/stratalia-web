@@ -274,6 +274,25 @@ npm run analyze
 - **Performance Monitoring**: Response time tracking
 - **User Actions**: Activity tracking
 
+### Sentry (optioneel)
+- Voeg `SENTRY_DSN` toe aan Vercel/CI om server-side error captures te activeren.
+- Optioneel: `SENTRY_TRACES_SAMPLE_RATE` (bijv. 0.1) voor performance tracing.
+- Implementatie: zie `src/lib/sentry.ts`.
+
+### Gestandaardiseerde API error handling
+- Gebruik `withApiError` voor uniforme error responses en Sentry capture.
+- Gebruik `withZod` voor query/body validatie.
+- Voorbeeld:
+```ts
+import { withApiError, withZod } from '@/lib/api-wrapper';
+import { z } from 'zod';
+
+const schema = z.object({ q: z.string().min(1) });
+export const GET = withApiError(withZod(schema, async (req) => {
+  return NextResponse.json({ ok: true });
+}));
+```
+
 ### Health Checks
 - **API Health**: `/api/health` endpoint
 - **Database Status**: Supabase connectivity check
