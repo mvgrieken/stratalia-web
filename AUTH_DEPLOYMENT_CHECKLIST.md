@@ -7,7 +7,7 @@ Zorg dat de volgende environment variabelen correct zijn ingesteld in Vercel:
 ### ✅ Verplichte Variabelen
 - [ ] `NEXT_PUBLIC_SUPABASE_URL` - Je Supabase project URL
 - [ ] `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Je Supabase anon key  
-- [ ] `SUPABASE_SERVICE_KEY` - Je Supabase service role key (NIET de anon key!)
+- [ ] `SUPABASE_SERVICE_ROLE_KEY` - Je Supabase service role key (NIET de anon key!)
 
 ### 🔍 Hoe te controleren:
 
@@ -19,9 +19,9 @@ Zorg dat de volgende environment variabelen correct zijn ingesteld in Vercel:
 ### 🚨 Veelvoorkomende Problemen:
 
 #### Probleem: "Server configuration error"
-**Oorzaak:** `SUPABASE_SERVICE_KEY` ontbreekt of is incorrect
+**Oorzaak:** `SUPABASE_SERVICE_ROLE_KEY` ontbreekt of is incorrect
 **Oplossing:** 
-- Zorg dat `SUPABASE_SERVICE_KEY` is ingesteld (niet `SUPABASE_SERVICE_ROLE_KEY`)
+- Zorg dat `SUPABASE_SERVICE_ROLE_KEY` is ingesteld
 - Gebruik de service role key uit je Supabase dashboard (Settings > API)
 
 #### Probleem: "Invalid credentials" 
