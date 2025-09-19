@@ -132,14 +132,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const userData = await response.json();
           setUser(userData.user);
         }
-      } catch {}
+      } catch (fetchError) {
+        logger.error(`AuthProvider: post-login profile fetch failed: ${fetchError instanceof Error ? fetchError.message : String(fetchError)}`);
+      }
       logger.debug('✅ AuthProvider: Login successful via server route');
       return {};
     } catch (error) {
       logger.error(`💥 AuthProvider: Network error during login: ${error instanceof Error ? error.message : String(error)}`);
       return { error: 'Verbindingsprobleem. Controleer je internetverbinding en probeer het opnieuw.' };
     }
-    return { error: 'Inloggen mislukt. Probeer het opnieuw.' };
   };
 
   const signUp = async (email: string, password: string, full_name: string) => {
