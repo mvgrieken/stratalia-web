@@ -16,14 +16,16 @@ async function sendFeedback(payload: { phrase: string; translation: string; upvo
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-  } catch {}
+  } catch (_e) {
+    // ignore network errors in UI feedback
+    return;
+  }
 }
 
 export default function TranslateResults({ translateResult, query, hasSearchResults }: TranslateResultsProps) {
   if (!translateResult) return null;
 
   const isDb = translateResult.source === 'database';
-  const isAi = translateResult.source === 'fallback' || translateResult.source === 'error-fallback';
 
   return (
     <div className="space-y-4">
