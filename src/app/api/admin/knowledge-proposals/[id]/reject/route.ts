@@ -28,7 +28,9 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         resource_id: proposalId,
         notes: reason
       });
-    } catch {}
+    } catch (logErr) {
+      logger.debug(`admin_actions insert skipped: ${logErr instanceof Error ? logErr.message : String(logErr)}`);
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

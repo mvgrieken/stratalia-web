@@ -25,7 +25,9 @@ export async function POST(_request: NextRequest, { params }: { params: { id: st
         action: 'approve_knowledge_proposal',
         resource_id: proposalId,
       });
-    } catch {}
+    } catch (logErr) {
+      logger.debug(`admin_actions insert skipped: ${logErr instanceof Error ? logErr.message : String(logErr)}`);
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
