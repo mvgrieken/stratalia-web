@@ -4,10 +4,11 @@ import { AppError, ErrorCode, createErrorResponse } from '@/lib/errors'
 import { logger } from '@/lib/logger'
 import { captureException, isSentryEnabled } from '@/lib/sentry'
 
-type Handler = (_req: NextRequest) => Promise<NextResponse>
+type Handler = (..._args: any[]) => Promise<NextResponse>
 
 export function withZod<Schema extends ZodSchema<any>>(schema: Schema, handler: Handler): Handler {
-  return async (req: NextRequest) => {
+  return async (...args: any[]) => {
+    const req = args[0] as NextRequest
     const url = new URL(req.url)
     const query = Object.fromEntries(url.searchParams.entries())
     const json = req.method !== 'GET' ? await safeParseJson(req) : undefined
@@ -19,18 +20,19 @@ export function withZod<Schema extends ZodSchema<any>>(schema: Schema, handler: 
       return createErrorResponse(new AppError(ErrorCode.VALIDATION_ERROR, msg, 400))
     }
 
-    return handler(req)
+    return handler(...args)
   }
 }
 
 export function withApiError(handler: Handler): Handler {
-  return async (req: NextRequest) => {
+  return async (...args: any[]) => {
     try {
-      return await handler(req)
+      return await handler(...args)
     } catch (err) {
       const error = err instanceof AppError ? err : new AppError(ErrorCode.INTERNAL_ERROR, 'Internal server error', 500)
       logger.error(`API handler error: ${error.message}`)
-      if (isSentryEnabled()) captureException(err, { route: req.nextUrl.pathname })
+      const req = args[0] as NextRequest
+      if (req && isSentryEnabled()) captureException(err, { route: req.nextUrl?.pathname })
       return createErrorResponse(error)
     }
   }
