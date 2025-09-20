@@ -9,19 +9,19 @@ interface Challenge {
   id: string;
   title: string;
   description: string;
-  type: string;
-  category: string;
+  challenge_type: string;
   difficulty: string;
-  reward_points: number;
-  conditions: any;
+  target_value: number;
+  target_metric: string;
+  points_reward: number;
   start_date: string;
   end_date: string;
   is_active: boolean;
-  user_progress?: {
-    progress: number;
-    completed_at: string | null;
-    points_earned: number;
-  };
+  current_progress: number;
+  is_completed: boolean;
+  progress_percentage: number;
+  completed_at: string | null;
+  points_earned: number;
 }
 
 export default function ChallengesPage() {
@@ -36,7 +36,7 @@ export default function ChallengesPage() {
       setLoading(true);
       setError(null);
       
-      const response = await fetch(`/api/gamification/challenges?user_id=${user?.id || 'anonymous'}&type=all`);
+      const response = await fetch('/api/challenges');
       if (response.ok) {
         const data = await response.json();
         setChallenges(data.challenges || []);
@@ -54,31 +54,31 @@ export default function ChallengesPage() {
     } finally {
       setLoading(false);
     }
-  }, [user?.id]);
+  }, []);
 
   useEffect(() => {
     fetchChallenges();
   }, [fetchChallenges]);
 
-  const joinChallenge = async (challengeId: string) => {
+  const updateChallengeProgress = async (challengeId: string, progress: number) => {
     try {
-      const response = await fetch('/api/gamification/challenges', {
+      const response = await fetch('/api/challenges/progress', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          user_id: user?.id,
-          challenge_id: challengeId,
-          progress: 0
+          challengeId,
+          progress,
+          completed: false
         })
       });
 
       if (response.ok) {
         fetchChallenges(); // Refresh challenges
       } else {
-        setError('Fout bij het deelnemen aan challenge');
+        setError('Fout bij het updaten van challenge voortgang');
       }
     } catch (err) {
-      setError('Fout bij het deelnemen aan challenge');
+      setError('Fout bij het updaten van challenge voortgang');
     }
   };
 
@@ -92,22 +92,21 @@ export default function ChallengesPage() {
     }
   };
 
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case 'learning': return '📚';
-      case 'streak': return '🔥';
-      case 'social': return '👥';
-      case 'exploration': return '🔍';
-      case 'mastery': return '🏆';
+  const getCategoryIcon = (challengeType: string) => {
+    switch (challengeType) {
+      case 'daily': return '📅';
+      case 'weekly': return '📊';
+      case 'monthly': return '🗓️';
+      case 'special': return '⭐';
       default: return '🎯';
     }
   };
 
   const filteredChallenges = challenges.filter(challenge => {
     if (activeTab === 'active') {
-      return challenge.is_active && !challenge.user_progress?.completed_at;
+      return challenge.is_active && !challenge.is_completed;
     } else if (activeTab === 'completed') {
-      return challenge.user_progress?.completed_at;
+      return challenge.is_completed;
     } else if (activeTab === 'upcoming') {
       return new Date(challenge.start_date) > new Date();
     }
@@ -281,7 +280,7 @@ export default function ChallengesPage() {
                 <div key={challenge.id} className="bg-white rounded-lg shadow-md p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center">
-                      <span className="text-2xl mr-2">{getCategoryIcon(challenge.category)}</span>
+                      <span className="text-2xl mr-2">{getCategoryIcon(challenge.challenge_type)}</span>
                       <div>
                         <h3 className="text-lg font-semibold text-gray-900">{challenge.title}</h3>
                         <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(challenge.difficulty)}`}>
@@ -290,52 +289,53 @@ export default function ChallengesPage() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-2xl font-bold text-blue-600">{challenge.reward_points}</div>
+                      <div className="text-2xl font-bold text-blue-600">{challenge.points_reward}</div>
                       <div className="text-xs text-gray-500">punten</div>
                     </div>
                   </div>
 
                   <p className="text-gray-600 mb-4">{challenge.description}</p>
 
-                  {/* Progress bar for joined challenges */}
-                  {challenge.user_progress && (
-                    <div className="mb-4">
-                      <div className="flex justify-between text-sm text-gray-600 mb-1">
-                        <span>Voortgang</span>
-                        <span>{challenge.user_progress.progress}%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${challenge.user_progress.progress}%` }}
-                        ></div>
-                      </div>
+                  {/* Progress bar */}
+                  <div className="mb-4">
+                    <div className="flex justify-between text-sm text-gray-600 mb-1">
+                      <span>Voortgang</span>
+                      <span>{challenge.current_progress}/{challenge.target_value}</span>
                     </div>
-                  )}
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className={`h-2 rounded-full transition-all duration-300 ${
+                          challenge.is_completed ? 'bg-green-500' : 'bg-blue-600'
+                        }`}
+                        style={{ width: `${challenge.progress_percentage}%` }}
+                      ></div>
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {challenge.target_metric.replace('_', ' ')}: {challenge.current_progress}/{challenge.target_value}
+                    </div>
+                  </div>
 
                   {/* Challenge details */}
                   <div className="text-sm text-gray-500 mb-4">
-                    <div>Type: {challenge.type}</div>
+                    <div>Type: {challenge.challenge_type}</div>
                     <div>Eindigt: {new Date(challenge.end_date).toLocaleDateString('nl-NL')}</div>
+                    {challenge.points_earned > 0 && (
+                      <div className="text-green-600 font-medium">
+                        Punten verdiend: {challenge.points_earned}
+                      </div>
+                    )}
                   </div>
 
                   {/* Action button */}
                   <div className="flex justify-end">
-                    {challenge.user_progress?.completed_at ? (
+                    {challenge.is_completed ? (
                       <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
                         ✅ Voltooid
                       </span>
-                    ) : challenge.user_progress ? (
+                    ) : (
                       <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
                         🎯 Actief
                       </span>
-                    ) : (
-                      <button
-                        onClick={() => joinChallenge(challenge.id)}
-                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium"
-                      >
-                        Deelnemen
-                      </button>
                     )}
                   </div>
                 </div>

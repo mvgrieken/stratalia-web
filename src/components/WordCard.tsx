@@ -103,10 +103,20 @@ const WordCard = memo<WordCardProps>(({
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              fetch('/api/translations/feedback', {
+              fetch('/api/words/feedback', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ phrase: word.word, translation: word.meaning, upvote: true })
+                body: JSON.stringify({ word: word.word, meaning: word.meaning, helpful: true })
+              }).then(() => {
+                // Show visual feedback
+                const button = e.target as HTMLButtonElement;
+                const originalText = button.textContent;
+                button.textContent = '✅ Nuttig';
+                button.className = 'px-3 py-1 rounded bg-green-100 text-green-700 text-sm';
+                setTimeout(() => {
+                  button.textContent = originalText;
+                  button.className = 'px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm';
+                }, 2000);
               }).catch(() => {});
             }}
             className="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm"
@@ -118,10 +128,20 @@ const WordCard = memo<WordCardProps>(({
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              fetch('/api/translations/feedback', {
+              fetch('/api/words/feedback', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ phrase: word.word, translation: word.meaning, downvote: true })
+                body: JSON.stringify({ word: word.word, meaning: word.meaning, helpful: false })
+              }).then(() => {
+                // Show visual feedback
+                const button = e.target as HTMLButtonElement;
+                const originalText = button.textContent;
+                button.textContent = '❌ Onnauwkeurig';
+                button.className = 'px-3 py-1 rounded bg-red-100 text-red-700 text-sm';
+                setTimeout(() => {
+                  button.textContent = originalText;
+                  button.className = 'px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm';
+                }, 2000);
               }).catch(() => {});
             }}
             className="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm"

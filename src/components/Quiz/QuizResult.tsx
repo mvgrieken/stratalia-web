@@ -11,6 +11,7 @@ interface QuizResultProps {
   timeTaken: number;
   onRestart: () => void;
   onBackToHome: () => void;
+  saving?: boolean;
 }
 
 const QuizResult = memo<QuizResultProps>(({
@@ -18,7 +19,8 @@ const QuizResult = memo<QuizResultProps>(({
   totalQuestions,
   timeTaken,
   onRestart,
-  onBackToHome
+  onBackToHome,
+  saving = false
 }) => {
   const percentage = Math.round((score / totalQuestions) * 100);
   
@@ -91,17 +93,29 @@ const QuizResult = memo<QuizResultProps>(({
         </div>
       </div>
 
+      {/* Saving Status */}
+      {saving && (
+        <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+          <div className="flex items-center justify-center">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mr-3"></div>
+            <span className="text-blue-800">Resultaat wordt opgeslagen...</span>
+          </div>
+        </div>
+      )}
+
       {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row gap-4 justify-center">
         <button
           onClick={onRestart}
-          className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+          disabled={saving}
+          className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Opnieuw Proberen
         </button>
         <button
           onClick={onBackToHome}
-          className="px-6 py-3 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors"
+          disabled={saving}
+          className="px-6 py-3 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Terug naar Home
         </button>

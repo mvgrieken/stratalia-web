@@ -11,6 +11,9 @@ interface UserStats {
   words_learned: number;
   quizzes_completed: number;
   average_score: number;
+  submissions_count: number;
+  approved_submissions: number;
+  total_submission_points: number;
 }
 
 interface Achievement {
@@ -22,6 +25,8 @@ interface Achievement {
   points_reward: number;
   rarity: string;
   is_earned: boolean;
+  progress: number;
+  target: number;
 }
 
 export default function ProfilePage() {
@@ -32,7 +37,10 @@ export default function ProfilePage() {
     longest_streak: 0,
     words_learned: 0,
     quizzes_completed: 0,
-    average_score: 0
+    average_score: 0,
+    submissions_count: 0,
+    approved_submissions: 0,
+    total_submission_points: 0
   });
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,37 +52,14 @@ export default function ProfilePage() {
 
   const fetchUserStats = async () => {
     try {
-      // Fetch real user stats from Supabase APIs
-      const [leaderboardResponse] = await Promise.all([
-        fetch('/api/gamification/leaderboard?limit=1&user_id=demo-user')
-      ]);
-
-      let userStats = {
-        total_points: 0,
-        current_level: 1,
-        current_streak: 0,
-        longest_streak: 0,
-        words_learned: 0,
-        quizzes_completed: 0,
-        average_score: 0
-      };
-
-      if (leaderboardResponse.ok) {
-        const leaderboardData = await leaderboardResponse.json();
-        if (leaderboardData.user_rank) {
-          userStats = {
-            total_points: leaderboardData.user_rank.total_points || 0,
-            current_level: leaderboardData.user_rank.level || 1,
-            current_streak: leaderboardData.user_rank.current_streak || 0,
-            longest_streak: leaderboardData.user_rank.longest_streak || 0,
-            words_learned: leaderboardData.user_rank.words_learned || 0,
-            quizzes_completed: leaderboardData.user_rank.quiz_completed || 0,
-            average_score: 75 // Default average score
-          };
-        }
+      const response = await fetch('/api/profile/stats');
+      
+      if (response.ok) {
+        const data = await response.json();
+        setStats(data.stats);
+      } else {
+        logger.warn('Failed to fetch user stats');
       }
-
-      setStats(userStats);
     } catch (error) {
       logger.error(`Error fetching user stats: ${error instanceof Error ? error.message : String(error)}`);
     }
@@ -82,95 +67,14 @@ export default function ProfilePage() {
 
   const fetchAchievements = async () => {
     try {
-      // Fetch real achievements based on user progress
-      const [leaderboardResponse, challengesResponse] = await Promise.all([
-        fetch('/api/gamification/leaderboard?limit=1&user_id=demo-user'),
-        fetch('/api/gamification/challenges?user_id=demo-user')
-      ]);
-
-      let userStats = {
-        total_points: 0,
-        level: 1,
-        current_streak: 0,
-        words_learned: 0,
-        quiz_completed: 0,
-        challenges_completed: 0
-      };
-
-      if (leaderboardResponse.ok) {
-        const leaderboardData = await leaderboardResponse.json();
-        if (leaderboardData.user_rank) {
-          userStats = {
-            total_points: leaderboardData.user_rank.total_points || 0,
-            level: leaderboardData.user_rank.level || 1,
-            current_streak: leaderboardData.user_rank.current_streak || 0,
-            words_learned: leaderboardData.user_rank.words_learned || 0,
-            quiz_completed: leaderboardData.user_rank.quiz_completed || 0,
-            challenges_completed: 0
-          };
-        }
+      const response = await fetch('/api/profile/achievements');
+      
+      if (response.ok) {
+        const data = await response.json();
+        setAchievements(data.achievements);
+      } else {
+        logger.warn('Failed to fetch achievements');
       }
-
-      if (challengesResponse.ok) {
-        const challengesData = await challengesResponse.json();
-        userStats.challenges_completed = challengesData.user_stats?.total_challenges_completed || 0;
-      }
-
-      // Generate achievements based on user progress
-      const achievements: Achievement[] = [
-        {
-          id: '1',
-          name: 'Eerste Stappen',
-          description: 'Voltooi je eerste quiz',
-          icon: '🎯',
-          category: 'learning',
-          points_reward: 50,
-          rarity: 'common',
-          is_earned: userStats.quiz_completed > 0
-        },
-        {
-          id: '2',
-          name: 'Woordkenner',
-          description: 'Leer 25 woorden',
-          icon: '📚',
-          category: 'learning',
-          points_reward: 100,
-          rarity: 'common',
-          is_earned: userStats.words_learned >= 25
-        },
-        {
-          id: '3',
-          name: 'Streak Master',
-          description: 'Houd een streak van 7 dagen',
-          icon: '🔥',
-          category: 'streak',
-          points_reward: 200,
-          rarity: 'rare',
-          is_earned: userStats.current_streak >= 7
-        },
-        {
-          id: '4',
-          name: 'Quiz Champion',
-          description: 'Voltooi 10 quizzen',
-          icon: '🏆',
-          category: 'achievement',
-          points_reward: 300,
-          rarity: 'epic',
-          is_earned: userStats.quiz_completed >= 10
-        },
-        {
-          id: '5',
-          name: 'straattaal Expert',
-          description: 'Leer 100 woorden',
-          icon: '👑',
-          category: 'achievement',
-          points_reward: 500,
-          rarity: 'legendary',
-          is_earned: userStats.words_learned >= 100
-        }
-      ];
-
-      setAchievements(achievements);
     } catch (error) {
       logger.error(`Error fetching achievements: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
@@ -257,6 +161,27 @@ export default function ProfilePage() {
                 <div className="text-sm text-gray-600">Gemiddelde Score</div>
               </div>
             </div>
+
+            {/* Community Stats */}
+            {stats.submissions_count > 0 && (
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Community Bijdragen</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-indigo-600">{stats.submissions_count}</div>
+                    <div className="text-sm text-gray-600">Inzendingen</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600">{stats.approved_submissions}</div>
+                    <div className="text-sm text-gray-600">Goedgekeurd</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-yellow-600">{stats.total_submission_points}</div>
+                    <div className="text-sm text-gray-600">Punten Verdiend</div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Achievements */}
@@ -280,6 +205,23 @@ export default function ProfilePage() {
                     </div>
                   </div>
                   <p className="text-sm text-gray-700">{achievement.description}</p>
+                  
+                  {/* Progress bar for unearned achievements */}
+                  {!achievement.is_earned && achievement.target > 1 && (
+                    <div className="mt-2">
+                      <div className="flex justify-between text-xs text-gray-600 mb-1">
+                        <span>{achievement.progress}/{achievement.target}</span>
+                        <span>{Math.round((achievement.progress / achievement.target) * 100)}%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${(achievement.progress / achievement.target) * 100}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  )}
+                  
                   {achievement.is_earned && (
                     <div className="mt-2">
                       <span className="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
@@ -312,6 +254,14 @@ export default function ProfilePage() {
             >
               Woord van de Dag
             </button>
+            {stats.submissions_count > 0 && (
+              <button
+                onClick={() => window.location.href = '/community/my-submissions'}
+                className="border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50"
+              >
+                Mijn Inzendingen
+              </button>
+            )}
           </div>
         </div>
       </div>

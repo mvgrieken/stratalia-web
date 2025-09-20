@@ -23,6 +23,9 @@ interface KnowledgeItem {
   audio_url?: string;
   duration?: number;
   word_count?: number;
+  view_count?: number;
+  like_count?: number;
+  user_liked?: boolean;
 }
 
 export default function KnowledgeDetailPage() {
@@ -31,6 +34,7 @@ export default function KnowledgeDetailPage() {
   const [item, setItem] = useState<KnowledgeItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [liking, setLiking] = useState(false);
 
   useEffect(() => {
     const fetchItem = async () => {
@@ -45,12 +49,12 @@ export default function KnowledgeDetailPage() {
         setError(null);
 
         // Try to fetch from API first
-        const response = await fetch(`/api/content/approved/${params.id}`);
+        const response = await fetch(`/api/knowledge/${params.id}`);
         
         if (response.ok) {
           const data = await response.json();
-          if (data.success && data.data.item) {
-            setItem(data.data.item);
+          if (data.success && data.item) {
+            setItem(data.item);
             return;
           }
         }
@@ -364,6 +368,35 @@ Straattaal blijft evolueren:
     fetchItem();
   }, [params?.id]);
 
+  const handleLike = async () => {
+    if (!item || liking) return;
+    
+    setLiking(true);
+    try {
+      const response = await fetch(`/api/knowledge/${item.id}/like`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setItem(prev => prev ? {
+          ...prev,
+          like_count: data.new_like_count,
+          user_liked: data.user_liked
+        } : null);
+      } else {
+        logger.warn('Failed to update like');
+      }
+    } catch (error) {
+      logger.error(`Error updating like: ${error}`);
+    } finally {
+      setLiking(false);
+    }
+  };
+
   const getTypeIcon = (type: string) => {
     switch (type) {
       case 'article': return '📄';
@@ -434,6 +467,7 @@ Straattaal blijft evolueren:
                 <span className="ml-4">📅 {new Date(item.created_at).getFullYear()}</span>
                 {item.duration && <span className="ml-4">⏱️ {Math.floor(item.duration / 60)} min</span>}
                 {item.word_count && <span className="ml-4">📝 {item.word_count} woorden</span>}
+                {item.view_count && <span className="ml-4">👁️ {item.view_count} views</span>}
               </div>
 
               <div className="flex flex-wrap gap-2 mb-6">
@@ -445,6 +479,23 @@ Straattaal blijft evolueren:
                     #{tag}
                   </span>
                 ))}
+              </div>
+
+              {/* Like Button */}
+              <div className="flex items-center gap-4 mb-6">
+                <button
+                  onClick={handleLike}
+                  disabled={liking}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                    item.user_liked
+                      ? 'bg-red-100 text-red-600 hover:bg-red-200'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  } ${liking ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                >
+                  <span className="text-lg">{item.user_liked ? '❤️' : '🤍'}</span>
+                  <span>{item.like_count || 0}</span>
+                  {liking && <span className="text-sm">...</span>}
+                </button>
               </div>
             </div>
 

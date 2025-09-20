@@ -29,6 +29,8 @@ export default function LazyQuizPage() {
   const [error, setError] = useState<string | null>(null);
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
   const [previewMode, setPreviewMode] = useState<boolean>(false);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [savingResult, setSavingResult] = useState(false);
 
   const fetchQuizQuestions = useCallback(async () => {
     setLoading(true);
@@ -61,6 +63,14 @@ export default function LazyQuizPage() {
   }, []);
 
   const handleNextQuestion = useCallback(() => {
+    // Save the answer
+    if (selectedAnswer && questions[currentQuestion]) {
+      setAnswers(prev => ({
+        ...prev,
+        [questions[currentQuestion].id]: selectedAnswer
+      }));
+    }
+
     if (selectedAnswer === questions[currentQuestion]?.correct_answer) {
       setScore(prev => prev + 1);
     }
@@ -74,6 +84,64 @@ export default function LazyQuizPage() {
     }
   }, [selectedAnswer, questions, currentQuestion]);
 
+  const saveQuizResult = useCallback(async () => {
+    if (savingResult) return;
+    
+    setSavingResult(true);
+    try {
+      const timeTaken = Math.round((Date.now() - startTime) / 1000);
+      const percentage = Math.round((score / questions.length) * 100);
+      
+      // Calculate wrong answers
+      const wrongAnswers = questions
+        .filter(q => answers[q.id] !== q.correct_answer)
+        .map(q => ({
+          question: q.question_text,
+          selected: answers[q.id] || 'Geen antwoord',
+          correct: q.correct_answer
+        }));
+
+      // Calculate correct answers
+      const correctAnswers = questions
+        .filter(q => answers[q.id] === q.correct_answer)
+        .map(q => q.word);
+
+      const quizData = {
+        score,
+        totalQuestions: questions.length,
+        percentage,
+        timeTaken,
+        difficulty,
+        questions: questions.map(q => ({
+          questionId: q.id,
+          word: q.word,
+          difficulty: q.difficulty
+        })),
+        correctAnswers,
+        wrongAnswers
+      };
+
+      const response = await fetch('/api/quiz/results', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(quizData),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        logger.info(`Quiz result saved: ${result.pointsEarned} points earned`);
+      } else {
+        logger.warn('Failed to save quiz result');
+      }
+    } catch (error) {
+      logger.error(`Error saving quiz result: ${error}`);
+    } finally {
+      setSavingResult(false);
+    }
+  }, [savingResult, startTime, score, questions, answers, difficulty]);
+
   const handleRestart = useCallback(() => {
     setCurrentQuestion(0);
     setSelectedAnswer(null);
@@ -81,6 +149,8 @@ export default function LazyQuizPage() {
     setQuizCompleted(false);
     setStartTime(0);
     setQuestionStartTime(0);
+    setAnswers({});
+    setSavingResult(false);
     fetchQuizQuestions();
   }, [fetchQuizQuestions]);
 
@@ -134,6 +204,11 @@ export default function LazyQuizPage() {
   if (quizCompleted) {
     const timeTaken = Math.round((Date.now() - startTime) / 1000);
 
+    // Save result when quiz is completed
+    useEffect(() => {
+      saveQuizResult();
+    }, [saveQuizResult]);
+
     return (
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-2xl mx-auto px-4">
@@ -143,6 +218,7 @@ export default function LazyQuizPage() {
             timeTaken={timeTaken}
             onRestart={handleRestart}
             onBackToHome={() => window.location.href = '/'}
+            saving={savingResult}
           />
         </div>
       </div>

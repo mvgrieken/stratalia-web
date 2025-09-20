@@ -70,8 +70,8 @@ export const GET = withApiError(withZod(searchSchema, async (request: NextReques
         // Full-text search (fts) across key columns with fallback to ilike
         const { data: ftsWords, error: ftsError } = await supabase
           .from('words')
-          .select('id, word, definition, example, category, difficulty')
-          .or(`word.fts.${normalizedQuery},definition.fts.${normalizedQuery},example.fts.${normalizedQuery}`)
+          .select('id, word, meaning, example, category, difficulty')
+          .or(`word.fts.${normalizedQuery},meaning.fts.${normalizedQuery},example.fts.${normalizedQuery}`)
           .eq('is_active', true)
           .order('usage_frequency', { ascending: false })
           .limit(limit);
@@ -80,8 +80,8 @@ export const GET = withApiError(withZod(searchSchema, async (request: NextReques
         if ((ftsError || !ftsWords || ftsWords.length === 0)) {
           const { data: ilikeWords, error: ilikeError } = await supabase
             .from('words')
-            .select('id, word, definition, example, category, difficulty')
-            .or(`word.ilike.%${normalizedQuery}%,definition.ilike.%${normalizedQuery}%,example.ilike.%${normalizedQuery}%`)
+            .select('id, word, meaning, example, category, difficulty')
+            .or(`word.ilike.%${normalizedQuery}%,meaning.ilike.%${normalizedQuery}%,example.ilike.%${normalizedQuery}%`)
             .eq('is_active', true)
             .order('usage_frequency', { ascending: false })
             .limit(limit);
@@ -123,7 +123,7 @@ export const GET = withApiError(withZod(searchSchema, async (request: NextReques
           results = words.map(word => ({
             id: word.id,
             word: word.word,
-            meaning: word.definition || '',
+            meaning: word.meaning || '',
             example: word.example || '',
             match_type: word.word.toLowerCase() === normalizedQuery ? 'exact' as const : 'partial' as const,
             similarity_score: word.word.toLowerCase() === normalizedQuery ? 1.0 :
