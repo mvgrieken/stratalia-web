@@ -39,6 +39,20 @@ jobs:
             exit 1
           fi
 
+      - name: Test GET /api/admin/monitoring returns 401/403 when unauthenticated
+        run: |
+          set -e
+          curl -s -D headers.txt -o /dev/null https://stratalia.nl/api/admin/monitoring || true
+          cat headers.txt
+          if grep -E '^HTTP/[0-9\\.]+ 401' headers.txt; then
+            exit 0
+          fi
+          if grep -E '^HTTP/[0-9\\.]+ 403' headers.txt; then
+            exit 0
+          fi
+          echo "Expected 401 or 403 for /api/admin/monitoring when unauthenticated" >&2
+          exit 1
+
 name: API Tests
 
 on:
