@@ -75,7 +75,7 @@ export const POST = withApiError(withZod(feedbackSchema, async (request: NextReq
             created_at: new Date().toISOString()
           });
       } catch (logError) {
-        logger.debug('Failed to log user feedback:', logError);
+        logger.debug(`Failed to log user feedback: ${logError instanceof Error ? logError.message : String(logError)}`);
       }
     }
 
