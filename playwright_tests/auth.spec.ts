@@ -1,17 +1,16 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Authentication Flow', () => {
+test.describe('Authentication Flow (Production-like)', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to the login page before each test
     await page.goto('/login');
   });
 
-  test('should display login form correctly', async ({ page }) => {
-    // Check if login form elements are present
-    await expect(page.locator('h1')).toContainText('Inloggen');
-    await expect(page.locator('input[type="email"]')).toBeVisible();
-    await expect(page.locator('input[type="password"]')).toBeVisible();
-    await expect(page.locator('button[type="submit"]')).toBeVisible();
+  test('renders login form', async ({ page }) => {
+    await expect(page.locator('h2')).toContainText('Inloggen bij Stratalia');
+    await expect(page.locator('input[type="email"]').first()).toBeVisible();
+    await expect(page.locator('input[type="password"]').first()).toBeVisible();
+    await expect(page.locator('button[type="submit"]').first()).toBeVisible();
   });
 
   test('should show error for empty email', async ({ page }) => {
@@ -39,13 +38,12 @@ test.describe('Authentication Flow', () => {
     await expect(page.locator('text=Invalid email address')).toBeVisible();
   });
 
-  test('should show user-friendly error for invalid credentials', async ({ page }) => {
+  test('shows user-friendly error for invalid credentials', async ({ page }) => {
     await page.fill('input[type="email"]', 'nonexistent@example.com');
     await page.fill('input[type="password"]', 'wrongpassword');
     await page.click('button[type="submit"]');
     
-    // Check for user-friendly error message
-    await expect(page.locator('text=Ongeldige inloggegevens')).toBeVisible();
+    await expect(page.locator('text=Onjuiste inloggegevens')).toBeVisible();
   });
 
   test('should navigate to register page', async ({ page }) => {
@@ -65,13 +63,12 @@ test.describe('Registration Flow', () => {
     await page.goto('/register');
   });
 
-  test('should display registration form correctly', async ({ page }) => {
-    // Check if registration form elements are present
-    await expect(page.locator('h1')).toContainText('Account aanmaken');
-    await expect(page.locator('input[name="full_name"]')).toBeVisible();
-    await expect(page.locator('input[type="email"]')).toBeVisible();
-    await expect(page.locator('input[type="password"]')).toBeVisible();
-    await expect(page.locator('button[type="submit"]')).toBeVisible();
+  test('renders registration form', async ({ page }) => {
+    await expect(page.locator('h2')).toContainText('Account aanmaken');
+    await expect(page.locator('input[name="full_name"]').first()).toBeVisible();
+    await expect(page.locator('input[type="email"]').first()).toBeVisible();
+    await expect(page.locator('input[type="password"]').first()).toBeVisible();
+    await expect(page.locator('button[type="submit"]').first()).toBeVisible();
   });
 
   test('should show error for empty full name', async ({ page }) => {
