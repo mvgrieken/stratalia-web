@@ -38,7 +38,7 @@ export const GET = withApiError(async (request: NextRequest) => {
       .limit(limit);
 
     if (queriesError) {
-      logger.warn('Failed to fetch search analytics:', queriesError);
+      logger.warn(`Failed to fetch search analytics: ${queriesError instanceof Error ? queriesError.message : String(queriesError)}`);
     }
 
     // Get search statistics
@@ -48,7 +48,7 @@ export const GET = withApiError(async (request: NextRequest) => {
       .gte('created_at', startDate.toISOString());
 
     if (statsError) {
-      logger.warn('Failed to fetch search statistics:', statsError);
+      logger.warn(`Failed to fetch search statistics: ${statsError instanceof Error ? statsError.message : String(statsError)}`);
     }
 
     // Calculate statistics
@@ -67,7 +67,7 @@ export const GET = withApiError(async (request: NextRequest) => {
       .limit(10);
 
     if (wordsError) {
-      logger.warn('Failed to fetch popular words:', wordsError);
+      logger.warn(`Failed to fetch popular words: ${wordsError instanceof Error ? wordsError.message : String(wordsError)}`);
     }
 
     return NextResponse.json({
@@ -84,7 +84,7 @@ export const GET = withApiError(async (request: NextRequest) => {
     });
 
   } catch (error) {
-    logger.error('Search analytics error:', error instanceof Error ? error.message : String(error));
+    logger.error('Search analytics error:', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: 'Failed to fetch search analytics' }, { status: 500 });
   }
 });
