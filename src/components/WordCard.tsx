@@ -3,7 +3,8 @@
  * Displays word information with performance optimizations
  */
 
-import React, { memo, useCallback } from 'react';
+import React, { memo, useCallback, useState, useEffect } from 'react';
+import AudioPlayer from './AudioPlayer';
 
 interface WordCardProps {
   word: {
@@ -29,6 +30,27 @@ const WordCard = memo<WordCardProps>(({
   className = '',
   enableFeedback = false
 }) => {
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+
+  // Fetch audio URL for the word
+  useEffect(() => {
+    const fetchAudioUrl = async () => {
+      try {
+        const response = await fetch(`/api/words/${encodeURIComponent(word.word)}/audio`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.hasAudio) {
+            setAudioUrl(data.audioUrl);
+          }
+        }
+      } catch (error) {
+        // Audio is optional, don't fail the component
+        console.warn('Failed to fetch audio for word:', word.word, error);
+      }
+    };
+
+    fetchAudioUrl();
+  }, [word.word]);
   const handleClick = useCallback(() => {
     onWordClick?.(word.word);
   }, [onWordClick, word.word]);
@@ -66,9 +88,17 @@ const WordCard = memo<WordCardProps>(({
     >
       {/* Word Header */}
       <div className="flex items-start justify-between mb-3">
-        <h3 className="text-xl font-bold text-gray-900">
-          {word.word}
-        </h3>
+        <div className="flex items-center gap-3">
+          <h3 className="text-xl font-bold text-gray-900">
+            {word.word}
+          </h3>
+          <AudioPlayer
+            text={word.word}
+            audioUrl={audioUrl}
+            size="sm"
+            showText={false}
+          />
+        </div>
         <div className="flex gap-2">
           {showDifficulty && word.difficulty && (
             <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(word.difficulty)}`}>

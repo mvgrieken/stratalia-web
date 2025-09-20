@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { useSpeechSynthesis } from '@/hooks/useSpeechSynthesis';
 import WordCard from './WordCard';
 import { LoadingSpinner } from './LoadingSpinner';
 import { ErrorMessage } from './ErrorMessage';
+import AudioPlayer from './AudioPlayer';
 
 interface WordDetail {
   id: string;
@@ -33,8 +33,7 @@ export default function WordDetailView({ word, onBack, className = '' }: WordDet
   const [showSubmissionForm, setShowSubmissionForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
-  
-  const { speak, isPlaying, isSupported } = useSpeechSynthesis();
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
 
   // Fetch word details
   React.useEffect(() => {
@@ -49,6 +48,20 @@ export default function WordDetailView({ word, onBack, className = '' }: WordDet
           const data = await response.json();
           setWordDetail(data.word);
           setSimilarWords(data.similar_words || []);
+          
+          // Fetch audio URL for the word
+          try {
+            const audioResponse = await fetch(`/api/words/${encodeURIComponent(word)}/audio`);
+            if (audioResponse.ok) {
+              const audioData = await audioResponse.json();
+              if (audioData.hasAudio) {
+                setAudioUrl(audioData.audioUrl);
+              }
+            }
+          } catch (audioError) {
+            // Audio is optional, don't fail the whole request
+            console.warn('Failed to fetch audio:', audioError);
+          }
         } else if (response.status === 404) {
           // Word not found, show submission form
           setError(`Woord "${word}" niet gevonden in de database`);
@@ -67,11 +80,6 @@ export default function WordDetailView({ word, onBack, className = '' }: WordDet
     fetchWordDetail();
   }, [word]);
 
-  const handleSpeak = useCallback(() => {
-    if (wordDetail) {
-      speak(`${wordDetail.word}. ${wordDetail.meaning}`);
-    }
-  }, [wordDetail, speak]);
 
   const handleSubmitWord = useCallback(async (formData: any) => {
     setSubmitting(true);
@@ -215,16 +223,12 @@ export default function WordDetailView({ word, onBack, className = '' }: WordDet
               </div>
             </div>
             
-            {isSupported && (
-              <button
-                onClick={handleSpeak}
-                disabled={isPlaying}
-                className="p-3 bg-blue-100 hover:bg-blue-200 rounded-full transition-colors disabled:opacity-50"
-                aria-label="Uitspraak afspelen"
-              >
-                {isPlaying ? '🔊' : '🔇'}
-              </button>
-            )}
+            <AudioPlayer
+              text={`${wordDetail.word}. ${wordDetail.meaning}`}
+              audioUrl={audioUrl}
+              size="lg"
+              showText={false}
+            />
           </div>
 
           <div className="space-y-4">

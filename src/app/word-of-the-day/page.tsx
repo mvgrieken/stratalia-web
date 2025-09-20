@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { logger } from '@/lib/logger';
+import AudioPlayer from '@/components/AudioPlayer';
 
 interface DailyWord {
   id: string;
@@ -22,23 +23,17 @@ export default function WordOfTheDayPage() {
   const [weeklyProgress, setWeeklyProgress] = useState<WeeklyProgress[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [audioSupported, setAudioSupported] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [marking, setMarking] = useState(false);
   const [marked, setMarked] = useState(false);
   const [pointsEarned, setPointsEarned] = useState<number | null>(null);
   const [newStreak, setNewStreak] = useState<number | null>(null);
   const [userStats, setUserStats] = useState<{ points: number; streak: number } | null>(null);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
 
   useEffect(() => {
     fetchDailyWord();
     fetchWeeklyProgress();
     fetchUserStats();
-    
-    // Check for speech synthesis support
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      setAudioSupported(true);
-    }
   }, []);
 
   const fetchDailyWord = async () => {
@@ -48,6 +43,20 @@ export default function WordOfTheDayPage() {
         const data = await response.json();
         setDailyWord(data);
         setError(null); // Clear any previous errors
+        
+        // Fetch audio URL for the daily word
+        try {
+          const audioResponse = await fetch(`/api/words/${encodeURIComponent(data.word)}/audio`);
+          if (audioResponse.ok) {
+            const audioData = await audioResponse.json();
+            if (audioData.hasAudio) {
+              setAudioUrl(audioData.audioUrl);
+            }
+          }
+        } catch (audioError) {
+          // Audio is optional, don't fail the whole request
+          console.warn('Failed to fetch daily word audio:', audioError);
+        }
       } else {
         // Even if API fails, try to get fallback data
         const errorData = await response.json().catch(() => ({}));
@@ -120,51 +129,6 @@ export default function WordOfTheDayPage() {
     }
   };
 
-  const speakWord = (word: string) => {
-    if (!audioSupported || !word) return;
-    
-    try {
-      setIsPlaying(true);
-      const utterance = new SpeechSynthesisUtterance(word);
-      utterance.lang = 'nl-NL';
-      utterance.rate = 0.8;
-      utterance.pitch = 1;
-      
-      utterance.onend = () => {
-        setIsPlaying(false);
-      };
-      
-      utterance.onerror = (event) => {
-        const message = (event as any)?.error ? String((event as any).error) : 'Unknown error';
-        logger.warn(`Speech synthesis error: ${message}`);
-        setIsPlaying(false);
-      };
-      
-      window.speechSynthesis.speak(utterance);
-    } catch (error) {
-      logger.error(`Error speaking word: ${error instanceof Error ? error.message : String(error)}`);
-      setIsPlaying(false);
-    }
-  };
-
-  const speakMeaning = (meaning: string) => {
-    try {
-      if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(meaning);
-        utterance.lang = 'nl-NL';
-        utterance.rate = 0.8;
-        utterance.onerror = (event) => {
-          const message = (event as any)?.error ? String((event as any).error) : 'Unknown error';
-          logger.warn(`Speech synthesis error: ${message}`);
-        };
-        window.speechSynthesis.speak(utterance);
-      } else {
-        logger.warn('Speech synthesis not supported in this browser');
-      }
-    } catch (error) {
-      logger.error(`Error speaking meaning: ${error instanceof Error ? error.message : String(error)}`);
-    }
-  };
 
   if (loading) {
     return (
@@ -233,30 +197,20 @@ export default function WordOfTheDayPage() {
                 
                 {/* Audio Controls */}
                 <div className="flex justify-center gap-4">
-                  {audioSupported ? (
-                    <>
-                      <button
-                        onClick={() => speakWord(dailyWord.word)}
-                        disabled={isPlaying}
-                        className="bg-white bg-opacity-20 hover:bg-opacity-30 disabled:opacity-50 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-                        aria-label={`Spreek het woord "${dailyWord.word}" uit`}
-                      >
-                        {isPlaying ? '⏸️' : '🔊'} {dailyWord.word}
-                      </button>
-                      <button
-                        onClick={() => speakMeaning(dailyWord.meaning)}
-                        disabled={isPlaying}
-                        className="bg-white bg-opacity-20 hover:bg-opacity-30 disabled:opacity-50 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-                        aria-label="Spreek de betekenis uit"
-                      >
-                        {isPlaying ? '⏸️' : '🔊'} Betekenis
-                      </button>
-                    </>
-                  ) : (
-                    <div className="text-white bg-opacity-20 px-4 py-2 rounded-lg text-sm">
-                      🔊 Audio niet ondersteund in deze browser
-                    </div>
-                  )}
+                  <AudioPlayer
+                    text={dailyWord.word}
+                    audioUrl={audioUrl}
+                    size="md"
+                    showText={true}
+                    className="bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg"
+                  />
+                  <AudioPlayer
+                    text={dailyWord.meaning}
+                    audioUrl={null}
+                    size="md"
+                    showText={true}
+                    className="bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg"
+                  />
                 </div>
 
                 {/* Actions */}
