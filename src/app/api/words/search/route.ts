@@ -117,7 +117,7 @@ export const GET = withApiError(withZod(searchSchema, async (request: NextReques
                 ip_address: request.headers.get('x-forwarded-for') || 'unknown'
               });
           } catch (logError) {
-            logger.debug('Failed to log search query:', logError);
+            logger.debug(`Failed to log search query: ${logError instanceof Error ? logError.message : String(logError)}`);
           }
 
           results = words.map(word => ({
