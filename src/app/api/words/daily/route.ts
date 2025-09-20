@@ -33,60 +33,23 @@ export const GET = withApiError(async (_request: NextRequest) => {
     try {
       const supabase = getSupabaseServiceClient();
 
-      // 1) Try to read persisted word from word_of_day table (if exists)
-      const { data: persisted, error: persistedErr } = await supabase
-        .from('word_of_day')
-        .select('id, word, meaning, example, date')
-        .eq('date', dateStr)
-        .limit(1)
-        .maybeSingle();
+      // Use the get_todays_word function which automatically selects a word if none exists
+      const { data: todaysWord, error: wordError } = await supabase.rpc('get_todays_word');
 
-      if (!persistedErr && persisted) {
+      if (!wordError && todaysWord && todaysWord.length > 0) {
+        const word = todaysWord[0];
         const daily: DailyWord = {
-          id: persisted.id,
-          word: persisted.word,
-          meaning: persisted.meaning,
-          example: persisted.example,
-          date: persisted.date,
+          id: word.id,
+          word: word.word,
+          meaning: word.meaning,
+          example: word.example,
+          date: word.date,
         };
         cacheService.set(cacheKey, daily, CACHE_TTL.SHORT);
         return NextResponse.json(daily, { headers: { 'Cache-Control': 'no-store' } });
       }
 
-      // 2) Pick a random active word from words table
-      // Note: random() requires a Postgres function; alternatively order by id and offset
-      const { data: candidate, error: pickErr } = await supabase
-        .from('words')
-        .select('id, word, meaning, example')
-        .eq('is_active', true)
-        .order('usage_frequency', { ascending: false })
-        .limit(100);
-
-      if (!pickErr && candidate && candidate.length > 0) {
-        const randomIdx = Math.floor(Math.random() * candidate.length);
-        const chosen = candidate[randomIdx];
-        const daily: DailyWord = {
-          id: String(chosen.id),
-          word: chosen.word,
-          meaning: chosen.meaning || '',
-          example: chosen.example || null,
-          date: dateStr,
-        };
-
-        // 3) Try to persist to word_of_day (ignore if table missing)
-        try {
-          await supabase
-            .from('word_of_day')
-            .upsert({ id: daily.id, word: daily.word, meaning: daily.meaning, example: daily.example, date: daily.date }, { onConflict: 'date' });
-        } catch (_e) {
-          // ignore if table doesn't exist
-        }
-
-        cacheService.set(cacheKey, daily, CACHE_TTL.SHORT);
-        return NextResponse.json(daily, { headers: { 'Cache-Control': 'no-store' } });
-      }
-
-      logger.warn('No active words found; falling back to emergency word');
+      logger.warn('No word found for today; falling back to emergency word');
     } catch (e: any) {
       logger.warn(`Daily word Supabase flow failed: ${e?.message || e}`);
     }

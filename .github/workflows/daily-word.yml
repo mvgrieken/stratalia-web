@@ -1,0 +1,39 @@
+name: Daily Word Selection
+
+on:
+  schedule:
+    # Run at 6:00 AM UTC every day
+    - cron: '0 6 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  select-daily-word:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Select Daily Word
+        run: |
+          echo "Triggering daily word selection..."
+          
+          # Get the deployed URL (you'll need to set this in your repository secrets)
+          DEPLOYED_URL=${DEPLOYED_URL:-"https://stratalia.nl"}
+          
+          # Call the cron endpoint
+          response=$(curl -s -X GET "$DEPLOYED_URL/api/cron/daily-word" \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            -H "Content-Type: application/json")
+          
+          echo "Response: $response"
+          
+          # Check if the response contains success
+          if echo "$response" | grep -q '"success":true'; then
+            echo "✅ Daily word selection completed successfully"
+          else
+            echo "❌ Daily word selection failed"
+            echo "Response: $response"
+            exit 1
+          fi
+        
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          DEPLOYED_URL: ${{ secrets.DEPLOYED_URL }}

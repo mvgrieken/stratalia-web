@@ -18,6 +18,8 @@ export default function AdminPage() {
   const [refreshStatus, setRefreshStatus] = useState<string | null>(null);
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isSelectingWord, setIsSelectingWord] = useState(false);
+  const [wordSelectionStatus, setWordSelectionStatus] = useState<string | null>(null);
 
   const loadStats = async () => {
     try {
@@ -36,6 +38,32 @@ export default function AdminPage() {
   useEffect(() => {
     loadStats();
   }, []);
+
+  const handleSelectDailyWord = async () => {
+    setIsSelectingWord(true);
+    setWordSelectionStatus('Woord van de dag wordt geselecteerd...');
+    
+    try {
+      const response = await fetch('/api/admin/daily-word/select', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setWordSelectionStatus(`✅ Woord van de dag geselecteerd: "${data.word?.word}"`);
+      } else {
+        setWordSelectionStatus('❌ Fout bij selecteren van woord van de dag');
+      }
+    } catch (error) {
+      logger.error(`Failed to select daily word: ${error instanceof Error ? error.message : String(error)}`);
+      setWordSelectionStatus('❌ Fout bij selecteren van woord van de dag');
+    } finally {
+      setIsSelectingWord(false);
+    }
+  };
 
   const handleCrawlContent = async () => {
     setIsRefreshing(true);
@@ -217,9 +245,22 @@ export default function AdminPage() {
                 Woordenlijst
               </h2>
               <p className="text-gray-600 dark:text-gray-400 mb-4">
-                Ververs de straattaal woordenlijst met nieuwe woorden
+                Beheer de woordenlijst en dagelijkse woord selectie
               </p>
-              <button
+              <div className="space-y-3">
+                <button
+                  onClick={handleSelectDailyWord}
+                  disabled={isSelectingWord}
+                  className="w-full bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {isSelectingWord ? 'Woord selecteren...' : '📅 Selecteer Woord van de Dag'}
+                </button>
+                {wordSelectionStatus && (
+                  <div className="text-sm text-gray-600 dark:text-gray-400 p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                    {wordSelectionStatus}
+                  </div>
+                )}
+                <button
                 onClick={handleRefreshWords}
                 disabled={isRefreshing}
                 className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"

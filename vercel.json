@@ -1,23 +1,24 @@
 {
-  "version": 2,
   "functions": {
-    "src/pages/api/**/*.ts": {
-      "memory": 512,
-      "maxDuration": 10
-    },
-    "src/pages/api/**/*.js": {
-      "memory": 512,
-      "maxDuration": 10
+    "src/pages/api/**/*.ts|js": {
+      "runtime": "nodejs18.x",
+      "memory": 1024,
+      "maxDuration": 30
     }
   },
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/api/$1",
-      "methods": ["GET", "POST", "OPTIONS"],
+      "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
       "headers": {
         "Cache-Control": "no-cache"
       }
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/daily-word",
+      "schedule": "0 6 * * *"
     }
   ]
 }
