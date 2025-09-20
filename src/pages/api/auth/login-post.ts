@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST,OPTIONS');
-    res.status(405).end('Method Not Allowed');
+    res.status(405).json({ error: 'Method Not Allowed', method: req.method });
     return;
   }
 
@@ -48,6 +48,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   try {
+    console.info(`[login-post] method=${req.method} ip=${req.headers['x-forwarded-for'] ?? req.socket.remoteAddress}`);
     const { email, password, redirect_to } = req.body || {};
     if (!email || !password) {
       res.status(400).json({ error: 'Email and password are required' });
@@ -56,6 +57,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
+      console.warn(`[login-post] auth failed: ${error.message || 'unknown'}`);
       res.status(401).json({ error: error.message || 'Invalid credentials' });
       return;
     }
@@ -65,9 +67,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const location = redirect_to || '/dashboard';
+    console.info(`[login-post] success redirect=${location}`);
     res.writeHead(303, { Location: location });
     res.end();
   } catch (e: any) {
+    console.error(`[login-post] error: ${e?.message || e}`);
     res.status(500).json({ error: e?.message || 'Internal error' });
   }
 }

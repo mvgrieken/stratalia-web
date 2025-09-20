@@ -250,7 +250,7 @@ npm run test:coverage
 2. **Configureer environment variabelen** in Vercel dashboard
 3. **Deploy automatisch** bij push naar main branch
 
-### Deployment Notes
+### Deployment Notes (Auth & API)
 
 - Om 403‑blokkades op POST naar `/api/*` op custom domains te voorkomen, is `vercel.json` toegevoegd:
   - Alle API‑routes draaien gegarandeerd op Node runtime (geen Edge)
@@ -267,6 +267,11 @@ Verwacht: `200 OK` met `{ ok: true }`.
 - Bij problemen: voer een geforceerde productie‑deploy uit:
 ```bash
 vercel --prod --force
+```
+
+Maak testscript uitvoerbaar:
+```bash
+chmod +x scripts/test-api.sh
 ```
 
 ### Manual Deployment

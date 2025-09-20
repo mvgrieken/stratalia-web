@@ -5,7 +5,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // Allow only GET to bypass custom-domain POST blocks
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET');
-    res.status(405).end('Method Not Allowed');
+    res.status(405).json({ error: 'Method Not Allowed', method: req.method });
     return;
   }
 
@@ -90,8 +90,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return;
     }
 
+    console.info(`[attach-session] success user=${userData.user.id}`);
     res.status(204).end();
   } catch (e: any) {
+    console.error(`[attach-session] error: ${e?.message || e}`);
     res.status(500).json({ error: e?.message ?? 'Attach session failed' });
   }
 }
