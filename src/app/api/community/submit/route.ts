@@ -120,7 +120,7 @@ export const POST = async (request: NextRequest) => {
       submission_id: fallbackId,
       source: 'fallback'
     });
-    } catch (error) {
+  } catch (error) {
         logger.error('Community submission error:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
