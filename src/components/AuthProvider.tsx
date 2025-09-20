@@ -113,14 +113,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({ email, password, redirect_to: '/dashboard' })
       });
 
-      if (!res.ok && res.status !== 303) {
+      if (res.status === 303) {
+        return { error: 'Onjuiste inloggegevens. Probeer het opnieuw.' };
+      }
+      if (!res.ok) {
         // Try proxy as fallback (custom-domain POST may be blocked)
         const proxy = await fetch('/api/auth/proxy-login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password, redirect_to: '/dashboard' }),
         });
-        if (!proxy.ok && proxy.status !== 303) {
+        if (proxy.status === 303) {
+          return { error: 'Onjuiste inloggegevens. Probeer het opnieuw.' };
+        }
+        if (!proxy.ok) {
           // Final fallback: client-side login, then attach session via GET
           try {
             const supabase = getSupabaseClient();

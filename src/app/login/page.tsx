@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
@@ -18,6 +18,18 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams?.get('redirect_to') || '/dashboard';
+  const urlError = searchParams?.get('error');
+
+  useEffect(() => {
+    if (!urlError) return;
+    if (urlError === 'invalid_credentials') {
+      setError('Onjuiste inloggegevens. Probeer het opnieuw.');
+    } else if (urlError === 'email_not_confirmed') {
+      setError('Je e-mailadres is nog niet bevestigd. Check je e-mail voor de verificatielink.');
+    } else {
+      setError('Inloggen mislukt. Probeer het opnieuw.');
+    }
+  }, [urlError]);
   const showGoogle = process.env.NEXT_PUBLIC_GOOGLE_OAUTH_ENABLED === 'true';
   const showApple = process.env.NEXT_PUBLIC_APPLE_OAUTH_ENABLED === 'true';
 
