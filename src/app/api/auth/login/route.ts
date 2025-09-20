@@ -7,6 +7,13 @@ import { applyRateLimit } from '@/middleware/rateLimiter';
 import { isAuthConfigured, getConfigErrorMessage } from '@/lib/environment-check';
 import { withApiError } from '@/lib/api-wrapper';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 204 });
+}
+
 export const POST = withApiError(async (request: NextRequest) => {
     // Apply rate limiting for auth endpoints
     const rateLimitCheck = applyRateLimit(request, 'auth');
