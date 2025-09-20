@@ -114,26 +114,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (!res.ok && res.status !== 303) {
-        // Try proxy as fallback
+        // Try proxy as fallback (custom-domain POST may be blocked)
         const proxy = await fetch('/api/auth/proxy-login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password, redirect_to: '/dashboard' }),
         });
         if (!proxy.ok && proxy.status !== 303) {
-          const body = await proxy.json().catch(() => ({ error: 'Inloggen mislukt. Probeer het opnieuw.' }));
-          const raw = String(body?.error || 'Inloggen mislukt. Probeer het opnieuw.');
-          let message = 'Inloggen mislukt. Controleer je gegevens.';
-          if (raw.includes('Invalid login credentials')) {
-            message = 'Ongeldige inloggegevens. Controleer je e-mail en wachtwoord.';
-          } else if (raw.includes('Email not confirmed') || raw.toLowerCase().includes('not confirmed')) {
-            message = 'Je e-mailadres is nog niet bevestigd. Controleer je inbox.';
-          } else if (raw.includes('Too many requests')) {
-            message = 'Te veel pogingen. Wacht even voordat je opnieuw probeert.';
+          // Final fallback: client-side login, then attach session via GET
+          try {
+            const supabase = getSupabaseClient();
+            const { data, error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
+            if (signInErr || !data?.session) {
+              const raw = String(signInErr?.message || 'Inloggen mislukt. Probeer het opnieuw.');
+              let message = 'Inloggen mislukt. Controleer je gegevens.';
+              if (raw.includes('Invalid login credentials')) {
+                message = 'Ongeldige inloggegevens. Controleer je e-mail en wachtwoord.';
+              } else if (raw.includes('Email not confirmed') || raw.toLowerCase().includes('not confirmed')) {
+                message = 'Je e-mailadres is nog niet bevestigd. Controleer je inbox.';
+              } else if (raw.includes('Too many requests')) {
+                message = 'Te veel pogingen. Wacht even voordat je opnieuw probeert.';
+              }
+              return { error: message };
+            }
+            // Attach session cookies to server via GET (works on POST-blocked domains)
+            await fetch('/api/auth/attach-session', {
+              method: 'GET',
+              headers: {
+                Authorization: `Bearer ${data.session.access_token}`,
+                'x-refresh-token': data.session.refresh_token ?? '',
+              },
+              cache: 'no-store',
+            });
+          } catch (fallbackErr) {
+            logger.error(`AuthProvider: client fallback failed: ${fallbackErr instanceof Error ? fallbackErr.message : String(fallbackErr)}`);
+            return { error: 'Inloggen mislukt. Probeer het opnieuw.' };
           }
-          return { error: message };
         }
-        // Proxy succeeded; continue
+        // Proxy or client fallback succeeded; continue
       }
       
       // Success: on 303 redirect, browser will navigate. For SPA feel, also fetch user.

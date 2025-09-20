@@ -100,9 +100,25 @@ Zorg in productie voor een werkende login/sessie:
 - Vercel Environment Variables (Production)
   - `NEXT_PUBLIC_SUPABASE_URL` en `NEXT_PUBLIC_SUPABASE_ANON_KEY` verwijzen naar hetzelfde Supabase‑project als hierboven
 - Loginflow (server‑side)
-  - Client POST naar `/api/auth/login` met `{ email, password, redirect_to: '/dashboard' }`
-  - Server route zet cookies via `@supabase/ssr` en retourneert `303 See Other` met `Location: /dashboard`
+  - Primair: Client POST naar `/api/auth/login-post` met `{ email, password, redirect_to: '/dashboard' }`
+  - Server zet cookies via `@supabase/ssr` en retourneert `303 See Other` met `Location: /dashboard`
   - Client haalt daarna `GET /api/auth/me` op om de user‑context te initialiseren
+  - Fallbacks (alleen indien nodig bij custom‑domain POST‑blokkade door CDN/WAF):
+    - Proxy: `POST /api/auth/proxy-login` → stuurt door naar `https://<project>.vercel.app/api/auth/login-post` en forwardt `Set-Cookie`/`Location`
+    - GET‑attach: Client logt in met `supabase.auth.signInWithPassword`, daarna `GET /api/auth/attach-session` met headers `Authorization: Bearer <access>` en `x-refresh-token: <refresh>` om HttpOnly cookies te zetten
+
+#### Custom domain blokkeert POST naar /api/*
+Als `POST https://<custom-domain>/api/test-post` resulteert in `403 Only GET requests are allowed`, zit er een CDN/WAF of proxy‑regel vóór Vercel.
+
+Los dit structureel op door POST en OPTIONS toe te staan op `/api/*` (of specifiek `/api/auth/*`).
+
+Debug/checklist:
+- Test: `curl -i -X POST https://<custom-domain>/api/test-post -d '{}' -H 'Content-Type: application/json'`
+- Vercel subdomain: test hetzelfde path op `https://<project>.vercel.app` om uit te sluiten dat het aan de app ligt
+- Force redeploy: `vercel --prod --force` als er nog verouderde edge‑functies hangen
+- Tijdelijke workarounds (documenteer en verwijder zodra domein fixed is):
+  - Gebruik `POST /api/auth/proxy-login`
+  - Of client‑fallback + `GET /api/auth/attach-session`
 
 #### Optionele variabelen
 ```env
