@@ -24,6 +24,8 @@ export default function WordOfTheDayPage() {
   const [error, setError] = useState<string | null>(null);
   const [audioSupported, setAudioSupported] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [marking, setMarking] = useState(false);
+  const [marked, setMarked] = useState(false);
 
   useEffect(() => {
     fetchDailyWord();
@@ -220,6 +222,41 @@ export default function WordOfTheDayPage() {
                       🔊 Audio niet ondersteund in deze browser
                     </div>
                   )}
+                </div>
+
+                {/* Actions */}
+                <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                  <button
+                    onClick={async () => {
+                      if (marked || marking || !dailyWord) return;
+                      try {
+                        setMarking(true);
+                        const res = await fetch('/api/words/daily/learn', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ word_id: dailyWord.id, word: dailyWord.word, date: dailyWord.date })
+                        });
+                        if (res.ok) setMarked(true);
+                      } finally {
+                        setMarking(false);
+                      }
+                    }}
+                    disabled={marking || marked}
+                    className="bg-white bg-opacity-20 hover:bg-opacity-30 disabled:opacity-50 px-4 py-2 rounded-lg"
+                  >
+                    {marked ? '✅ Gemarkeerd als geleerd' : (marking ? '...' : '✔️ Markeer als geleerd')}
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (!dailyWord) return;
+                      try {
+                        await navigator.share?.({ title: 'Woord van de dag', text: `${dailyWord.word} – ${dailyWord.meaning}`, url: window.location.href });
+                      } catch (_e) {}
+                    }}
+                    className="bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg"
+                  >
+                    🔗 Delen
+                  </button>
                 </div>
               </div>
             </div>
