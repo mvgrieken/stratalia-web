@@ -34,7 +34,13 @@ export const POST = withApiError(withZod(schema, async (request: NextRequest) =>
     if (word_id) payload.word_id = word_id;
     if (word) payload.word = word;
 
-    const result: { progress_upserted?: boolean; user_updated?: boolean } = {};
+    const result: { 
+      progress_upserted?: boolean; 
+      user_updated?: boolean;
+      points_earned?: number;
+      new_total_points?: number;
+      new_streak?: number;
+    } = {};
 
     // Try to record daily progress (table may not exist; ignore errors)
     try {
