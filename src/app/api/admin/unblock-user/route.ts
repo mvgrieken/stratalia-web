@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getServerSupabase } from '@/lib/supabase-server';
 import { logger } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
@@ -13,12 +14,13 @@ export async function POST(request: NextRequest) {
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
     const supabaseService = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
 
-    const { data: sessionData, error: sessionError } = await supabaseService.auth.getSession();
-    if (sessionError || !sessionData.session?.user) {
+    const supabaseServer = getServerSupabase(request);
+    const { data: userData, error: userErr } = await supabaseServer.auth.getUser();
+    if (userErr || !userData?.user) {
       return NextResponse.json({ error: 'Authenticatie vereist' }, { status: 401 });
     }
 
-    const adminId = sessionData.session.user.id;
+    const adminId = userData.user.id;
     const { data: admin, error: adminError } = await supabaseService
       .from('users')
       .select('role')
