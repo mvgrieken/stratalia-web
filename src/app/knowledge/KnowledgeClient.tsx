@@ -39,15 +39,19 @@ export default function KnowledgeClient({ initialItems }: KnowledgeClientProps) 
     searchQuery: '',
     selectedType: 'all',
     selectedDifficulty: 'all',
-    selectedTags: [] as string[]
+    selectedTags: [] as string[],
+    sortBy: 'created_at',
+    sortOrder: 'desc' as 'asc' | 'desc'
   });
 
-  const handleFiltersChange = useCallback((f: { searchQuery: string; selectedType: string; selectedDifficulty: string; selectedTags?: string[] }) => {
+  const handleFiltersChange = useCallback((f: { searchQuery: string; selectedType: string; selectedDifficulty: string; selectedTags?: string[]; sortBy?: string; sortOrder?: 'asc' | 'desc' }) => {
     setFilters({
       searchQuery: f.searchQuery,
       selectedType: f.selectedType,
       selectedDifficulty: f.selectedDifficulty,
       selectedTags: f.selectedTags ?? [],
+      sortBy: f.sortBy ?? 'created_at',
+      sortOrder: f.sortOrder ?? 'desc'
     });
   }, []);
 
@@ -77,12 +81,50 @@ export default function KnowledgeClient({ initialItems }: KnowledgeClientProps) 
       );
     }
 
+    // Sort items
+    filtered.sort((a, b) => {
+      let aValue: any, bValue: any;
+      
+      switch (filters.sortBy) {
+        case 'title':
+          aValue = a.title.toLowerCase();
+          bValue = b.title.toLowerCase();
+          break;
+        case 'word_count':
+          aValue = a.word_count || 0;
+          bValue = b.word_count || 0;
+          break;
+        case 'difficulty':
+          const difficultyOrder = { 'beginner': 1, 'intermediate': 2, 'advanced': 3 };
+          aValue = difficultyOrder[a.difficulty] || 0;
+          bValue = difficultyOrder[b.difficulty] || 0;
+          break;
+        case 'created_at':
+        default:
+          aValue = new Date(a.created_at).getTime();
+          bValue = new Date(b.created_at).getTime();
+          break;
+      }
+
+      if (filters.sortOrder === 'asc') {
+        return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
+      } else {
+        return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
+      }
+    });
+
     setFilteredItems(filtered);
   }, [items, filters]);
 
   useEffect(() => {
     filterItems();
   }, [filterItems]);
+
+  // Get all unique tags from items
+  const availableTags = React.useMemo(() => {
+    const allTags = items.flatMap(item => item.tags);
+    return Array.from(new Set(allTags)).sort();
+  }, [items]);
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -150,7 +192,7 @@ export default function KnowledgeClient({ initialItems }: KnowledgeClientProps) 
         </div>
 
         {/* Filters */}
-        <KnowledgeFilters onFiltersChange={handleFiltersChange} />
+        <KnowledgeFilters onFiltersChange={handleFiltersChange} availableTags={availableTags} />
 
         {/* Results */}
         <div className="mb-6">
@@ -248,15 +290,31 @@ export default function KnowledgeClient({ initialItems }: KnowledgeClientProps) 
                   {/* Tags */}
                   <div className="flex flex-wrap gap-1 mb-4">
                     {item.tags.slice(0, 3).map((tag, index) => (
-                      <span
+                      <button
                         key={index}
-                        className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          // Add tag to selected tags
+                          const newTags = filters.selectedTags.includes(tag)
+                            ? filters.selectedTags.filter(t => t !== tag)
+                            : [...filters.selectedTags, tag];
+                          handleFiltersChange({
+                            searchQuery: filters.searchQuery,
+                            selectedType: filters.selectedType,
+                            selectedDifficulty: filters.selectedDifficulty,
+                            selectedTags: newTags,
+                            sortBy: filters.sortBy,
+                            sortOrder: filters.sortOrder
+                          });
+                        }}
+                        className="px-2 py-1 bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 text-xs rounded-full hover:bg-blue-200 dark:hover:bg-blue-900/40 transition-colors cursor-pointer"
                       >
-                        {tag}
-                      </span>
+                        #{tag}
+                      </button>
                     ))}
                     {item.tags.length > 3 && (
-                      <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                      <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs rounded-full">
                         +{item.tags.length - 3} meer
                       </span>
                     )}

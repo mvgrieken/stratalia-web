@@ -97,12 +97,13 @@ export default async function KnowledgeDetailPage({ params }: KnowledgeDetailPag
             <div className="mb-8">
               <div className="flex flex-wrap gap-2">
                 {content.tags.map((tag) => (
-                  <span 
+                  <a
                     key={tag}
-                    className="px-3 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full text-sm"
+                    href={`/knowledge?tag=${encodeURIComponent(tag)}`}
+                    className="px-3 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full text-sm hover:bg-blue-100 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-300 transition-colors cursor-pointer"
                   >
                     #{tag}
-                  </span>
+                  </a>
                 ))}
               </div>
             </div>
