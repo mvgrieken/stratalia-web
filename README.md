@@ -284,6 +284,29 @@ GitHub Actions – API Tests:
 - Workflow: "API Tests" draait op elke push naar `main` of handmatig via de Actions‑tab.
 - Doel: verifiëren dat `POST /api/test-post` 200 geeft en login‑POST niet meer 403 retourneert.
 
+#### Post-deploy tests via webhook (Vercel → GitHub)
+
+- Tweede workflow: "API Tests (after Vercel deploy)" draait na een succesvolle Vercel deploy via een repository_dispatch event.
+- Event type: `vercel-deploy-completed`.
+- Configuratie in Vercel:
+  1. Ga naar Project Settings → Git → Deploy Hooks of Webhooks.
+  2. Maak een hook aan die triggert bij “Deployment Succeeded”.
+  3. Laat Vercel een POST sturen naar de GitHub endpoint `https://api.github.com/repos/<owner>/<repo>/dispatches` met body:
+     ```json
+     { "event_type": "vercel-deploy-completed" }
+     ```
+  4. Auth: voeg een GitHub token met `repo` rechten toe in de headers, bijv. `Authorization: token <GITHUB_TOKEN>` en `Accept: application/vnd.github+json`.
+  5. Zorg dat `<owner>` en `<repo>` overeenkomen met deze repository.
+
+- Resultaat: Na elke geslaagde deploy op Vercel start automatisch de workflow die de live API op `https://stratalia.nl` test.
+
+#### Testresultaten bekijken
+
+- Ga in GitHub naar de Actions tab. Je ziet twee workflows:
+  - "API Tests" (na push naar main of handmatig gestart)
+  - "API Tests (after Vercel deploy)" (na Vercel deploy via webhook)
+- Klik een run open om logs te bekijken. Elke stap toont de curl headers en faalt met een duidelijke melding als de verwachte status niet gevonden is.
+
 ### Manual Deployment
 
 ```bash

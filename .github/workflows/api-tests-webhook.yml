@@ -1,8 +1,8 @@
-name: API Tests
+name: API Tests (after Vercel deploy)
 
 on:
-  push:
-    branches: [ "main" ]
+  repository_dispatch:
+    types: [vercel-deploy-completed]
   workflow_dispatch:
 
 jobs:
@@ -39,37 +39,4 @@ jobs:
             exit 1
           fi
 
-name: API Tests
 
-on:
-  workflow_dispatch:
-  push:
-    branches: [ "main" ]
-
-jobs:
-  api-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-
-      - name: Install curl
-        run: sudo apt-get update && sudo apt-get install -y curl
-
-      - name: Test POST /api/test-post
-        run: |
-          curl -i -X POST https://stratalia.nl/api/test-post \
-            -H "Content-Type: application/json" -d '{}' | tee result.txt
-          grep "200 OK" result.txt || (echo "Expected 200 OK on /api/test-post" && exit 1)
-
-      - name: Test POST /api/auth/login-post (invalid creds)
-        run: |
-          curl -i -X POST https://stratalia.nl/api/auth/login-post \
-            -H "Content-Type: application/json" \
-            -d '{"email":"invalid@example.com","password":"wrong","redirect_to":"/dashboard"}' | tee result.txt
-          grep "303 See Other" result.txt || (echo "Expected 303 redirect (even with invalid creds)" && exit 1)
-
-      - name: Test GET /api/auth/me
-        run: |
-          curl -i https://stratalia.nl/api/auth/me | tee result.txt
-          grep "200" result.txt || (echo "Expected 200 on /api/auth/me" && exit 1)
