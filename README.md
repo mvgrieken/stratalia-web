@@ -274,6 +274,16 @@ Maak testscript uitvoerbaar:
 chmod +x scripts/test-api.sh
 ```
 
+Force deploy script:
+```bash
+chmod +x scripts/deploy-force.sh
+./scripts/deploy-force.sh
+```
+
+GitHub Actions – API Tests:
+- Workflow: "API Tests" draait op elke push naar `main` of handmatig via de Actions‑tab.
+- Doel: verifiëren dat `POST /api/test-post` 200 geeft en login‑POST niet meer 403 retourneert.
+
 ### Manual Deployment
 
 ```bash
