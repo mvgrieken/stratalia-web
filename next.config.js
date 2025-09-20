@@ -31,6 +31,7 @@ const nextConfig = {
       },
   experimental: {
     // optimizeCss: true, // Disabled due to critters dependency issue
+    runtime: 'nodejs',
   },
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',

@@ -1,33 +1,25 @@
 {
-  "headers": [
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        },
-        {
-          "key": "Access-Control-Allow-Methods",
-          "value": "GET, POST, PUT, DELETE, OPTIONS"
-        },
-        {
-          "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type, Authorization"
-        }
-      ]
-    }
-  ],
+  "version": 2,
   "functions": {
-    "src/app/api/**/*.ts": {
-      "maxDuration": 30
+    "api/**/*.ts": {
+      "runtime": "nodejs18.x",
+      "memory": 512,
+      "maxDuration": 10
+    },
+    "api/**/*.js": {
+      "runtime": "nodejs18.x",
+      "memory": 512,
+      "maxDuration": 10
     }
   },
-  "crons": [
+  "routes": [
     {
-      "path": "/api/refresh-knowledge",
-      "schedule": "0 3 * * *"
+      "src": "/api/(.*)",
+      "dest": "/api/$1",
+      "methods": ["GET", "POST", "OPTIONS"],
+      "headers": {
+        "Cache-Control": "no-cache"
+      }
     }
-  ],
-  "buildCommand": "npm run build"
+  ]
 }
