@@ -97,14 +97,28 @@ export const GET = withApiError(withZod(searchSchema, async (request: NextReques
         }
 
         if (words && words.length > 0) {
-          // Update search statistics
-          await supabase
-            .from('words')
-            .update({ 
-              usage_frequency: 1, // Increment would need a database function
-              updated_at: new Date().toISOString()
-            })
-            .in('id', words.map(w => w.id));
+          // Update search statistics and log search query
+          try {
+            await supabase
+              .from('words')
+              .update({
+                usage_frequency: 1, // Increment would need a database function
+                updated_at: new Date().toISOString()
+              })
+              .in('id', words.map(w => w.id));
+
+            // Log search query for analytics
+            await supabase
+              .from('search_queries')
+              .insert({
+                query: normalizedQuery,
+                result_count: words.length,
+                user_agent: request.headers.get('user-agent') || 'unknown',
+                ip_address: request.headers.get('x-forwarded-for') || 'unknown'
+              });
+          } catch (logError) {
+            logger.debug('Failed to log search query:', logError);
+          }
 
           results = words.map(word => ({
             id: word.id,
@@ -112,10 +126,10 @@ export const GET = withApiError(withZod(searchSchema, async (request: NextReques
             meaning: word.definition || '',
             example: word.example || '',
             match_type: word.word.toLowerCase() === normalizedQuery ? 'exact' as const : 'partial' as const,
-            similarity_score: word.word.toLowerCase() === normalizedQuery ? 1.0 : 
+            similarity_score: word.word.toLowerCase() === normalizedQuery ? 1.0 :
                             word.word.toLowerCase().includes(normalizedQuery) ? 0.9 : 0.7
           }));
-          
+
           logger.info(`Supabase search: found ${results.length} results`);
         } else {
           // No results in database, try fuzzy search
@@ -180,28 +194,29 @@ export const GET = withApiError(withZod(searchSchema, async (request: NextReques
     // Cache the results
     cacheService.set(cacheKey, results, CACHE_TTL.MEDIUM);
 
-    // Generate intelligent suggestions when no results found
-    let suggestions: string[] = [];
-    if (results.length === 0) {
-      if (isSupabaseConfigured()) {
-        try {
-          const supabase = getSupabaseServiceClient();
-          const { data: suggestedWords } = await supabase
-            .from('words')
-            .select('word')
-            .eq('is_active', true)
-            .order('popularity_score', { ascending: false })
-            .limit(10);
-          
-          suggestions = suggestedWords?.map(w => w.word) || 
-                       ['skeer', 'breezy', 'flexen', 'chill', 'dope', 'lit', 'waggi', 'bro', 'sick'];
-        } catch (suggestionError) {
-          suggestions = ['skeer', 'breezy', 'flexen', 'chill', 'dope', 'lit', 'waggi', 'bro', 'sick'];
-        }
-      } else {
-        suggestions = ['skeer', 'breezy', 'flexen', 'chill', 'dope', 'lit', 'waggi', 'bro', 'sick'];
-      }
-    }
+            // Generate intelligent suggestions when no results found
+            let suggestions: string[] = [];
+            if (results.length === 0) {
+              if (isSupabaseConfigured()) {
+                try {
+                  const supabase = getSupabaseServiceClient();
+                  // Get popular words based on usage frequency
+                  const { data: suggestedWords } = await supabase
+                    .from('words')
+                    .select('word')
+                    .eq('is_active', true)
+                    .order('usage_frequency', { ascending: false })
+                    .limit(10);
+
+                  suggestions = suggestedWords?.map(w => w.word) ||
+                               ['skeer', 'breezy', 'flexen', 'chill', 'dope', 'lit', 'waggi', 'bro', 'sick'];
+                } catch (suggestionError) {
+                  suggestions = ['skeer', 'breezy', 'flexen', 'chill', 'dope', 'lit', 'waggi', 'bro', 'sick'];
+                }
+              } else {
+                suggestions = ['skeer', 'breezy', 'flexen', 'chill', 'dope', 'lit', 'waggi', 'bro', 'sick'];
+              }
+            }
 
     // Always return consistent response format
     const responseData = {

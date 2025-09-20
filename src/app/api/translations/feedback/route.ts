@@ -30,6 +30,10 @@ export const POST = withApiError(withZod(feedbackSchema, async (request: NextReq
 
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+    // Get user session for authenticated feedback
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const userId = user?.id || null;
+
     // Upsert feedback: increment upvotes/downvotes for the same pair
     const { data: existing, error: findError } = await supabase
       .from('ai_translation_feedback')
@@ -47,9 +51,33 @@ export const POST = withApiError(withZod(feedbackSchema, async (request: NextReq
 
     const { error: upsertError } = await supabase
       .from('ai_translation_feedback')
-      .upsert({ phrase, translation, upvotes, downvotes })
+      .upsert({ 
+        phrase, 
+        translation, 
+        upvotes, 
+        downvotes,
+        user_id: userId,
+        last_feedback_at: new Date().toISOString()
+      })
       .select()
       .single();
+
+    // Log individual feedback for user analytics
+    if (userId && (upvote || downvote)) {
+      try {
+        await supabase
+          .from('user_translation_feedback')
+          .insert({
+            user_id: userId,
+            phrase,
+            translation,
+            feedback_type: upvote ? 'upvote' : 'downvote',
+            created_at: new Date().toISOString()
+          });
+      } catch (logError) {
+        logger.debug('Failed to log user feedback:', logError);
+      }
+    }
 
     if (upsertError) {
       logger.error(`Feedback save error: ${upsertError instanceof Error ? upsertError.message : String(upsertError)}`);
