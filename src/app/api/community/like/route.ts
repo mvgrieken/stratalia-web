@@ -120,7 +120,7 @@ export const POST = withApiError(withZod(likeSchema, async (request: NextRequest
     });
 
   } catch (error) {
-    logger.error('Like action error:', error instanceof Error ? error.message : String(error));
+    logger.error('Like action error:', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }));
