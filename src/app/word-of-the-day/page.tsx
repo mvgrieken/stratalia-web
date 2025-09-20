@@ -26,6 +26,8 @@ export default function WordOfTheDayPage() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [marking, setMarking] = useState(false);
   const [marked, setMarked] = useState(false);
+  const [pointsEarned, setPointsEarned] = useState<number | null>(null);
+  const [newStreak, setNewStreak] = useState<number | null>(null);
 
   useEffect(() => {
     fetchDailyWord();
@@ -236,7 +238,12 @@ export default function WordOfTheDayPage() {
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ word_id: dailyWord.id, word: dailyWord.word, date: dailyWord.date })
                         });
-                        if (res.ok) setMarked(true);
+                        if (res.ok) {
+                          const data = await res.json();
+                          setMarked(true);
+                          if (data.points_earned) setPointsEarned(data.points_earned);
+                          if (data.new_streak) setNewStreak(data.new_streak);
+                        }
                       } finally {
                         setMarking(false);
                       }
@@ -260,6 +267,24 @@ export default function WordOfTheDayPage() {
                     🔗 Delen
                   </button>
                 </div>
+
+                {/* Progress Feedback */}
+                {(pointsEarned || newStreak) && (
+                  <div className="mt-4 p-4 bg-green-500 bg-opacity-20 rounded-lg">
+                    <div className="text-center">
+                      {pointsEarned && (
+                        <p className="text-lg font-semibold">
+                          🎉 +{pointsEarned} punten verdiend!
+                        </p>
+                      )}
+                      {newStreak && (
+                        <p className="text-sm opacity-90">
+                          🔥 Streak: {newStreak} dag{newStreak !== 1 ? 'en' : ''}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
