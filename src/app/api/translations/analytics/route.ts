@@ -38,7 +38,7 @@ export const GET = withApiError(async (request: NextRequest) => {
       .limit(limit);
 
     if (feedbackError) {
-      logger.warn('Failed to fetch translation feedback:', feedbackError);
+      logger.warn(`Failed to fetch translation feedback: ${feedbackError instanceof Error ? feedbackError.message : String(feedbackError)}`);
     }
 
     // Get user feedback statistics
@@ -48,7 +48,7 @@ export const GET = withApiError(async (request: NextRequest) => {
       .gte('created_at', startDate.toISOString());
 
     if (userError) {
-      logger.warn('Failed to fetch user feedback:', userError);
+      logger.warn(`Failed to fetch user feedback: ${userError instanceof Error ? userError.message : String(userError)}`);
     }
 
     // Calculate statistics
@@ -66,7 +66,7 @@ export const GET = withApiError(async (request: NextRequest) => {
       .limit(10);
 
     if (problemError) {
-      logger.warn('Failed to fetch problematic translations:', problemError);
+      logger.warn(`Failed to fetch problematic translations: ${problemError instanceof Error ? problemError.message : String(problemError)}`);
     }
 
     // Get most helpful translations (high upvotes)
@@ -78,7 +78,7 @@ export const GET = withApiError(async (request: NextRequest) => {
       .limit(10);
 
     if (helpfulError) {
-      logger.warn('Failed to fetch helpful translations:', helpfulError);
+      logger.warn(`Failed to fetch helpful translations: ${helpfulError instanceof Error ? helpfulError.message : String(helpfulError)}`);
     }
 
     return NextResponse.json({
@@ -97,7 +97,7 @@ export const GET = withApiError(async (request: NextRequest) => {
     });
 
   } catch (error) {
-    logger.error('Translation analytics error:', error instanceof Error ? error.message : String(error));
+    logger.error('Translation analytics error:', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: 'Failed to fetch translation analytics' }, { status: 500 });
   }
 });
