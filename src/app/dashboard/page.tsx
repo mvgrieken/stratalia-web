@@ -4,6 +4,10 @@ import { useState, useEffect } from 'react';
 import { logger } from '@/lib/logger';
 import { useAuth } from '@/components/AuthProvider';
 import { useRouter } from 'next/navigation';
+import DashboardStats from '@/components/DashboardStats';
+import RecentActivity from '@/components/RecentActivity';
+import LearningProgress from '@/components/LearningProgress';
+import Achievements from '@/components/Achievements';
 
 interface UserStats {
   total_points: number;
@@ -12,8 +16,13 @@ interface UserStats {
   longest_streak: number;
   words_learned: number;
   quiz_completed: number;
+  average_quiz_score: number;
   challenges_completed: number;
-  badges_earned: number;
+  submissions_count: number;
+  approved_submissions: number;
+  total_submission_points: number;
+  total_submission_likes: number;
+  total_challenge_points: number;
   rank: number;
   total_users: number;
 }
@@ -36,12 +45,19 @@ interface LearningProgress {
   last_activity: string;
 }
 
+interface Achievement {
+  name: string;
+  icon: string;
+  earned_at: string;
+}
+
 export default function DashboardPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [userStats, setUserStats] = useState<UserStats | null>(null);
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [learningProgress, setLearningProgress] = useState<LearningProgress[]>([]);
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -53,17 +69,22 @@ export default function DashboardPage() {
     setLoading(true);
     setError(null);
     try {
-      // Try to fetch real user data
-      const response = await fetch('/api/gamification/points?user_id=current');
+      // Try to fetch real user data from the new dashboard API
+      const response = await fetch('/api/dashboard');
       if (response.ok) {
         const data = await response.json();
         setUserStats(data.stats);
         setRecentActivity(data.recent_activity || []);
         setLearningProgress(data.learning_progress || []);
+        setAchievements(data.achievements?.recent_badges || []);
         return;
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || 'Kon dashboard data niet ophalen');
       }
     } catch (err) {
       logger.error(`Error fetching dashboard data: ${err}`);
+      setError('Er is een fout opgetreden bij het ophalen van de dashboard data');
     }
 
     // Fallback to demo data
@@ -74,8 +95,13 @@ export default function DashboardPage() {
       longest_streak: 15,
       words_learned: 45,
       quiz_completed: 12,
+      average_quiz_score: 78.5,
       challenges_completed: 3,
-      badges_earned: 8,
+      submissions_count: 8,
+      approved_submissions: 6,
+      total_submission_points: 300,
+      total_submission_likes: 24,
+      total_challenge_points: 150,
       rank: 23,
       total_users: 150
     });
@@ -131,6 +157,24 @@ export default function DashboardPage() {
         total_words: 15,
         mastery_percentage: 53,
         last_activity: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString()
+      }
+    ]);
+
+    setAchievements([
+      {
+        name: 'Level 5 Expert',
+        icon: '🏆',
+        earned_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        name: 'Week Warrior',
+        icon: '🔥',
+        earned_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        name: 'Word Master',
+        icon: '📚',
+        earned_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
       }
     ]);
   };
@@ -304,87 +348,17 @@ export default function DashboardPage() {
         <div className="max-w-6xl mx-auto">
           <h1 className="text-3xl font-bold text-gray-900 mb-8">📊 Dashboard</h1>
           
-          {/* Stats Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-              <div className="text-3xl mb-2">🏆</div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">Punten</h3>
-              <p className="text-2xl font-bold text-blue-600">{userStats.total_points.toLocaleString()}</p>
-              <p className="text-sm text-gray-500">Totaal verdiend</p>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-              <div className="text-3xl mb-2">📈</div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">Level</h3>
-              <p className="text-2xl font-bold text-green-600">{userStats.level}</p>
-              <p className="text-sm text-gray-500">Huidig niveau</p>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-              <div className="text-3xl mb-2">🔥</div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">Streak</h3>
-              <p className="text-2xl font-bold text-orange-600">{userStats.current_streak}</p>
-              <p className="text-sm text-gray-500">Dagen op rij</p>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-              <div className="text-3xl mb-2">📚</div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">Woorden</h3>
-              <p className="text-2xl font-bold text-purple-600">{userStats.words_learned}</p>
-              <p className="text-sm text-gray-500">Geleerd</p>
-            </div>
-          </div>
+          {/* Dashboard Stats */}
+          <DashboardStats stats={userStats} showExtended={true} className="mb-8" />
 
           {/* Recent Activity */}
-          <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Recente Activiteit</h2>
-            <div className="space-y-4">
-              {recentActivity.map((activity) => (
-                <div key={activity.id} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-                  <div className="text-2xl">{activity.icon}</div>
-                  <div className="flex-1">
-                    <h3 className="font-medium text-gray-900">{activity.title}</h3>
-                    <p className="text-sm text-gray-600">{activity.description}</p>
-                    <p className="text-xs text-gray-500">
-                      {new Date(activity.timestamp).toLocaleString('nl-NL')}
-                    </p>
-                  </div>
-                  {activity.points_earned && (
-                    <div className="text-green-600 font-semibold">
-                      +{activity.points_earned} punten
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
+          <RecentActivity activities={recentActivity} maxItems={8} className="mb-8" />
 
           {/* Learning Progress */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Leervoortgang</h2>
-            <div className="space-y-4">
-              {learningProgress.map((progress, index) => (
-                <div key={index} className="p-4 bg-gray-50 rounded-lg">
-                  <div className="flex justify-between items-center mb-2">
-                    <h3 className="font-medium text-gray-900">{progress.category}</h3>
-                    <span className="text-sm text-gray-600">
-                      {progress.words_learned}/{progress.total_words} woorden
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-                    <div 
-                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${progress.mastery_percentage}%` }}
-                    ></div>
-                  </div>
-                  <div className="flex justify-between text-sm text-gray-600">
-                    <span>{progress.mastery_percentage}% beheersing</span>
-                    <span>Laatste activiteit: {new Date(progress.last_activity).toLocaleDateString('nl-NL')}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <LearningProgress progress={learningProgress} className="mb-8" />
+
+          {/* Achievements */}
+          <Achievements achievements={achievements} maxItems={6} />
         </div>
       </div>
     </div>
