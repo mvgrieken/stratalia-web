@@ -101,7 +101,7 @@ export const POST = withApiError(withZod(schema, async (request: NextRequest) =>
         }
       }
     } catch (_e) {
-      logger.warn('Failed to update user points/streak:', _e instanceof Error ? _e.message : String(_e));
+      logger.warn(`Failed to update user points/streak: ${_e instanceof Error ? _e.message : String(_e)}`);
     }
 
     return NextResponse.json({ success: true, date: forDate, ...result });
