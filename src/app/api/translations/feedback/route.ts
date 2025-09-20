@@ -31,7 +31,7 @@ export const POST = withApiError(withZod(feedbackSchema, async (request: NextReq
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
     // Get user session for authenticated feedback
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
     const userId = user?.id || null;
 
     // Upsert feedback: increment upvotes/downvotes for the same pair

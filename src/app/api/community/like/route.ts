@@ -33,7 +33,7 @@ export const POST = withApiError(withZod(likeSchema, async (request: NextRequest
       .single();
 
     if (fetchError && (fetchError as any).code !== 'PGRST116') {
-      logger.warn('Failed to fetch existing like:', fetchError);
+      logger.warn(`Failed to fetch existing like: ${fetchError instanceof Error ? fetchError.message : String(fetchError)}`);
     }
 
     let result;

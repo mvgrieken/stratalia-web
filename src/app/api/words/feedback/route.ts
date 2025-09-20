@@ -17,7 +17,7 @@ export const POST = withApiError(withZod(feedbackSchema, async (request: NextReq
 
   try {
     // Get user session for authenticated feedback
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
     const userId = user?.id || null;
 
     // Log search result feedback
