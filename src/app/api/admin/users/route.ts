@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceClient } from '@/lib/supabase-client';
+import { getServerSupabase } from '@/lib/supabase-server';
 import { logger } from '@/lib/logger';
 import { withApiError, withZod } from '@/lib/api-wrapper';
 import { z } from 'zod';
@@ -11,22 +12,20 @@ const schema = z.object({
 });
 
 export const GET = withApiError(withZod(schema, async (request: NextRequest) => {
-    // Get current user from session
-  const _supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const _supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    const supabase = getSupabaseServiceClient();
-    
-    // Get session from cookies
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !session?.user) {
+    // Get current user from request cookies
+    const supabaseServer = getServerSupabase(request);
+    const { data: userData, error: userErr } = await supabaseServer.auth.getUser();
+    if (userErr || !userData?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const supabase = getSupabaseServiceClient();
 
     // Check if current user is admin
     const { data: currentProfile, error: profileError } = await supabase
       .from('users')
       .select('role')
-      .eq('id', session.user.id)
+      .eq('id', userData.user.id)
       .single();
 
     if (profileError || !currentProfile || currentProfile.role !== 'admin') {
@@ -39,7 +38,7 @@ export const GET = withApiError(withZod(schema, async (request: NextRequest) => 
     const offset = parseInt(searchParams.get('offset') || '0');
     const search = searchParams.get('search') || '';
 
-    logger.info(`Admin ${session.user.email} fetching users list`);
+    logger.info(`Admin ${userData.user.email} fetching users list`);
 
     // Build query
     let query = supabase

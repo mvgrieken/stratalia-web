@@ -1,29 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceClient } from '@/lib/supabase-client';
+import { getServerSupabase } from '@/lib/supabase-server';
 import { logger } from '@/lib/logger';
 import { withApiError } from '@/lib/api-wrapper';
 
 export const GET = withApiError(async (_request: NextRequest) => {
-    // Get current user from session for admin check
-    const supabase = getSupabaseServiceClient();
-    
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !session?.user) {
+    // Get current user from session cookies for admin check
+    const supabaseServer = getServerSupabase(_request);
+    const { data: userData, error: userErr } = await supabaseServer.auth.getUser();
+    if (userErr || !userData?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const supabase = getSupabaseServiceClient();
 
     // Check if current user is admin
     const { data: currentProfile, error: profileError } = await supabase
       .from('users')
       .select('role')
-      .eq('id', session.user.id)
+      .eq('id', userData.user.id)
       .single();
 
     if (profileError || !currentProfile || currentProfile.role !== 'admin') {
       return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
     }
 
-    logger.info(`Admin ${session.user.email} accessing monitoring dashboard`);
+    logger.info(`Admin ${userData.user.email} accessing monitoring dashboard`);
 
     // Get user statistics
     const { data: users, error: usersError } = await supabase
