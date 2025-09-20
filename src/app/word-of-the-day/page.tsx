@@ -28,10 +28,12 @@ export default function WordOfTheDayPage() {
   const [marked, setMarked] = useState(false);
   const [pointsEarned, setPointsEarned] = useState<number | null>(null);
   const [newStreak, setNewStreak] = useState<number | null>(null);
+  const [userStats, setUserStats] = useState<{ points: number; streak: number } | null>(null);
 
   useEffect(() => {
     fetchDailyWord();
     fetchWeeklyProgress();
+    fetchUserStats();
     
     // Check for speech synthesis support
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
@@ -100,6 +102,21 @@ export default function WordOfTheDayPage() {
       setWeeklyProgress(weekProgress);
     } catch (err) {
       logger.error(`Error fetching weekly progress: ${err}`);
+    }
+  };
+
+  const fetchUserStats = async () => {
+    try {
+      const response = await fetch('/api/profile/stats');
+      if (response.ok) {
+        const data = await response.json();
+        setUserStats({
+          points: data.points || 0,
+          streak: data.current_streak || 0
+        });
+      }
+    } catch (err) {
+      logger.error(`Error fetching user stats: ${err}`);
     }
   };
 
@@ -186,6 +203,22 @@ export default function WordOfTheDayPage() {
             📅 Woord van de Dag
           </h1>
 
+          {/* User Stats */}
+          {userStats && (
+            <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+              <div className="flex justify-center gap-8">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600">{userStats.points}</div>
+                  <div className="text-sm text-gray-600">Punten</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-orange-600">{userStats.streak}</div>
+                  <div className="text-sm text-gray-600">Dagen Streak</div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Daily Word Card */}
           {dailyWord && (
             <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg shadow-lg p-8 text-white mb-8">
@@ -236,33 +269,124 @@ export default function WordOfTheDayPage() {
                         const res = await fetch('/api/words/daily/learn', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ word_id: dailyWord.id, word: dailyWord.word, date: dailyWord.date })
+                          body: JSON.stringify({ 
+                            word_id: dailyWord.id, 
+                            word: dailyWord.word, 
+                            date: dailyWord.date 
+                          })
                         });
+                        
                         if (res.ok) {
                           const data = await res.json();
                           setMarked(true);
                           if (data.points_earned) setPointsEarned(data.points_earned);
                           if (data.new_streak) setNewStreak(data.new_streak);
+                          
+                          // Show success feedback
+                          logger.info(`Word marked as learned: ${dailyWord.word}, points: ${data.points_earned}, streak: ${data.new_streak}`);
+                        } else {
+                          const errorData = await res.json();
+                          logger.error(`Failed to mark word as learned: ${errorData.error || 'Unknown error'}`);
+                          
+                          // Show error feedback
+                          const button = event.target as HTMLButtonElement;
+                          const originalText = button.textContent;
+                          button.textContent = '❌ Fout';
+                          button.className = 'bg-red-500 bg-opacity-20 hover:bg-opacity-30 disabled:opacity-50 px-4 py-2 rounded-lg';
+                          setTimeout(() => {
+                            button.textContent = originalText;
+                            button.className = 'bg-white bg-opacity-20 hover:bg-opacity-30 disabled:opacity-50 px-4 py-2 rounded-lg';
+                          }, 3000);
                         }
+                      } catch (error) {
+                        logger.error(`Error marking word as learned: ${error instanceof Error ? error.message : String(error)}`);
+                        
+                        // Show error feedback
+                        const button = event.target as HTMLButtonElement;
+                        const originalText = button.textContent;
+                        button.textContent = '❌ Fout';
+                        button.className = 'bg-red-500 bg-opacity-20 hover:bg-opacity-30 disabled:opacity-50 px-4 py-2 rounded-lg';
+                        setTimeout(() => {
+                          button.textContent = originalText;
+                          button.className = 'bg-white bg-opacity-20 hover:bg-opacity-30 disabled:opacity-50 px-4 py-2 rounded-lg';
+                        }, 3000);
                       } finally {
                         setMarking(false);
                       }
                     }}
                     disabled={marking || marked}
-                    className="bg-white bg-opacity-20 hover:bg-opacity-30 disabled:opacity-50 px-4 py-2 rounded-lg"
+                    className="bg-white bg-opacity-20 hover:bg-opacity-30 disabled:opacity-50 px-4 py-2 rounded-lg transition-colors"
                   >
-                    {marked ? '✅ Gemarkeerd als geleerd' : (marking ? '...' : '✔️ Markeer als geleerd')}
+                    {marked ? '✅ Gemarkeerd als geleerd' : (marking ? '⏳ Bezig...' : '✔️ Markeer als geleerd')}
                   </button>
                   <button
                     onClick={async () => {
                       if (!dailyWord) return;
                       try {
-                        await navigator.share?.({ title: 'Woord van de dag', text: `${dailyWord.word} – ${dailyWord.meaning}`, url: window.location.href });
-                      } catch (_e) {
-                        console.warn('Share not supported or was cancelled');
+                        const shareData = {
+                          title: 'Woord van de dag - Stratalia',
+                          text: `Vandaag leer ik: "${dailyWord.word}" - ${dailyWord.meaning}`,
+                          url: window.location.href
+                        };
+
+                        // Try Web Share API first
+                        if (navigator.share) {
+                          await navigator.share(shareData);
+                          
+                          // Track successful share
+                          try {
+                            await fetch('/api/analytics/share', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                type: 'daily_word',
+                                word: dailyWord.word,
+                                method: 'web_share_api'
+                              })
+                            });
+                          } catch (_e) {
+                            // Analytics is best-effort
+                          }
+                        } else {
+                          // Fallback: copy to clipboard
+                          const shareText = `${shareData.text}\n\nLeer meer straattaal op: ${shareData.url}`;
+                          await navigator.clipboard.writeText(shareText);
+                          
+                          // Show feedback
+                          const button = event.target as HTMLButtonElement;
+                          const originalText = button.textContent;
+                          button.textContent = '✅ Gekopieerd!';
+                          setTimeout(() => {
+                            button.textContent = originalText;
+                          }, 2000);
+                          
+                          // Track fallback share
+                          try {
+                            await fetch('/api/analytics/share', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                type: 'daily_word',
+                                word: dailyWord.word,
+                                method: 'clipboard'
+                              })
+                            });
+                          } catch (_e) {
+                            // Analytics is best-effort
+                          }
+                        }
+                      } catch (error) {
+                        console.warn('Share failed:', error);
+                        // Show error feedback
+                        const button = event.target as HTMLButtonElement;
+                        const originalText = button.textContent;
+                        button.textContent = '❌ Fout';
+                        setTimeout(() => {
+                          button.textContent = originalText;
+                        }, 2000);
                       }
                     }}
-                    className="bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg"
+                    className="bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg transition-colors"
                   >
                     🔗 Delen
                   </button>
