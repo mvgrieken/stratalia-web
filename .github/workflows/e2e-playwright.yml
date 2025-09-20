@@ -1,0 +1,31 @@
+name: E2E (Playwright)
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [vercel-deploy-completed]
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      - name: Run Playwright tests against production
+        env:
+          PLAYWRIGHT_TEST_BASE_URL: https://stratalia.nl
+        run: |
+          npx playwright test --reporter=dot --timeout=60000
+
+
