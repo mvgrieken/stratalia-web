@@ -1,5 +1,6 @@
 import { getSupabaseServiceClient } from '@/lib/supabase-client';
 import { logger } from '@/lib/logger';
+import { getAllMarkdownContent } from '@/lib/markdown-content';
 import KnowledgeClient from './KnowledgeClient';
 
 interface KnowledgeItem {
@@ -19,45 +20,71 @@ interface KnowledgeItem {
   audio_url?: string;
   duration?: number;
   word_count?: number;
+  slug?: string;
 }
 
 export default async function KnowledgePage() {
   let items: KnowledgeItem[] = [];
 
   try {
-    // Fetch knowledge items directly from Supabase using service client
-    const supabase = getSupabaseServiceClient();
+    // First try to get Markdown content
+    const markdownContent = getAllMarkdownContent();
     
-    const { data: knowledgeItems, error: dbError } = await supabase
-      .from('knowledge_items')
-      .select('*')
-      .eq('is_active', true)
-      .order('created_at', { ascending: false });
-
-    if (dbError) {
-      logger.error(`Database error: ${dbError instanceof Error ? dbError.message : String(dbError)}`);
-      // Don't set error, just use fallback items
-      logger.debug('Using fallback items due to database error');
-    } else if (knowledgeItems && knowledgeItems.length > 0) {
-      items = knowledgeItems.map((item: any) => ({
+    if (markdownContent.length > 0) {
+      items = markdownContent.map((item) => ({
         id: item.id,
-        type: item.type || 'article',
+        type: item.type,
         title: item.title,
         content: item.content,
-        author: item.author || 'Stratalia Community',
-        category: item.category || 'algemeen',
-        tags: item.tags || ['straattaal', 'leren'],
-        difficulty: item.difficulty || 'intermediate',
+        author: item.author,
+        category: item.category,
+        tags: item.tags,
+        difficulty: item.difficulty,
         created_at: item.created_at,
         updated_at: item.updated_at,
-        is_active: item.is_active !== false,
+        is_active: item.is_active,
         thumbnail_url: item.thumbnail_url,
         video_url: item.video_url,
         audio_url: item.audio_url,
         duration: item.duration,
-        word_count: item.word_count
+        word_count: item.word_count,
+        slug: item.slug
       }));
+      
+      logger.info(`Loaded ${items.length} knowledge items from Markdown content`);
     } else {
+      // Fallback to Supabase if no Markdown content
+      const supabase = getSupabaseServiceClient();
+      
+      const { data: knowledgeItems, error: dbError } = await supabase
+        .from('knowledge_items')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      if (dbError) {
+        logger.error(`Database error: ${dbError instanceof Error ? dbError.message : String(dbError)}`);
+        logger.debug('Using fallback items due to database error');
+      } else if (knowledgeItems && knowledgeItems.length > 0) {
+        items = knowledgeItems.map((item: any) => ({
+          id: item.id,
+          type: item.type || 'article',
+          title: item.title,
+          content: item.content,
+          author: item.author || 'Stratalia Community',
+          category: item.category || 'algemeen',
+          tags: item.tags || ['straattaal', 'leren'],
+          difficulty: item.difficulty || 'intermediate',
+          created_at: item.created_at,
+          updated_at: item.updated_at,
+          is_active: item.is_active !== false,
+          thumbnail_url: item.thumbnail_url,
+          video_url: item.video_url,
+          audio_url: item.audio_url,
+          duration: item.duration,
+          word_count: item.word_count
+        }));
+      } else {
       // Fallback to default items if database is empty
       items = [
         {

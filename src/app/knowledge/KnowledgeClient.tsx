@@ -25,6 +25,7 @@ interface KnowledgeItem {
   audio_url?: string;
   duration?: number;
   word_count?: number;
+  slug?: string;
 }
 
 interface KnowledgeClientProps {
@@ -173,7 +174,7 @@ export default function KnowledgeClient({ initialItems }: KnowledgeClientProps) 
             {filteredItems.map((item) => (
               <Link
                 key={item.id}
-                href={`/knowledge/${item.id}`}
+                href={`/knowledge/${item.slug || item.id}`}
                 className="block bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 group"
                 aria-label={`Bekijk ${item.title} - ${item.type} door ${item.author}`}
               >
