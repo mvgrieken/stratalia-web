@@ -19,6 +19,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.status(400).json({ error: 'Missing Authorization Bearer token' });
       return;
     }
+    if (!refreshToken) {
+      res.status(400).json({ error: 'Missing x-refresh-token header' });
+      return;
+    }
 
     const accessToken = authHeader.substring('Bearer '.length);
 
@@ -73,7 +77,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     );
 
-    const { data: setData, error: setError } = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+    const { data: setData, error: setError } = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken as string });
     if (setError) {
       res.status(401).json({ error: setError.message });
       return;
