@@ -8,6 +8,8 @@ import DashboardStats from '@/components/DashboardStats';
 import RecentActivity from '@/components/RecentActivity';
 import LearningProgress from '@/components/LearningProgress';
 import Achievements from '@/components/Achievements';
+import SessionManager from '@/components/auth/SessionManager';
+import EmailVerificationBanner from '@/components/auth/EmailVerificationBanner';
 
 interface UserStats {
   total_points: number;
@@ -346,7 +348,13 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">📊 Dashboard</h1>
+          {/* Email Verification Banner */}
+          <EmailVerificationBanner className="mb-6" />
+          
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-900">📊 Dashboard</h1>
+            <SessionManager showDetails={false} />
+          </div>
           
           {/* Dashboard Stats */}
           <DashboardStats stats={userStats} showExtended={true} className="mb-8" />

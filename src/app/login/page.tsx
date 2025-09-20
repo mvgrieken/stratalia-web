@@ -7,6 +7,7 @@ import { useAuth } from '@/components/AuthProvider';
 import GoogleAuthButton from '@/components/auth/GoogleAuthButton';
 import AppleAuthButton from '@/components/auth/AppleAuthButton';
 import PinLoginForm from '@/components/auth/PinLoginForm';
+import EmailVerificationStatus from '@/components/auth/EmailVerificationStatus';
 
 function LoginForm() {
   const [email, setEmail] = useState('');
@@ -121,9 +122,20 @@ function LoginForm() {
                 {error}
               </div>
             )}
-            {/* Optionally hint about email verification */}
-            {error && error.toLowerCase().includes('bevestig') && (
-              <p className="mt-2 text-xs text-gray-600">Geen mail ontvangen? Controleer je spamfolder of vraag een nieuwe verificatiemail aan.</p>
+            
+            {/* Email Verification Status */}
+            {email && error && error.toLowerCase().includes('bevestig') && (
+              <EmailVerificationStatus 
+                email={email}
+                onVerified={() => {
+                  setError('');
+                  // Optionally auto-retry login
+                }}
+                onResendSuccess={() => {
+                  setError('Verificatielink is opnieuw verzonden. Controleer je e-mail.');
+                }}
+                className="mt-4"
+              />
             )}
 
             <div>

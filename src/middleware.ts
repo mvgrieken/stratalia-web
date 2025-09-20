@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { createServerClient } from '@supabase/ssr'
 
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next()
@@ -16,7 +17,69 @@ export async function middleware(request: NextRequest) {
   //   "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; worker-src 'self'; manifest-src 'self';"
   // )
   
-  // Note: Auth gating is handled client-side for now; admin APIs enforce server checks.
+  // Enhanced session management and email verification handling
+  if (request.nextUrl.pathname.startsWith('/dashboard') || 
+      request.nextUrl.pathname.startsWith('/profile') ||
+      request.nextUrl.pathname.startsWith('/admin')) {
+    
+    try {
+      // Create Supabase client for middleware
+      const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          cookies: {
+            get(name: string) {
+              return request.cookies.get(name)?.value
+            },
+            set(name: string, value: string, options: any) {
+              response.cookies.set({
+                name,
+                value,
+                ...options,
+              })
+            },
+            remove(name: string, options: any) {
+              response.cookies.set({
+                name,
+                value: '',
+                ...options,
+              })
+            },
+          },
+        }
+      )
+
+      // Check authentication
+      const { data: { session }, error } = await supabase.auth.getSession()
+      
+      if (error || !session) {
+        // Redirect to login with return URL
+        const loginUrl = new URL('/login', request.url)
+        loginUrl.searchParams.set('redirect_to', request.nextUrl.pathname)
+        return NextResponse.redirect(loginUrl)
+      }
+
+      // Check email verification for protected routes
+      if (!session.user.email_confirmed_at) {
+        // Allow access to dashboard but show verification notice
+        // The client-side components will handle showing verification status
+        response.headers.set('X-Email-Verified', 'false')
+      } else {
+        response.headers.set('X-Email-Verified', 'true')
+      }
+
+      // Add user info to headers for client-side access
+      response.headers.set('X-User-ID', session.user.id)
+      response.headers.set('X-User-Email', session.user.email || '')
+      
+    } catch (error) {
+      // If there's an error with session handling, redirect to login
+      const loginUrl = new URL('/login', request.url)
+      loginUrl.searchParams.set('redirect_to', request.nextUrl.pathname)
+      return NextResponse.redirect(loginUrl)
+    }
+  }
   
   // Handle CORS for API routes
   if (request.nextUrl.pathname.startsWith('/api/')) {
