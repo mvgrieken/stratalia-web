@@ -69,7 +69,7 @@ export const GET = withApiError(async (request: NextRequest) => {
     });
 
   } catch (error) {
-    logger.error('My submissions error:', error instanceof Error ? error.message : String(error));
+    logger.error('My submissions error:', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 });
