@@ -140,6 +140,12 @@ export default function CommunityPage() {
               >
                 Nog een woord toevoegen
               </button>
+              <a
+                href="/community/my-submissions"
+                className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700"
+              >
+                Bekijk mijn inzendingen
+              </a>
               <button
                 onClick={() => window.location.href = '/'}
                 className="border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50"
@@ -305,10 +311,10 @@ export default function CommunityPage() {
             {/* Link to user submissions */}
             <div className="mt-6 text-center">
               <a
-                href="/profile/submissions"
+                href="/community/my-submissions"
                 className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium"
               >
-                📊 Bekijk mijn submissions en punten
+                📊 Bekijk mijn inzendingen en status
               </a>
             </div>
           </div>

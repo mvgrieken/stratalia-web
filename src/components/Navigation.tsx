@@ -111,6 +111,13 @@ export default function Navigation() {
                       >
                         Profiel
                       </Link>
+                      <Link
+                        href="/community/my-submissions"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Mijn Inzendingen
+                      </Link>
                       <button
                         onClick={() => {
                           signOut();

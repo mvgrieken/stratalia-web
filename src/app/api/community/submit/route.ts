@@ -22,44 +22,10 @@ const submitSchema = z.object({
   notes: z.string().optional()
 });
 
-export const POST = async (request: NextRequest) => {
-    try {
-        const body = await request.json();
-        const { word, definition, example, context, source } = body;
+export const POST = withApiError(withZod(submitSchema, async (request: NextRequest, validatedData: any) => {
+    const { word, definition, example, context, source } = validatedData;
     
     logger.info(`📝 Community submission received for word: "${word}"`);
-    
-    // Enhanced validation
-    if (!word || !definition) {
-      return NextResponse.json({
-        error: 'Ontbrekende verplichte velden',
-        details: 'Woord en betekenis zijn verplicht'
-      }, { status: 400 });
-    }
-
-    // Validate word length and content
-    if (word.trim().length < 2 || word.trim().length > 50) {
-      return NextResponse.json({
-        error: 'Ongeldig woord',
-        details: 'Woord moet tussen 2 en 50 karakters bevatten'
-      }, { status: 400 });
-    }
-
-    // Validate definition length
-    if (definition.trim().length < 10 || definition.trim().length > 500) {
-      return NextResponse.json({
-        error: 'Ongeldige betekenis',
-        details: 'Betekenis moet tussen 10 en 500 karakters bevatten'
-      }, { status: 400 });
-    }
-
-    // Validate example if provided
-    if (example && (example.trim().length < 10 || example.trim().length > 200)) {
-      return NextResponse.json({
-        error: 'Ongeldig voorbeeld',
-        details: 'Voorbeeldzin moet tussen 10 en 200 karakters bevatten'
-      }, { status: 400 });
-    }
 
     // Try to save to database if Supabase is configured
     if (isSupabaseConfigured()) {
@@ -120,11 +86,7 @@ export const POST = async (request: NextRequest) => {
       submission_id: fallbackId,
       source: 'fallback'
     });
-  } catch (error) {
-        logger.error('Community submission error:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-    }
-};
+}));
 export const GET = withApiError(async (request: NextRequest) => {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') || 'approved';
@@ -144,7 +106,7 @@ export const GET = withApiError(async (request: NextRequest) => {
       }, { status: 500 });
     }
     
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    const supabase = getSupabaseServiceClient();
     
     // Build query
     let query = supabase
