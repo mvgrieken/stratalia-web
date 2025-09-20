@@ -58,7 +58,8 @@ export const POST = withApiError(async (request: NextRequest) => {
     });
 
   } catch (error) {
-    logger.error('Notification service error:', error instanceof Error ? error : String(error));
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error('Notification service error:', errorMessage);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 });
