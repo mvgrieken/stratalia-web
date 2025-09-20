@@ -58,7 +58,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       console.warn(`[login-post] auth failed: ${error.message || 'unknown'}`);
-      res.status(401).json({ error: error.message || 'Invalid credentials' });
+      const location = '/login?error=invalid_credentials';
+      res.writeHead(303, { Location: location });
+      res.end();
       return;
     }
 

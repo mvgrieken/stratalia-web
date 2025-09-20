@@ -20,11 +20,28 @@ export async function middleware(request: NextRequest) {
   
   // Handle CORS for API routes
   if (request.nextUrl.pathname.startsWith('/api/')) {
-    // Add CORS headers
-    response.headers.set('Access-Control-Allow-Origin', '*')
+    const requestOrigin = request.headers.get('origin') ?? ''
+    const allowedOrigins = new Set<string>([
+      'https://stratalia.nl',
+      'https://www.stratalia.nl',
+    ])
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL
+    if (appUrl) allowedOrigins.add(appUrl)
+    const vercelUrl = process.env.VERCEL_URL
+    if (vercelUrl) {
+      const url = vercelUrl.startsWith('http') ? vercelUrl : `https://${vercelUrl}`
+      allowedOrigins.add(url)
+    }
+
+    const originAllowed = requestOrigin && [...allowedOrigins].some(o => o === requestOrigin)
+    if (originAllowed) {
+      response.headers.set('Access-Control-Allow-Origin', requestOrigin)
+    }
+    response.headers.set('Vary', 'Origin')
     response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
     response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-    
+    response.headers.set('Access-Control-Max-Age', '86400')
+
     // Handle preflight requests
     if (request.method === 'OPTIONS') {
       return new Response(null, { status: 200, headers: response.headers })
