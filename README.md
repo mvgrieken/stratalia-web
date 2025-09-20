@@ -89,6 +89,21 @@ Zet dezelfde variabelen ook als GitHub Actions secrets voor de build stap:
 
 Let op: de service role key wordt uitsluitend gebruikt in server-side API routes.
 
+### ✅ Production Auth Checklist
+
+Zorg in productie voor een werkende login/sessie:
+
+- Supabase Auth → Settings
+  - Site URL: `https://stratalia.nl`
+  - Additional Redirect URLs: `https://stratalia.nl/auth/callback`
+  - Email confirmation: testaccounts bevestigen of tijdelijk uitschakelen voor testen
+- Vercel Environment Variables (Production)
+  - `NEXT_PUBLIC_SUPABASE_URL` en `NEXT_PUBLIC_SUPABASE_ANON_KEY` verwijzen naar hetzelfde Supabase‑project als hierboven
+- Loginflow (server‑side)
+  - Client POST naar `/api/auth/login` met `{ email, password, redirect_to: '/dashboard' }`
+  - Server route zet cookies via `@supabase/ssr` en retourneert `303 See Other` met `Location: /dashboard`
+  - Client haalt daarna `GET /api/auth/me` op om de user‑context te initialiseren
+
 #### Optionele variabelen
 ```env
 # Rate Limiting
