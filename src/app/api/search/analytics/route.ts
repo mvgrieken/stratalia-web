@@ -53,7 +53,7 @@ export const GET = withApiError(async (request: NextRequest) => {
 
     // Calculate statistics
     const totalSearches = searchStats?.length || 0;
-    const avgResultsPerSearch = searchStats?.length > 0 
+    const avgResultsPerSearch = searchStats && searchStats.length > 0 
       ? searchStats.reduce((sum, stat) => sum + (stat.result_count || 0), 0) / searchStats.length 
       : 0;
     const zeroResultSearches = searchStats?.filter(stat => (stat.result_count || 0) === 0).length || 0;
