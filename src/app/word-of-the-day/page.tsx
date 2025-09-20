@@ -251,7 +251,9 @@ export default function WordOfTheDayPage() {
                       if (!dailyWord) return;
                       try {
                         await navigator.share?.({ title: 'Woord van de dag', text: `${dailyWord.word} – ${dailyWord.meaning}`, url: window.location.href });
-                      } catch (_e) {}
+                      } catch (_e) {
+                        console.warn('Share not supported or was cancelled');
+                      }
                     }}
                     className="bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg"
                   >
