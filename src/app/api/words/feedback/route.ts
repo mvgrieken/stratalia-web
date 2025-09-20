@@ -34,7 +34,7 @@ export const POST = withApiError(withZod(feedbackSchema, async (request: NextReq
       });
 
     if (insertError) {
-      logger.warn('Failed to save search feedback:', insertError);
+      logger.warn(`Failed to save search feedback: ${insertError instanceof Error ? insertError.message : String(insertError)}`);
       // Don't fail the request, just log the error
     }
 
@@ -49,14 +49,14 @@ export const POST = withApiError(withZod(feedbackSchema, async (request: NextReq
           })
           .eq('word', word.toLowerCase());
       } catch (updateError) {
-        logger.debug('Failed to update word popularity:', updateError);
+        logger.debug(`Failed to update word popularity: ${updateError instanceof Error ? updateError.message : String(updateError)}`);
       }
     }
 
     return NextResponse.json({ success: true });
 
   } catch (error) {
-    logger.error('Search feedback error:', error instanceof Error ? error.message : String(error));
+    logger.error('Search feedback error:', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: 'Failed to save feedback' }, { status: 500 });
   }
 }));
