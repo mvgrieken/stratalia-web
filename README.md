@@ -290,13 +290,11 @@ GitHub Actions – API Tests:
 - Event type: `vercel-deploy-completed`.
 - Configuratie in Vercel:
   1. Ga naar Project Settings → Git → Deploy Hooks of Webhooks.
-  2. Maak een hook aan die triggert bij “Deployment Succeeded”.
-  3. Laat Vercel een POST sturen naar de GitHub endpoint `https://api.github.com/repos/<owner>/<repo>/dispatches` met body:
-     ```json
-     { "event_type": "vercel-deploy-completed" }
-     ```
-  4. Auth: voeg een GitHub token met `repo` rechten toe in de headers, bijv. `Authorization: token <GITHUB_TOKEN>` en `Accept: application/vnd.github+json`.
-  5. Zorg dat `<owner>` en `<repo>` overeenkomen met deze repository.
+  2. Optie A (aanbevolen): stuur de webhook naar `https://stratalia.nl/api/webhooks/vercel` met header `x-webhook-token: $VERCEL_WEBHOOK_TOKEN`.
+     - Zet in Vercel project env vars: `VERCEL_WEBHOOK_TOKEN`.
+     - Zet in GitHub repo secrets: `GITHUB_DISPATCH_TOKEN` (repo:actions write), plus env vars `GITHUB_OWNER`, `GITHUB_REPO` in Vercel.
+     - De relay endpoint roept vervolgens GitHub `repository_dispatch` aan met `event_type: vercel-deploy-completed`.
+  3. Optie B: stuur direct naar GitHub `https://api.github.com/repos/<owner>/<repo>/dispatches` (vereist header auth en JSON body met `event_type`).
 
 - Resultaat: Na elke geslaagde deploy op Vercel start automatisch de workflow die de live API op `https://stratalia.nl` test.
 
