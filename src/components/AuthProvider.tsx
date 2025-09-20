@@ -106,7 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       logger.debug(`🔐 AuthProvider: Attempting login for: ${email}`);
 
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch('/api/auth/login-post', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, redirect_to: '/dashboard' })
