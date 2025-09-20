@@ -18,6 +18,7 @@ interface WordCardProps {
   showCategory?: boolean;
   showDifficulty?: boolean;
   className?: string;
+  enableFeedback?: boolean;
 }
 
 const WordCard = memo<WordCardProps>(({
@@ -25,7 +26,8 @@ const WordCard = memo<WordCardProps>(({
   onWordClick,
   showCategory = false,
   showDifficulty = false,
-  className = ''
+  className = '',
+  enableFeedback = false
 }) => {
   const handleClick = useCallback(() => {
     onWordClick?.(word.word);
@@ -92,6 +94,41 @@ const WordCard = memo<WordCardProps>(({
           <p className="text-sm text-gray-600 italic">
             "{word.example}"
           </p>
+        </div>
+      )}
+
+      {enableFeedback && (
+        <div className="mt-3 flex items-center gap-3">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              fetch('/api/translations/feedback', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phrase: word.word, translation: word.meaning, upvote: true })
+              }).catch(() => {});
+            }}
+            className="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm"
+            aria-label="Markeer vertaling nuttig"
+          >
+            👍 Nuttig
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              fetch('/api/translations/feedback', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phrase: word.word, translation: word.meaning, downvote: true })
+              }).catch(() => {});
+            }}
+            className="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm"
+            aria-label="Markeer vertaling onnauwkeurig"
+          >
+            👎 Onnauwkeurig
+          </button>
         </div>
       )}
     </div>

@@ -40,6 +40,7 @@ export default function SearchResults({ results, query, onWordClick }: SearchRes
             onWordClick={onWordClick}
             showCategory={false}
             showDifficulty={false}
+            enableFeedback
             className={`${
               result.match_type === 'exact' 
                 ? 'ring-2 ring-green-200' 
