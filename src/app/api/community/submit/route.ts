@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseServiceClient } from '@/lib/supabase-client';
 import { logger } from '@/lib/logger';
-// removed unused normalizeError import where not needed
 import { applyRateLimit } from '@/middleware/rateLimiter';
 import { isSupabaseConfigured } from '@/lib/config';
 import { withApiError, withZod } from '@/lib/api-wrapper';
@@ -23,15 +22,10 @@ const submitSchema = z.object({
   notes: z.string().optional()
 });
 
-export const POST = withApiError(withZod(submitSchema, async (request: NextRequest) => {
-    // Apply rate limiting to prevent spam
-    const rateLimitCheck = applyRateLimit(request, 'community');
-    if (!rateLimitCheck.allowed) {
-      return rateLimitCheck.response!;
-    }
-
-    const body: CommunitySubmission = await request.json();
-    const { word, definition, example, context, source } = body;
+export const POST = async (request: NextRequest) => {
+    try {
+        const body = await request.json();
+        const { word, definition, example, context, source } = body;
     
     logger.info(`📝 Community submission received for word: "${word}"`);
     
@@ -70,13 +64,10 @@ export const POST = withApiError(withZod(submitSchema, async (request: NextReque
     // Try to save to database if Supabase is configured
     if (isSupabaseConfigured()) {
       try {
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-        const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-        const supabase = createClient(supabaseUrl, supabaseAnonKey);
+        const supabase = getSupabaseServiceClient();
 
-        // Get user ID from session if available
-        const { data: { session } } = await supabase.auth.getSession();
-        const submittedBy = session?.user?.id || null;
+        // For now, allow anonymous submissions
+        const submittedBy = null;
 
         // Insert submission
         const { data, error } = await supabase
@@ -89,23 +80,27 @@ export const POST = withApiError(withZod(submitSchema, async (request: NextReque
             source: source?.trim() || null,
             status: 'pending',
             submitted_by: submittedBy,
-            submitted_by_name: session?.user?.user_metadata?.full_name || 'Anoniem'
+            submitted_by_name: 'Anoniem'
           })
           .select()
           .single();
 
         if (error) {
           const msg = error instanceof Error ? error.message : String(error);
-          logger.warn(`Database save failed, using fallback: ${msg}`);
-        } else {
-          logger.info(`✅ Community submission created with ID: ${data.id}`);
+          logger.error(`Database save failed: ${msg}`);
           return NextResponse.json({
-            success: true,
-            message: 'Woord succesvol ingediend voor beoordeling',
-            submission_id: data.id,
-            source: 'database'
-          });
+            error: 'Database error',
+            details: msg
+          }, { status: 500 });
         }
+
+        logger.info(`✅ Community submission created with ID: ${data.id}`);
+        return NextResponse.json({
+          success: true,
+          message: 'Woord succesvol ingediend voor beoordeling',
+          submission_id: data.id,
+          source: 'database'
+        });
       } catch (dbError) {
         const msg = dbError instanceof Error ? dbError.message : String(dbError);
         logger.warn(`Database unavailable, using fallback: ${msg}`);
@@ -125,7 +120,11 @@ export const POST = withApiError(withZod(submitSchema, async (request: NextReque
       submission_id: fallbackId,
       source: 'fallback'
     });
-}));
+    } catch (error) {
+        logger.error('Community submission error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    }
+};
 export const GET = withApiError(async (request: NextRequest) => {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') || 'approved';

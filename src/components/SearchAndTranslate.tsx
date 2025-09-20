@@ -1,12 +1,13 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { ErrorMessage } from './ErrorMessage';
 import { useSearchAndTranslate } from '@/hooks/useSearchAndTranslate';
 import SearchInput from './SearchInput';
 import SearchResults from './SearchResults';
 import TranslateResults from './TranslateResults';
 import NoResults from './NoResults';
+import WordDetailView from './WordDetailView';
 
 interface SearchAndTranslateProps {
   onWordClick?: (word: string) => void;
@@ -14,6 +15,8 @@ interface SearchAndTranslateProps {
 }
 
 export default function SearchAndTranslate({ onWordClick, className = '' }: SearchAndTranslateProps) {
+  const [selectedWord, setSelectedWord] = useState<string | null>(null);
+  
   const {
     query,
     loading,
@@ -31,6 +34,26 @@ export default function SearchAndTranslate({ onWordClick, className = '' }: Sear
     e.preventDefault();
     handleSearch(query);
   };
+
+  const handleWordClick = (word: string) => {
+    setSelectedWord(word);
+    onWordClick?.(word);
+  };
+
+  const handleBackToSearch = () => {
+    setSelectedWord(null);
+  };
+
+  // Show word detail view if a word is selected
+  if (selectedWord) {
+    return (
+      <WordDetailView
+        word={selectedWord}
+        onBack={handleBackToSearch}
+        className={className}
+      />
+    );
+  }
 
   return (
     <div className={`space-y-6 ${className}`}>
@@ -68,7 +91,7 @@ export default function SearchAndTranslate({ onWordClick, className = '' }: Sear
       <SearchResults
         results={results}
         query={query}
-        onWordClick={onWordClick}
+        onWordClick={handleWordClick}
       />
 
       <TranslateResults
