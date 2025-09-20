@@ -50,7 +50,7 @@ export const GET = withApiError(async (request: NextRequest) => {
       .eq('submitted_by', userId);
 
     if (statsError) {
-      logger.warn('Failed to fetch user stats:', statsError);
+      logger.warn(`Failed to fetch user stats: ${statsError instanceof Error ? statsError.message : String(statsError)}`);
     }
 
     const stats = {
