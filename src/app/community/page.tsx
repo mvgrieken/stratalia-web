@@ -308,14 +308,24 @@ export default function CommunityPage() {
               </button>
             </form>
             
-            {/* Link to user submissions */}
-            <div className="mt-6 text-center">
-              <a
-                href="/community/my-submissions"
-                className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium"
-              >
-                📊 Bekijk mijn inzendingen en status
-              </a>
+            {/* Links to submissions */}
+            <div className="mt-6 text-center space-y-2">
+              <div>
+                <a
+                  href="/community/my-submissions"
+                  className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium"
+                >
+                  📊 Bekijk mijn inzendingen en status
+                </a>
+              </div>
+              <div>
+                <a
+                  href="/community/submissions"
+                  className="inline-flex items-center text-green-600 hover:text-green-700 font-medium"
+                >
+                  👥 Bekijk alle community inzendingen
+                </a>
+              </div>
             </div>
           </div>
 

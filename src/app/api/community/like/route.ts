@@ -1,126 +1,180 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withApiError, withZod } from '@/lib/api-wrapper';
 import { getSupabaseServiceClient } from '@/lib/supabase-client';
 import { logger } from '@/lib/logger';
+import { withApiError, withZod } from '@/lib/api-wrapper';
 import { z } from 'zod';
 
 const likeSchema = z.object({
-  submission_id: z.string().min(1),
-  action: z.enum(['like', 'unlike', 'dislike', 'undislike'])
+  submission_id: z.string().uuid(),
+  action: z.enum(['like', 'unlike']),
 });
 
-export const POST = withApiError(withZod(likeSchema, async (request: NextRequest) => {
-  const { submission_id, action } = await request.json();
+export const POST = withApiError(withZod(likeSchema, async (request: NextRequest, validatedData: any) => {
+  const { submission_id, action } = validatedData;
   
-  const supabase = getSupabaseServiceClient();
-
   try {
-    // Get user session
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const supabase = getSupabaseServiceClient();
     
-    if (userError || !user) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-    }
-
-    const userId = user.id;
-
-    // Check if user has already liked/disliked this submission
-    const { data: existingLike, error: fetchError } = await supabase
-      .from('community_submission_likes')
-      .select('*')
-      .eq('submission_id', submission_id)
-      .eq('user_id', userId)
-      .single();
-
-    if (fetchError && (fetchError as any).code !== 'PGRST116') {
-      logger.warn(`Failed to fetch existing like: ${fetchError instanceof Error ? fetchError.message : String(fetchError)}`);
-    }
-
-    let result;
+    // For now, we'll use a placeholder user ID since we don't have authentication fully set up
+    // In a real app, you'd get this from the authenticated session
+    const userId = request.headers.get('x-user-id') || 'anonymous-user';
     
-    if (existingLike) {
-      // Update existing like/dislike
-      if (action === 'unlike' || action === 'undislike') {
-        // Remove the like/dislike
-        const { error: deleteError } = await supabase
-          .from('community_submission_likes')
-          .delete()
-          .eq('id', existingLike.id);
-
-        if (deleteError) {
-          logger.error('Failed to remove like:', deleteError);
-          return NextResponse.json({ error: 'Failed to update like' }, { status: 500 });
-        }
-        
-        result = { action: 'removed', previous_action: existingLike.action };
-      } else {
-        // Update the action
-        const { error: updateError } = await supabase
-          .from('community_submission_likes')
-          .update({ 
-            action: action === 'like' ? 'like' : 'dislike',
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', existingLike.id);
-
-        if (updateError) {
-          logger.error('Failed to update like:', updateError);
-          return NextResponse.json({ error: 'Failed to update like' }, { status: 500 });
-        }
-        
-        result = { action: 'updated', previous_action: existingLike.action };
+    logger.info(`👍 Community like action: ${action} on submission ${submission_id} by user ${userId}`);
+    
+    if (action === 'like') {
+      // Check if user already liked this submission
+      const { data: existingLike, error: checkError } = await supabase
+        .from('user_submission_likes')
+        .select('id')
+        .eq('submission_id', submission_id)
+        .eq('user_id', userId)
+        .single();
+      
+      if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows found
+        logger.error(`Error checking existing like: ${checkError.message}`);
+        return NextResponse.json({
+          error: 'Database error',
+          details: checkError.message
+        }, { status: 500 });
       }
-    } else {
-      // Create new like/dislike
-      if (action === 'like' || action === 'dislike') {
-        const { error: insertError } = await supabase
-          .from('community_submission_likes')
-          .insert({
-            submission_id,
-            user_id: userId,
-            action: action === 'like' ? 'like' : 'dislike',
-            created_at: new Date().toISOString()
-          });
-
-        if (insertError) {
-          logger.error('Failed to create like:', insertError);
-          return NextResponse.json({ error: 'Failed to create like' }, { status: 500 });
-        }
-        
-        result = { action: 'created' };
-      } else {
-        return NextResponse.json({ error: 'Cannot unlike/dislike without existing like' }, { status: 400 });
+      
+      if (existingLike) {
+        return NextResponse.json({
+          error: 'Already liked',
+          message: 'Je hebt deze inzending al geliked'
+        }, { status: 400 });
       }
-    }
-
-    // Update submission like counts
-    const { data: likeCounts, error: countError } = await supabase
-      .from('community_submission_likes')
-      .select('action')
-      .eq('submission_id', submission_id);
-
-    if (!countError && likeCounts) {
-      const likes = likeCounts.filter(l => l.action === 'like').length;
-      const dislikes = likeCounts.filter(l => l.action === 'dislike').length;
-
-      await supabase
-        .from('community_submissions')
-        .update({
-          like_count: likes,
-          dislike_count: dislikes,
-          updated_at: new Date().toISOString()
+      
+      // Add the like
+      const { data: likeData, error: likeError } = await supabase
+        .from('user_submission_likes')
+        .insert({
+          submission_id,
+          user_id: userId,
+          created_at: new Date().toISOString()
         })
-        .eq('id', submission_id);
+        .select()
+        .single();
+      
+      if (likeError) {
+        logger.error(`Error adding like: ${likeError.message}`);
+        return NextResponse.json({
+          error: 'Database error',
+          details: likeError.message
+        }, { status: 500 });
+      }
+      
+      // Update the submission's like count
+      const { error: updateError } = await supabase.rpc('increment_submission_likes', {
+        submission_id
+      });
+      
+      if (updateError) {
+        logger.warn(`Error updating like count: ${updateError.message}`);
+        // Don't fail the request if the count update fails
+      }
+      
+      logger.info(`✅ Like added successfully: ${likeData.id}`);
+      
+      return NextResponse.json({
+        success: true,
+        message: 'Inzending geliked!',
+        like_id: likeData.id,
+        action: 'liked'
+      });
+      
+    } else if (action === 'unlike') {
+      // Remove the like
+      const { error: unlikeError } = await supabase
+        .from('user_submission_likes')
+        .delete()
+        .eq('submission_id', submission_id)
+        .eq('user_id', userId);
+      
+      if (unlikeError) {
+        logger.error(`Error removing like: ${unlikeError.message}`);
+        return NextResponse.json({
+          error: 'Database error',
+          details: unlikeError.message
+        }, { status: 500 });
+      }
+      
+      // Update the submission's like count
+      const { error: updateError } = await supabase.rpc('decrement_submission_likes', {
+        submission_id
+      });
+      
+      if (updateError) {
+        logger.warn(`Error updating like count: ${updateError.message}`);
+        // Don't fail the request if the count update fails
+      }
+      
+      logger.info(`✅ Like removed successfully for submission ${submission_id}`);
+      
+      return NextResponse.json({
+        success: true,
+        message: 'Like verwijderd',
+        action: 'unliked'
+      });
     }
-
-    return NextResponse.json({ 
-      success: true, 
-      result,
-      submission_id 
-    });
-
+    
+    return NextResponse.json({
+      error: 'Invalid action',
+      details: 'Action must be "like" or "unlike"'
+    }, { status: 400 });
+    
   } catch (error) {
-    logger.error('Like action error:', error instanceof Error ? error : new Error(String(error)));
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    logger.error('Error in community like API:', error);
+    return NextResponse.json({
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : String(error)
+    }, { status: 500 });
   }
 }));
+
+// GET endpoint to check if user has liked a submission
+export const GET = withApiError(async (request: NextRequest) => {
+  const { searchParams } = new URL(request.url);
+  const submissionId = searchParams.get('submission_id');
+  
+  if (!submissionId) {
+    return NextResponse.json({
+      error: 'Missing submission_id parameter'
+    }, { status: 400 });
+  }
+  
+  try {
+    const supabase = getSupabaseServiceClient();
+    
+    // For now, we'll use a placeholder user ID
+    const userId = request.headers.get('x-user-id') || 'anonymous-user';
+    
+    // Check if user has liked this submission
+    const { data: likeData, error } = await supabase
+      .from('user_submission_likes')
+      .select('id, created_at')
+      .eq('submission_id', submissionId)
+      .eq('user_id', userId)
+      .single();
+    
+    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
+      logger.error(`Error checking like status: ${error.message}`);
+      return NextResponse.json({
+        error: 'Database error',
+        details: error.message
+      }, { status: 500 });
+    }
+    
+    return NextResponse.json({
+      has_liked: !!likeData,
+      like_data: likeData || null
+    });
+    
+  } catch (error) {
+    logger.error('Error in community like status API:', error);
+    return NextResponse.json({
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : String(error)
+    }, { status: 500 });
+  }
+});

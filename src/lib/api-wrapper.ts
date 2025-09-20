@@ -6,7 +6,7 @@ import { captureException, isSentryEnabled } from '@/lib/sentry'
 
 type Handler = (..._args: any[]) => Promise<NextResponse>
 
-export function withZod<Schema extends ZodSchema<any>>(schema: Schema, handler: Handler): Handler {
+export function withZod<Schema extends ZodSchema<any>>(schema: Schema, handler: (req: NextRequest, validatedData: any) => Promise<NextResponse>): Handler {
   return async (...args: any[]) => {
     const req = args[0] as NextRequest
     const url = new URL(req.url)
@@ -20,7 +20,7 @@ export function withZod<Schema extends ZodSchema<any>>(schema: Schema, handler: 
       return createErrorResponse(new AppError(ErrorCode.VALIDATION_ERROR, msg, 400))
     }
 
-    return handler(...args)
+    return handler(req, parsed.data)
   }
 }
 
