@@ -112,7 +112,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({ email, password, redirect_to: '/dashboard' })
       });
 
-      if (!res.ok) {
+      if (!res.ok && res.status !== 303) {
         const body = await res.json().catch(() => ({ error: 'Inloggen mislukt. Probeer het opnieuw.' }));
         const raw = String(body?.error || 'Inloggen mislukt. Probeer het opnieuw.');
         let message = 'Inloggen mislukt. Controleer je gegevens.';

@@ -20,7 +20,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method !== 'POST') {
-    res.status(405).json({ error: 'Method Not Allowed' });
+    res.setHeader('Allow', 'POST,OPTIONS');
+    res.status(405).end('Method Not Allowed');
     return;
   }
 
@@ -64,8 +65,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const location = redirect_to || '/dashboard';
-    res.setHeader('Location', location);
-    res.status(303).end();
+    res.writeHead(303, { Location: location });
+    res.end();
   } catch (e: any) {
     res.status(500).json({ error: e?.message || 'Internal error' });
   }
