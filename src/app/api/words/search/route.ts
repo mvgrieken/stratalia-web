@@ -67,17 +67,32 @@ export const GET = withApiError(withZod(searchSchema, async (request: NextReques
       try {
         const supabase = getSupabaseServiceClient();
         
-        // Advanced search with fuzzy matching and phonetic search
-        const { data: words, error } = await supabase
+        // Full-text search (fts) across key columns with fallback to ilike
+        const { data: ftsWords, error: ftsError } = await supabase
           .from('words')
           .select('id, word, definition, example, category, difficulty')
-          .or(`word.ilike.%${normalizedQuery}%,definition.ilike.%${normalizedQuery}%,example.ilike.%${normalizedQuery}%`)
+          .or(`word.fts.${normalizedQuery},definition.fts.${normalizedQuery},example.fts.${normalizedQuery}`)
           .eq('is_active', true)
           .order('usage_frequency', { ascending: false })
           .limit(limit);
 
-        if (error) {
-          logger.warn(`Supabase search failed, using fallback: ${error instanceof Error ? error.message : String(error)}`);
+        let words = ftsWords;
+        if ((ftsError || !ftsWords || ftsWords.length === 0)) {
+          const { data: ilikeWords, error: ilikeError } = await supabase
+            .from('words')
+            .select('id, word, definition, example, category, difficulty')
+            .or(`word.ilike.%${normalizedQuery}%,definition.ilike.%${normalizedQuery}%,example.ilike.%${normalizedQuery}%`)
+            .eq('is_active', true)
+            .order('usage_frequency', { ascending: false })
+            .limit(limit);
+          if (ilikeError) {
+            logger.warn(`Supabase ilike search failed: ${ilikeError instanceof Error ? ilikeError.message : String(ilikeError)}`);
+          }
+          words = ilikeWords || [];
+        }
+
+        if (ftsError && (!words || words.length === 0)) {
+          logger.warn(`Supabase search failed, using fallback: ${ftsError instanceof Error ? ftsError.message : String(ftsError)}`);
           throw new Error('Database search failed');
         }
 
